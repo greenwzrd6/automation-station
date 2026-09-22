@@ -1,6 +1,6 @@
 ﻿namespace Automation.Core.Automations
 {
-    public sealed class Automation(
+    public sealed class AutomationRule(
         Guid id,
         string name,
         bool isEnabled,
