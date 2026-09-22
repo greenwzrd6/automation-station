@@ -1,10 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Automation.Core.Automations;
 
-namespace Automation.Application.Abstractions
+namespace Automation.Application.Abstractions;
+
+public interface IAutomationRepository
 {
-    internal class IAutomationReository
-    {
-    }
+    Task<IReadOnlyCollection<AutomationDefinition>>
+        GetEnabledByEventTypeAsync(
+            string eventType,
+            CancellationToken cancellationToken);
 }

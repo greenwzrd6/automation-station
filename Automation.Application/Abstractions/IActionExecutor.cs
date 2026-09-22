@@ -1,10 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Automation.Application.Models;
+using Automation.Core.Automations;
 
-namespace Automation.Application.Abstractions
+namespace Automation.Application.Abstractions;
+
+public interface IActionExecutor
 {
-    internal class IActionExecutor
-    {
-    }
+    Task ExecuteAsync(
+        Then then,
+        ActionContext context,
+        CancellationToken cancellationToken);
 }

@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Text.Json.Serialization;
 
-namespace Automation.Application.Contracts
-{
-    internal class PlacementCreatedPayload
-    {
-    }
-}
+namespace Automation.Application.Contracts;
+
+public sealed record PlacementCreatedPayload(
+    [property: JsonPropertyName("entityId")]
+    Guid EntityId,
+
+    [property: JsonPropertyName("columnId")]
+    Guid ColumnId);

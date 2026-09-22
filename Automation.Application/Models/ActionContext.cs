@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace Automation.Application.Models;
 
-namespace Automation.Application.Models
-{
-    internal class ActionContext
-    {
-    }
-}
+public sealed record ActionContext(
+    Guid EntityId,
+    string CausationEventId);
