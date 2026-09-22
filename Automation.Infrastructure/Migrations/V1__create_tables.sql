@@ -18,6 +18,18 @@ CREATE TABLE AutomationTriggers
         REFERENCES Automations(Id)
 );
 
+CREATE TABLE AutomationConditions
+(
+    Id UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
+    AutomationId UNIQUEIDENTIFIER NOT NULL,
+    ConditionType NVARCHAR(255) NOT NULL,
+    SourceSystem NVARCHAR(255) NULL,
+    ConfigurationJson NVARCHAR(MAX) NULL,
+    CONSTRAINT FK_AutomationConditions_Automations
+        FOREIGN KEY (AutomationId)
+        REFERENCES Automations(Id)
+);
+
 CREATE TABLE AutomationActions
 (
     Id UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
