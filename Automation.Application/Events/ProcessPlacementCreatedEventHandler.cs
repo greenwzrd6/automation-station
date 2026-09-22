@@ -8,8 +8,6 @@ namespace Automation.Application.Events;
 public sealed class ProcessPlacementCreatedEventHandler
 {
     private const string PlacementCreated = "PlacementCreated";
-    private const string EntityPlacedInColumn =
-        "EntityPlacedInColumn";
 
     private readonly IAutomationRepository _automationRepository;
     private readonly IActionExecutor _actionExecutor;
@@ -26,7 +24,10 @@ public sealed class ProcessPlacementCreatedEventHandler
         IntegrationEvent<PlacementCreatedPayload> integrationEvent,
         CancellationToken cancellationToken)
     {
-        if (integrationEvent.EventType != PlacementCreated)
+        if (!string.Equals(
+                integrationEvent.EventType,
+                PlacementCreated,
+                StringComparison.OrdinalIgnoreCase))
         {
             return;
         }
@@ -40,7 +41,7 @@ public sealed class ProcessPlacementCreatedEventHandler
         {
             if (!Matches(
                     automation.When,
-                    integrationEvent.Payload))
+                    integrationEvent))
             {
                 continue;
             }
@@ -61,13 +62,68 @@ public sealed class ProcessPlacementCreatedEventHandler
 
     private static bool Matches(
         When when,
-        PlacementCreatedPayload payload)
+        IntegrationEvent<PlacementCreatedPayload> integrationEvent)
     {
-        if (when.Type != EntityPlacedInColumn)
+        if (!string.Equals(
+                when.EventType,
+                integrationEvent.EventType,
+                StringComparison.OrdinalIgnoreCase))
         {
             return false;
         }
 
-        return when.ColumnId == payload.ColumnId;
+        if (!string.Equals(
+                when.EventSource,
+                integrationEvent.Source,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        return when.Conditions.All(
+            condition => MatchesCondition(
+                condition,
+                integrationEvent.Payload));
+    }
+
+    private static bool MatchesCondition(
+        Condition condition,
+        PlacementCreatedPayload payload)
+    {
+        return condition.Field.ToLowerInvariant() switch
+        {
+            "columnid" => MatchesGuidCondition(
+                payload.ColumnId,
+                condition),
+
+            "entityid" => MatchesGuidCondition(
+                payload.EntityId,
+                condition),
+
+            _ => false
+        };
+    }
+
+    private static bool MatchesGuidCondition(
+        Guid actualValue,
+        Condition condition)
+    {
+        if (!Guid.TryParse(
+                condition.Value,
+                out var expectedValue))
+        {
+            return false;
+        }
+
+        return condition.Operator switch
+        {
+            ConditionOperator.Equals =>
+                actualValue == expectedValue,
+
+            ConditionOperator.NotEquals =>
+                actualValue != expectedValue,
+
+            _ => false
+        };
     }
 }
