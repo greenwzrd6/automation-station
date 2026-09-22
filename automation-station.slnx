@@ -1,3 +1,6 @@
 <Solution>
+  <Project Path="Automation.Application/Automation.Application.csproj" />
+  <Project Path="Automation.Core/Automation.Core.csproj" />
+  <Project Path="Automation.Infrastructure/Automation.Infrastructure.csproj" />
   <Project Path="Automation.Worker/Automation.Worker.csproj" />
 </Solution>
