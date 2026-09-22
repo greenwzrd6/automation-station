@@ -2,6 +2,5 @@
 {
     public sealed record Then(
         string Type,
-        string Target,
-        string Value);
+        IReadOnlyDictionary<string, string> Parameters);
 }
