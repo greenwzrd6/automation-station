@@ -41,8 +41,6 @@ public sealed class ActionExecutor(
             SourceColumnId = sourceColumnId
         };
 
-        await Task.Delay(3000, cancellationToken);
-
         using var response = await httpClient.PostAsJsonAsync(
             "/api/placements/create",
             request,

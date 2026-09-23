@@ -10,4 +10,4 @@ public sealed record PlacementCreatedPayload(
     Guid ColumnId,
 
     [property: JsonPropertyName("sourceColumnId")]
-    Guid SourceColumnId);
+    Guid? SourceColumnId);
