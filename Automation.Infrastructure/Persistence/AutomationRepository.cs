@@ -1,164 +1,185 @@
-﻿//using Automation.Application.Abstractions;
-//using Automation.Core.Automations;
-//using Automation.Infrastructure.Database;
-//using Automation.Infrastructure.Persistence.Models;
-//using Dapper;
-//using System.Data.Common;
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
+using Automation.Application.Abstractions;
+using Automation.Core.Automations;
+using Automation.Infrastructure.Database;
+using Automation.Infrastructure.Persistence.Models;
+using Dapper;
 
-//namespace Automation.Infrastructure.Persistence;
+namespace Automation.Infrastructure.Persistence;
 
-//public sealed class AutomationRepository(
-//    DbConnectionFactory connectionFactory) : IAutomationRepository
-//{
-//    public async Task<IReadOnlyCollection<AutomationRule>>
-//        GetEnabledByEventTypeAsync(
-//            string eventType,
-//            CancellationToken cancellationToken)
-//    {
-//        await using var connection =
-//            connectionFactory.CreateConnection();
+public sealed class AutomationRepository(
+    DbConnectionFactory connectionFactory)
+    : IAutomationRepository
+{
+    private static readonly JsonSerializerOptions JsonOptions =
+        new(JsonSerializerDefaults.Web)
+        {
+            Converters =
+            {
+                new JsonStringEnumConverter()
+            }
+        };
 
-//        await connection.OpenAsync(cancellationToken);
+    public async Task<IReadOnlyCollection<AutomationRule>>
+        GetEnabledByEventTypeAsync(
+            string eventType,
+            CancellationToken cancellationToken)
+    {
+        const string sql = """
+            -- Automations and triggers
+            SELECT
+                a.Id AS AutomationId,
+                a.Name,
+                a.Enabled,
+                t.EventType,
+                t.SourceSystem
+            FROM Automations a
+            INNER JOIN AutomationTriggers t
+                ON t.AutomationId = a.Id
+            WHERE
+                a.Enabled = 1
+                AND t.EventType = @EventType;
 
-//        const string sql = """
-//            SELECT
-//                Id,
-//                Name,
-//                IsEnabled,
-//                EventType,
-//                EventSource
-//            FROM Automations
-//            WHERE IsEnabled = 1
-//              AND EventType = @EventType
-//            """;
+            -- Conditions
+            SELECT
+                c.AutomationId,
+                c.ConditionType,
+                c.SourceSystem,
+                c.ConfigurationJson
+            FROM AutomationConditions c
+            INNER JOIN Automations a
+                ON a.Id = c.AutomationId
+            WHERE
+                a.Enabled = 1
+                AND EXISTS
+                (
+                    SELECT 1
+                    FROM AutomationTriggers t
+                    WHERE
+                        t.AutomationId = a.Id
+                        AND t.EventType = @EventType
+                );
 
-//        var rows = await connection.QueryAsync<AutomationRow>(
-//            new CommandDefinition(
-//                sql,
-//                new { EventType = eventType },
-//                cancellationToken: cancellationToken));
+            -- Actions
+            SELECT
+                act.AutomationId,
+                act.ActionType,
+                act.TargetSystem,
+                act.ConfigurationJson,
+                act.ExecutionOrder
+            FROM AutomationActions act
+            INNER JOIN Automations a
+                ON a.Id = act.AutomationId
+            WHERE
+                a.Enabled = 1
+                AND EXISTS
+                (
+                    SELECT 1
+                    FROM AutomationTriggers t
+                    WHERE
+                        t.AutomationId = a.Id
+                        AND t.EventType = @EventType
+                )
+            ORDER BY
+                act.AutomationId,
+                act.ExecutionOrder;
+            """;
 
-//        var automations = new List<AutomationRule>();
+        await using var connection =
+            connectionFactory.CreateConnection();
 
-//        foreach (var row in rows)
-//        {
-//            var conditions = await GetConditionsAsync(
-//                connection,
-//                row.Id,
-//                cancellationToken);
+        await connection.OpenAsync(cancellationToken);
 
-//            var actions = await GetActionsAsync(
-//                connection,
-//                row.Id,
-//                cancellationToken);
+        using var result = await connection.QueryMultipleAsync(
+            new CommandDefinition(
+                sql,
+                new { EventType = eventType },
+                cancellationToken: cancellationToken));
 
-//            var when = new When(
-//                row.EventType,
-//                row.EventSource,
-//                conditions);
+        var triggers =
+            (await result.ReadAsync<TriggerRow>()).ToList();
 
-//            automations.Add(
-//                new AutomationRule(
-//                    row.Id,
-//                    row.Name,
-//                    row.IsEnabled,
-//                    when,
-//                    actions));
-//        }
+        var conditions =
+            (await result.ReadAsync<ConditionRow>()).ToList();
 
-//        return automations;
-//    }
+        var actions =
+            (await result.ReadAsync<ActionRow>()).ToList();
 
-//    private static async Task<IReadOnlyCollection<Condition>>
-//        GetConditionsAsync(
-//            DbConnection connection,
-//            Guid automationId,
-//            CancellationToken cancellationToken)
-//    {
-//        const string sql = """
-//            SELECT
-//                Field,
-//                Operator,
-//                Value
-//            FROM Conditions
-//            WHERE AutomationId = @AutomationId
-//            """;
+        var conditionsByAutomation = conditions
+            .GroupBy(condition => condition.AutomationId)
+            .ToDictionary(
+                group => group.Key,
+                group => group
+                    .Select(DeserializeCondition)
+                    .ToList());
 
-//        var rows = await connection.QueryAsync<ConditionRow>(
-//            new CommandDefinition(
-//                sql,
-//                new { AutomationId = automationId },
-//                cancellationToken: cancellationToken));
+        var actionsByAutomation = actions
+            .GroupBy(action => action.AutomationId)
+            .ToDictionary(
+                group => group.Key,
+                group => group
+                    .OrderBy(action => action.ExecutionOrder)
+                    .Select(action => new Then(
+                        action.ActionType,
+                        DeserializeParameters(action.ConfigurationJson)))
+                    .ToList());
 
-//        return rows
-//            .Select(row => new Condition(
-//                row.Field,
-//                row.Operator,
-//                row.Value))
-//            .ToList();
-//    }
+        var automations = triggers.Select(trigger =>
+        {
+            var automationConditions =
+                conditionsByAutomation.GetValueOrDefault(
+                    trigger.AutomationId) ?? [];
 
-//    private static async Task<IReadOnlyCollection<Then>>
-//        GetActionsAsync(
-//            DbConnection connection,
-//            Guid automationId,
-//            CancellationToken cancellationToken)
-//    {
-//        const string sql = """
-//            SELECT
-//                Id,
-//                Type
-//            FROM Actions
-//            WHERE AutomationId = @AutomationId
-//            ORDER BY Position
-//            """;
+            var automationActions =
+                actionsByAutomation.GetValueOrDefault(
+                    trigger.AutomationId) ?? [];
 
-//        var rows = await connection.QueryAsync<ActionRow>(
-//            new CommandDefinition(
-//                sql,
-//                new { AutomationId = automationId },
-//                cancellationToken: cancellationToken));
+            return new AutomationRule(
+                trigger.AutomationId,
+                trigger.Name,
+                trigger.Enabled,
+                new When(
+                    trigger.EventType,
+                    trigger.SourceSystem ?? "",
+                    automationConditions),
+                automationActions);
+        });
 
-//        var actions = new List<Then>();
+        return automations.ToList();
+    }
 
-//        foreach (var row in rows)
-//        {
-//            var parameters = await GetActionParametersAsync(
-//                connection,
-//                row.Id,
-//                cancellationToken);
+    private static Condition DeserializeCondition(ConditionRow row)
+    {
+        if (row.ConditionType != "ColumnEquals")
+        {
+            throw new NotSupportedException(
+                $"Unsupported condition type: {row.ConditionType}");
+        }
 
-//            actions.Add(
-//                new Then(
-//                    row.Type,
-//                    parameters));
-//        }
+        if (string.IsNullOrWhiteSpace(row.ConfigurationJson))
+        {
+            throw new InvalidOperationException(
+                "Condition configuration is missing.");
+        }
 
-//        return actions;
-//    }
+        return JsonSerializer.Deserialize<Condition>(
+            row.ConfigurationJson,
+            JsonOptions)
+            ?? throw new InvalidOperationException(
+                "Invalid condition configuration.");
+    }
 
-//    private static async Task<IReadOnlyDictionary<string, string>>
-//        GetActionParametersAsync(
-//            DbConnection connection,
-//            Guid actionId,
-//            CancellationToken cancellationToken)
-//    {
-//        const string sql = """
-//            SELECT
-//                Name,
-//                Value
-//            FROM ActionParameters
-//            WHERE ActionId = @ActionId
-//            """;
+    private static IReadOnlyDictionary<string, string>
+        DeserializeParameters(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+            return new Dictionary<string, string>();
 
-//        var rows = await connection.QueryAsync<ActionParameterRow>(
-//            new CommandDefinition(
-//                sql,
-//                new { ActionId = actionId },
-//                cancellationToken: cancellationToken));
-
-//        return rows.ToDictionary(
-//            row => row.Name,
-//            row => row.Value);
-//    }
-//}
+        return JsonSerializer.Deserialize<
+            Dictionary<string, string>>(
+                json,
+                JsonOptions)
+            ?? new Dictionary<string, string>();
+    }
+}

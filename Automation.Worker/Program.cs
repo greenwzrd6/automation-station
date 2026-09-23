@@ -1,19 +1,21 @@
 using Automation.Application.Abstractions;
 using Automation.Application.Events;
 using Automation.Infrastructure.Actions;
+using Automation.Infrastructure.Database;
 using Automation.Infrastructure.Persistence;
 using Automation.Worker;
 
 var builder = Host.CreateApplicationBuilder(args);
 
-builder.Services.AddHostedService<Worker>();
-//builder.Services.AddInfrastructure(
-//    builder.Configuration);
+// Database
+builder.Services.AddSingleton<DbConnectionFactory>();
 
-builder.Services.AddSingleton<
+// Repository
+builder.Services.AddScoped<
     IAutomationRepository,
-    InMemoryAutomationRepository>();
+    AutomationRepository>();
 
+// Action executor
 builder.Services.AddHttpClient<
     IActionExecutor,
     ActionExecutor>(client =>
@@ -24,10 +26,11 @@ builder.Services.AddHttpClient<
                 "Kanban API URL is missing."));
     });
 
+// Event handler
 builder.Services.AddTransient<
     ProcessPlacementCreatedEventHandler>();
 
+// RabbitMQ worker
 builder.Services.AddHostedService<Worker>();
 
-var host = builder.Build();
-await host.RunAsync();
+await builder.Build().RunAsync();
