@@ -16,13 +16,13 @@ public sealed class InMemoryAutomationRepository : IAutomationRepository
             isEnabled: true,
             when: new When(
                 EventType: "PlacementCreated",
-                EventSource: "Planning",
+                EventSource: "PlacementBackend",
                 Conditions:
                 [
                     new Condition(
                         Field: "columnId",
                         Operator: ConditionOperator.Equals,
-                        Value: "22222222-2222-2222-2222-222222222224")
+                        Value: "22222222-2222-2222-2222-222222222232")
                 ]),
             thens:
             [
@@ -31,10 +31,10 @@ public sealed class InMemoryAutomationRepository : IAutomationRepository
                     Parameters: new Dictionary<string, string>
                     {
                         ["boardId"] =
-                            "11111111-1111-1111-1111-111111111112",
+                            "11111111-1111-1111-1111-111111111111",
 
                         ["columnId"] =
-                            "22222222-2222-2222-2222-222222222226"
+                            "22222222-2222-2222-2222-222222222222"
                     })
             ]);
 
