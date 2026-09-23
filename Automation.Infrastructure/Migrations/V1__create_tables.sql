@@ -25,6 +25,7 @@ CREATE TABLE AutomationConditions
     ConditionType NVARCHAR(255) NOT NULL,
     SourceSystem NVARCHAR(255) NULL,
     ConfigurationJson NVARCHAR(MAX) NULL,
+
     CONSTRAINT FK_AutomationConditions_Automations
         FOREIGN KEY (AutomationId)
         REFERENCES Automations(Id)

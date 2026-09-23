@@ -1,11 +1,12 @@
 ﻿using Microsoft.Data.SqlClient;
-using System.Data;
+using Microsoft.Extensions.Configuration;
+using System.Data.Common;
 
 namespace Automation.Infrastructure.Database;
 
-public class DbConnectionFactory
+public class DbConnectionFactory(string connectionString)
 {
-    private readonly string _connectionString;
+    private readonly string _connectionString = connectionString;
 
     public DbConnectionFactory(IConfiguration configuration)
         : this(configuration.GetConnectionString("DefaultConnection")
@@ -13,12 +14,7 @@ public class DbConnectionFactory
     {
     }
 
-    public DbConnectionFactory(string connectionString)
-    {
-        _connectionString = connectionString;
-    }
-
-    public IDbConnection CreateConnection()
+    public DbConnection CreateConnection()
     {
         return new SqlConnection(_connectionString);
     }

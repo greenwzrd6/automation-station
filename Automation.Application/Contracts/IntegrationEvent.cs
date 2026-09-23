@@ -2,7 +2,7 @@
 
 namespace Automation.Application.Contracts;
 
-public sealed record IntegrationEvent<TPayload>(
+public sealed record IntegrationEvent<T>(
     [property: JsonPropertyName("eventId")]
     string EventId,
 
@@ -13,4 +13,5 @@ public sealed record IntegrationEvent<TPayload>(
     string Source,
 
     [property: JsonPropertyName("payload")]
-    TPayload Payload);
+    T Payload);
+

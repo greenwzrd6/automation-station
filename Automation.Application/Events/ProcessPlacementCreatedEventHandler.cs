@@ -5,20 +5,14 @@ using Automation.Core.Automations;
 
 namespace Automation.Application.Events;
 
-public sealed class ProcessPlacementCreatedEventHandler
+public sealed class ProcessPlacementCreatedEventHandler(
+    IAutomationRepository automationRepository,
+    IActionExecutor actionExecutor)
 {
     private const string PlacementCreated = "PlacementCreated";
 
-    private readonly IAutomationRepository _automationRepository;
-    private readonly IActionExecutor _actionExecutor;
-
-    public ProcessPlacementCreatedEventHandler(
-        IAutomationRepository automationRepository,
-        IActionExecutor actionExecutor)
-    {
-        _automationRepository = automationRepository;
-        _actionExecutor = actionExecutor;
-    }
+    private readonly IAutomationRepository _automationRepository = automationRepository;
+    private readonly IActionExecutor _actionExecutor = actionExecutor;
 
     public async Task HandleAsync(
         IntegrationEvent<PlacementCreatedPayload> integrationEvent,

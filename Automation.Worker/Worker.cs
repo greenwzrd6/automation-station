@@ -1,17 +1,36 @@
-namespace Automation.Worker
+using Automation.Application.Contracts;
+using Automation.Application.Events;
+
+namespace Automation.Worker;
+
+public sealed class Worker(
+    ProcessPlacementCreatedEventHandler handler,
+    ILogger<Worker> logger)
+    : BackgroundService
 {
-    public class Worker(ILogger<Worker> logger) : BackgroundService
+    protected override async Task ExecuteAsync(
+        CancellationToken stoppingToken)
     {
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-        {
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                if (logger.IsEnabled(LogLevel.Information))
-                {
-                    logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-                }
-                await Task.Delay(1000, stoppingToken);
-            }
-        }
+        logger.LogInformation(
+            "Automation Worker started.");
+
+        var integrationEvent =
+            new IntegrationEvent<PlacementCreatedPayload>(
+                EventId: Guid.NewGuid().ToString(),
+                EventType: "PlacementCreated",
+                Source: "Planning",
+                Payload: new PlacementCreatedPayload(
+                    EntityId: Guid.NewGuid(),
+                    ColumnId: Guid.Parse(
+                        "22222222-2222-2222-2222-222222222224")
+                )
+            );
+
+        await handler.HandleAsync(
+            integrationEvent,
+            stoppingToken);
+
+        logger.LogInformation(
+            "Automation Worker finished processing.");
     }
 }
