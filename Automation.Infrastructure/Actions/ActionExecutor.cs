@@ -25,6 +25,12 @@ public sealed class ActionExecutor(
         var columnId = Guid.Parse(
             then.Parameters["columnId"]);
 
+        var sourceColumnId = then.Parameters.TryGetValue(
+            "sourceColumnId",
+            out var sourceColumnIdString)
+            ? Guid.Parse(sourceColumnIdString)
+            : (Guid?)null;
+
         var request = new
         {
             EntityIds = new[] { context.EntityId },
@@ -32,8 +38,10 @@ public sealed class ActionExecutor(
             ColumnId = columnId,
             AfterEntityIds = Array.Empty<Guid>(),
             BeforeEntityIds = Array.Empty<Guid>(),
-            SourceColumnId = (Guid?)null
+            SourceColumnId = sourceColumnId
         };
+
+        await Task.Delay(3000, cancellationToken);
 
         using var response = await httpClient.PostAsJsonAsync(
             "/api/placements/create",
