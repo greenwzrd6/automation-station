@@ -170,16 +170,14 @@ public sealed class AutomationRepository(
                 "Invalid condition configuration.");
     }
 
-    private static IReadOnlyDictionary<string, string>
-        DeserializeParameters(string? json)
+    private static Dictionary<string, string>
+    DeserializeParameters(string? json)
     {
         if (string.IsNullOrWhiteSpace(json))
-            return new Dictionary<string, string>();
+            return [];
 
-        return JsonSerializer.Deserialize<
-            Dictionary<string, string>>(
-                json,
-                JsonOptions)
-            ?? new Dictionary<string, string>();
+        return JsonSerializer.Deserialize<Dictionary<string, string>>(
+            json,
+            JsonOptions) ?? [];
     }
 }

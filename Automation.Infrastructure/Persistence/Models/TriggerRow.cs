@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Automation.Infrastructure.Persistence.Models
+﻿namespace Automation.Infrastructure.Persistence.Models
 {
     internal sealed record TriggerRow(
         Guid AutomationId,

@@ -82,13 +82,9 @@ public sealed class Worker(
                     json);
 
                 var integrationEvent =
-                    JsonSerializer.Deserialize<
-                        IntegrationEvent<PlacementCreatedPayload>>(
-                            json,
-                            new JsonSerializerOptions
-                            {
-                                PropertyNameCaseInsensitive = true
-                            });
+                    JsonSerializer.Deserialize<IntegrationEvent<PlacementCreatedPayload>>(
+                        json,
+                        JsonSerializerOptions.Web);
 
                 if (integrationEvent is null)
                 {
