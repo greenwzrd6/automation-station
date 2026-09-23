@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="docker-compose.yml" />
+  </Folder>
   <Project Path="Automation.Application/Automation.Application.csproj" />
   <Project Path="Automation.Core/Automation.Core.csproj" />
   <Project Path="Automation.Infrastructure/Automation.Infrastructure.csproj" />
