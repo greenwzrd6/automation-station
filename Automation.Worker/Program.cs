@@ -15,9 +15,15 @@ builder.Services.AddSingleton<
     IAutomationRepository,
     InMemoryAutomationRepository>();
 
-builder.Services.AddSingleton<
+builder.Services.AddHttpClient<
     IActionExecutor,
-    ConsoleActionExecutor>();
+    HttpActionExecutor>(client =>
+    {
+        client.BaseAddress = new Uri(
+            builder.Configuration["KanbanApi:BaseUrl"]
+            ?? throw new InvalidOperationException(
+                "Kanban API URL is missing."));
+    });
 
 builder.Services.AddTransient<
     ProcessPlacementCreatedEventHandler>();

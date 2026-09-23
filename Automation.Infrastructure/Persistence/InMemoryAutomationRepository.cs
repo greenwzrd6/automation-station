@@ -12,7 +12,7 @@ public sealed class InMemoryAutomationRepository : IAutomationRepository
     {
         var automation = new AutomationRule(
             id: Guid.NewGuid(),
-            name: "Move to testing",
+            name: "Move to To Do From Released",
             isEnabled: true,
             when: new When(
                 EventType: "PlacementCreated",

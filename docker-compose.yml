@@ -1,4 +1,48 @@
 services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: automation-sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "Password123!"
+    ports:
+      - "1435:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'Password123!' -C -Q 'SELECT 1' -b -o /dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+    restart: unless-stopped
+
+  create-db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: automation-create-db
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    entrypoint: ["/opt/mssql-tools18/bin/sqlcmd"]
+    command: ["-S", "sqlserver", "-U", "sa", "-P", "Password123!", "-C", "-Q", "IF DB_ID('AutomationDb') IS NULL CREATE DATABASE AutomationDb"]
+    restart: "no"
+  
+  flyway:
+    image: flyway/flyway:13
+    container_name: automation-flyway
+    depends_on:
+      create-db:
+        condition: service_completed_successfully
+    volumes:
+      - ./Automation.Infrastructure/Migrations:/flyway/migrations
+    command:
+      - -locations=filesystem:/flyway/migrations
+      - -url=jdbc:sqlserver://sqlserver:1433;databaseName=AutomationDb;encrypt=true;trustServerCertificate=true
+      - -user=sa
+      - -password=Password123!
+      - migrate
+    restart: "no"
+  
   rabbitmq:
     image: rabbitmq:4-management
     container_name: kanban-rabbitmq
@@ -15,4 +59,5 @@ services:
       - rabbitmq_data:/var/lib/rabbitmq
 
 volumes:
+  sqlserver-data:
   rabbitmq_data:
