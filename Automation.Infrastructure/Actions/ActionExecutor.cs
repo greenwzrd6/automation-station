@@ -5,7 +5,7 @@ using Automation.Core.Automations;
 
 namespace Automation.Infrastructure.Actions;
 
-public sealed class HttpActionExecutor(
+public sealed class ActionExecutor(
     HttpClient httpClient) : IActionExecutor
 {
     public async Task ExecuteAsync(

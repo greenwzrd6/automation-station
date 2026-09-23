@@ -1,6 +1,5 @@
 using Automation.Application.Abstractions;
 using Automation.Application.Events;
-using Automation.Infrastructure;
 using Automation.Infrastructure.Actions;
 using Automation.Infrastructure.Persistence;
 using Automation.Worker;
@@ -17,7 +16,7 @@ builder.Services.AddSingleton<
 
 builder.Services.AddHttpClient<
     IActionExecutor,
-    HttpActionExecutor>(client =>
+    ActionExecutor>(client =>
     {
         client.BaseAddress = new Uri(
             builder.Configuration["KanbanApi:BaseUrl"]
