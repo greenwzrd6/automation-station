@@ -1,6 +1,8 @@
 ﻿namespace Automation.Infrastructure.Integrations.Planning;
 
 public sealed record CreatePlacementRequest(
-    Guid EntityId,
+    IReadOnlyCollection<Guid> EntityIds,
     Guid BoardId,
-    Guid ColumnId);
+    Guid ColumnId,
+    IReadOnlyCollection<Guid> AfterEntityIds,
+    IReadOnlyCollection<Guid> BeforeEntityIds);
