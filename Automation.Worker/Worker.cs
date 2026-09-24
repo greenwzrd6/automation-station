@@ -62,6 +62,12 @@ public sealed class Worker(
             routingKey: "placement.created",
             cancellationToken: stoppingToken);
 
+        await channel.QueueBindAsync(
+            queue: queue,
+            exchange: exchange,
+            routingKey: "column.no-edge",
+            cancellationToken: stoppingToken);
+
         await channel.BasicQosAsync(
             prefetchSize: 0,
             prefetchCount: 1,
@@ -81,26 +87,34 @@ public sealed class Worker(
                     "Received RabbitMQ message: {Message}",
                     json);
 
-                var integrationEvent =
-                    JsonSerializer.Deserialize<IntegrationEvent<PlacementCreatedPayload>>(
-                        json,
-                        JsonSerializerOptions.Web);
+                using var document = JsonDocument.Parse(json);
 
-                if (integrationEvent is null)
-                {
-                    throw new JsonException(
-                        "Could not deserialize integration event.");
-                }
+                var eventType = document.RootElement
+                    .GetProperty("eventType")
+                    .GetString();
 
                 using var scope = scopeFactory.CreateScope();
 
-                var handler = scope.ServiceProvider
-                    .GetRequiredService<
-                        ProcessPlacementCreatedEventHandler>();
+                switch (eventType)
+                {
+                    case "PlacementCreated":
+                        await HandlePlacementCreatedAsync(
+                            json,
+                            scope.ServiceProvider,
+                            stoppingToken);
+                        break;
 
-                await handler.HandleAsync(
-                    integrationEvent,
-                    stoppingToken);
+                    case "ColumnHasNoEdge":
+                        await HandleColumnHasNoEdgeAsync(
+                            json,
+                            scope.ServiceProvider,
+                            stoppingToken);
+                        break;
+
+                    default:
+                        throw new NotSupportedException(
+                            $"Unsupported event type: {eventType}");
+                }
 
                 await channel.BasicAckAsync(
                     args.DeliveryTag,
@@ -108,8 +122,8 @@ public sealed class Worker(
                     cancellationToken: stoppingToken);
 
                 logger.LogInformation(
-                    "Successfully processed event {EventId}",
-                    integrationEvent.EventId);
+                    "Successfully processed event type {EventType}",
+                    eventType);
             }
             catch (OperationCanceledException)
                 when (stoppingToken.IsCancellationRequested)
@@ -137,12 +151,56 @@ public sealed class Worker(
             cancellationToken: stoppingToken);
 
         logger.LogInformation(
-            "Listening for placement events...");
-
-
+            "Listening for integration events...");
 
         await Task.Delay(
             Timeout.Infinite,
             stoppingToken);
+    }
+
+    //Move out of worker later
+    private static async Task HandlePlacementCreatedAsync(
+    string json,
+    IServiceProvider serviceProvider,
+    CancellationToken cancellationToken)
+    {
+        var integrationEvent =
+            JsonSerializer.Deserialize<
+                IntegrationEvent<PlacementCreatedPayload>>(
+                    json,
+                    JsonSerializerOptions.Web)
+            ?? throw new JsonException(
+                "Could not deserialize PlacementCreated event.");
+
+        var handler = serviceProvider
+            .GetRequiredService<
+                ProcessPlacementCreatedEventHandler>();
+
+        await handler.HandleAsync(
+            integrationEvent,
+            cancellationToken);
+    }
+
+    //Move out of worker later
+    private static async Task HandleColumnHasNoEdgeAsync(
+    string json,
+    IServiceProvider serviceProvider,
+    CancellationToken cancellationToken)
+    {
+        var integrationEvent =
+            JsonSerializer.Deserialize<
+                IntegrationEvent<ColumnHasNoEdgePayload>>(
+                    json,
+                    JsonSerializerOptions.Web)
+            ?? throw new JsonException(
+                "Could not deserialize ColumnHasNoEdge event.");
+
+        var handler = serviceProvider
+            .GetRequiredService<
+                ProcessColumnHasNoEdgeEventHandler>();
+
+        await handler.HandleAsync(
+            integrationEvent,
+            cancellationToken);
     }
 }

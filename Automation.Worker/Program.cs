@@ -1,5 +1,6 @@
 using Automation.Application.Abstractions;
 using Automation.Application.Events;
+using Automation.Application.Models;
 using Automation.Infrastructure.Actions;
 using Automation.Infrastructure.Actions.Executors;
 using Automation.Infrastructure.Database;
@@ -23,8 +24,12 @@ builder.Services.AddScoped<
     ActionExecutor>();
 
 builder.Services.AddScoped<
-    IActionHandler,
+    IActionHandler<PlacementActionContext>,
     CreatePlacementExecutor>();
+
+builder.Services.AddScoped<
+    IActionHandler<ColumnActionContext>,
+    CreateColumnEdgeExecutor>();
 
 builder.Services.AddHttpClient<PlanningClient>(
     client =>
@@ -40,6 +45,9 @@ builder.Services.AddHttpClient<PlanningClient>(
 // Event handler
 builder.Services.AddTransient<
     ProcessPlacementCreatedEventHandler>();
+
+builder.Services.AddTransient<
+    ProcessColumnHasNoEdgeEventHandler>();
 
 // RabbitMQ worker
 builder.Services.AddHostedService<Worker>();

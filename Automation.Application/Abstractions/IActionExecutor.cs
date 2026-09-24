@@ -1,12 +1,12 @@
-﻿using Automation.Application.Models;
-using Automation.Core.Automations;
+﻿using Automation.Core.Automations;
 
 namespace Automation.Application.Abstractions;
 
 public interface IActionExecutor
 {
-    Task ExecuteAsync(
+    Task ExecuteAsync<T>(
         Then then,
-        ActionContext context,
-        CancellationToken cancellationToken);
+        T context,
+        CancellationToken cancellationToken)
+        where T : IActionContext;
 }

@@ -1,7 +1,7 @@
 services:
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: automation-sqlserver
+    container_name: automation-station-sqlserver
     environment:
       ACCEPT_EULA: "Y"
       MSSQL_SA_PASSWORD: "Password123!"
@@ -19,17 +19,17 @@ services:
 
   create-db:
     image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: automation-create-db
+    container_name: automation-station-create-db
     depends_on:
       sqlserver:
         condition: service_healthy
     entrypoint: ["/opt/mssql-tools18/bin/sqlcmd"]
-    command: ["-S", "sqlserver", "-U", "sa", "-P", "Password123!", "-C", "-Q", "IF DB_ID('AutomationDb') IS NULL CREATE DATABASE AutomationDb"]
+    command: ["-S", "sqlserver", "-U", "sa", "-P", "Password123!", "-C", "-Q", "IF DB_ID('AutomationStationDb') IS NULL CREATE DATABASE AutomationStationDb"]
     restart: "no"
   
   flyway:
     image: flyway/flyway:13
-    container_name: automation-flyway
+    container_name: automation-station-flyway
     depends_on:
       create-db:
         condition: service_completed_successfully
@@ -37,7 +37,7 @@ services:
       - ./Automation.Infrastructure/Migrations:/flyway/migrations
     command:
       - -locations=filesystem:/flyway/migrations
-      - -url=jdbc:sqlserver://sqlserver:1433;databaseName=AutomationDb;encrypt=true;trustServerCertificate=true
+      - -url=jdbc:sqlserver://sqlserver:1433;databaseName=AutomationStationDb;encrypt=true;trustServerCertificate=true
       - -user=sa
       - -password=Password123!
       - migrate

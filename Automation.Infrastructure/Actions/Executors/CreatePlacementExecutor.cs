@@ -6,13 +6,13 @@ namespace Automation.Infrastructure.Actions.Executors;
 
 public sealed class CreatePlacementExecutor(
     PlanningClient planningClient)
-    : IActionHandler
+    : IActionHandler<PlacementActionContext>
 {
     public string ActionType => "CreatePlacement";
 
     public async Task ExecuteAsync(
         Then then,
-        ActionContext context,
+        PlacementActionContext context,
         CancellationToken cancellationToken)
     {
         var boardId = Guid.Parse(

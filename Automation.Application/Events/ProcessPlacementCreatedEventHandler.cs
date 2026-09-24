@@ -40,7 +40,7 @@ public sealed class ProcessPlacementCreatedEventHandler(
                 continue;
             }
 
-            var context = new ActionContext(
+            var context = new PlacementActionContext(
                 EntityId: integrationEvent.Payload.EntityId,
                 CausationEventId: integrationEvent.EventId);
 
