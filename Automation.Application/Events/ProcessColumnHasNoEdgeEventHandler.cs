@@ -1,6 +1,7 @@
 ﻿using Automation.Application.Abstractions;
 using Automation.Application.Contracts;
 using Automation.Application.Models;
+using Automation.Core.Automations;
 
 namespace Automation.Application.Events
 {
@@ -47,6 +48,29 @@ namespace Automation.Application.Events
                         cancellationToken);
                 }
             }
+        }
+
+        private static bool Matches(
+            When when,
+            IntegrationEvent<ColumnHasNoEdgePayload> integrationEvent)
+        {
+            if (!string.Equals(
+                    when.EventType,
+                    integrationEvent.EventType,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            if (!string.Equals(
+                    when.EventSource,
+                    integrationEvent.Source,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }

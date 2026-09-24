@@ -6,7 +6,7 @@ namespace Automation.Infrastructure.Actions.Executors;
 
 public sealed class CreatePlacementExecutor(
     PlanningClient planningClient)
-    : IActionHandler
+    : IActionHandler<PlacementActionContext>
 {
     public string ActionType => "CreatePlacement";
 

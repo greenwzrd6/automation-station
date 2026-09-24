@@ -1,25 +1,30 @@
 ﻿using Automation.Application.Abstractions;
-using Automation.Application.Models;
 using Automation.Core.Automations;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Automation.Infrastructure.Actions;
 
 public sealed class ActionExecutor(
-    IEnumerable<IActionHandler> handlers)
+    IServiceProvider serviceProvider)
     : IActionExecutor
 {
-    public async Task ExecuteAsync(
+    public async Task ExecuteAsync<T>(
         Then then,
-        PlacementActionContext context,
+        T context,
         CancellationToken cancellationToken)
+        where T : IActionContext
     {
+        var handlers = serviceProvider.GetServices<IActionHandler<T>>();
+
         var handler = handlers.SingleOrDefault(
-            x => x.ActionType == then.Type);
+            h => h.ActionType == then.Type);
+
 
         if (handler is null)
         {
             throw new NotSupportedException(
-                $"Unsupported action type: {then.Type}");
+                $"Unsupported action type: '{then.Type}' " +
+                $"for context '{typeof(T).Name}'");
         }
 
         await handler.ExecuteAsync(

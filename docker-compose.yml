@@ -24,7 +24,7 @@ services:
       sqlserver:
         condition: service_healthy
     entrypoint: ["/opt/mssql-tools18/bin/sqlcmd"]
-    command: ["-S", "sqlserver", "-U", "sa", "-P", "Password123!", "-C", "-Q", "IF DB_ID('AutomationStationDb') IS NULL CREATE DATABASE AutomationDb"]
+    command: ["-S", "sqlserver", "-U", "sa", "-P", "Password123!", "-C", "-Q", "IF DB_ID('AutomationStationDb') IS NULL CREATE DATABASE AutomationStationDb"]
     restart: "no"
   
   flyway:

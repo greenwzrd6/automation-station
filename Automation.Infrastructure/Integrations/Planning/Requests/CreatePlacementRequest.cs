@@ -1,4 +1,4 @@
-﻿namespace Automation.Infrastructure.Integrations.Planning;
+﻿namespace Automation.Infrastructure.Integrations.Planning.Requests;
 
 public sealed record CreatePlacementRequest(
     IReadOnlyCollection<Guid> EntityIds,
