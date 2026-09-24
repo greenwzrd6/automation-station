@@ -7,6 +7,6 @@ public interface IActionExecutor
 {
     Task ExecuteAsync(
         Then then,
-        ActionContext context,
+        PlacementActionContext context,
         CancellationToken cancellationToken);
 }

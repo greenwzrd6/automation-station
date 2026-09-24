@@ -62,6 +62,12 @@ public sealed class Worker(
             routingKey: "placement.created",
             cancellationToken: stoppingToken);
 
+        await channel.QueueBindAsync(
+            queue: queue,
+            exchange: exchange,
+            routingKey: "column.no-edge",
+            cancellationToken: stoppingToken);
+
         await channel.BasicQosAsync(
             prefetchSize: 0,
             prefetchCount: 1,

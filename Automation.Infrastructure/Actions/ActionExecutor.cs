@@ -10,7 +10,7 @@ public sealed class ActionExecutor(
 {
     public async Task ExecuteAsync(
         Then then,
-        ActionContext context,
+        PlacementActionContext context,
         CancellationToken cancellationToken)
     {
         if (then.Type != "CreatePlacement")

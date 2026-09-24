@@ -12,7 +12,7 @@ public sealed class CreatePlacementExecutor(
 
     public async Task ExecuteAsync(
         Then then,
-        ActionContext context,
+        PlacementActionContext context,
         CancellationToken cancellationToken)
     {
         var boardId = Guid.Parse(
