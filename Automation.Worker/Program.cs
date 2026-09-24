@@ -4,7 +4,7 @@ using Automation.Application.Models;
 using Automation.Infrastructure.Actions;
 using Automation.Infrastructure.Actions.Executors;
 using Automation.Infrastructure.Database;
-using Automation.Infrastructure.Integrations.Planning;
+using Automation.Infrastructure.Integrations.Kanban;
 using Automation.Infrastructure.Persistence;
 using Automation.Worker;
 
@@ -31,7 +31,7 @@ builder.Services.AddScoped<
     IActionHandler<ColumnActionContext>,
     CreateColumnEdgeExecutor>();
 
-builder.Services.AddHttpClient<PlanningClient>(
+builder.Services.AddHttpClient<KanbanClient>(
     client =>
     {
         var baseUrl =
