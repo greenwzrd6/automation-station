@@ -1,7 +1,9 @@
 using Automation.Application.Abstractions;
 using Automation.Application.Events;
 using Automation.Infrastructure.Actions;
+using Automation.Infrastructure.Actions.Executors;
 using Automation.Infrastructure.Database;
+using Automation.Infrastructure.Integrations.Planning;
 using Automation.Infrastructure.Persistence;
 using Automation.Worker;
 
@@ -16,14 +18,23 @@ builder.Services.AddScoped<
     AutomationRepository>();
 
 // Action executor
-builder.Services.AddHttpClient<
+builder.Services.AddScoped<
     IActionExecutor,
-    ActionExecutor>(client =>
+    ActionExecutor>();
+
+builder.Services.AddScoped<
+    IActionHandler,
+    CreatePlacementExecutor>();
+
+builder.Services.AddHttpClient<PlanningClient>(
+    client =>
     {
-        client.BaseAddress = new Uri(
+        var baseUrl =
             builder.Configuration["KanbanApi:BaseUrl"]
             ?? throw new InvalidOperationException(
-                "Kanban API URL is missing."));
+                "Kanban API URL is missing.");
+
+        client.BaseAddress = new Uri(baseUrl);
     });
 
 // Event handler

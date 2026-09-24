@@ -1,51 +1,30 @@
-﻿using System.Net.Http.Json;
-using Automation.Application.Abstractions;
+﻿using Automation.Application.Abstractions;
 using Automation.Application.Models;
 using Automation.Core.Automations;
 
 namespace Automation.Infrastructure.Actions;
 
 public sealed class ActionExecutor(
-    HttpClient httpClient) : IActionExecutor
+    IEnumerable<IActionHandler> handlers)
+    : IActionExecutor
 {
     public async Task ExecuteAsync(
         Then then,
         PlacementActionContext context,
         CancellationToken cancellationToken)
     {
-        if (then.Type != "CreatePlacement")
+        var handler = handlers.SingleOrDefault(
+            x => x.ActionType == then.Type);
+
+        if (handler is null)
         {
             throw new NotSupportedException(
-                $"Unsupported action: {then.Type}");
+                $"Unsupported action type: {then.Type}");
         }
 
-        var boardId = Guid.Parse(
-            then.Parameters["boardId"]);
-
-        var columnId = Guid.Parse(
-            then.Parameters["columnId"]);
-
-        var sourceColumnId = then.Parameters.TryGetValue(
-            "sourceColumnId",
-            out var sourceColumnIdString)
-            ? Guid.Parse(sourceColumnIdString)
-            : (Guid?)null;
-
-        var request = new
-        {
-            EntityIds = new[] { context.EntityId },
-            BoardId = boardId,
-            ColumnId = columnId,
-            AfterEntityIds = Array.Empty<Guid>(),
-            BeforeEntityIds = Array.Empty<Guid>(),
-            SourceColumnId = sourceColumnId
-        };
-
-        using var response = await httpClient.PostAsJsonAsync(
-            "/api/placements/create",
-            request,
+        await handler.ExecuteAsync(
+            then,
+            context,
             cancellationToken);
-
-        response.EnsureSuccessStatusCode();
     }
 }
