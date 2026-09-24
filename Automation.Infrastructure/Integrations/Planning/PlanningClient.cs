@@ -13,13 +13,15 @@ public sealed class PlanningClient(
         CancellationToken cancellationToken)
     {
         var request = new CreatePlacementRequest(
-            entityId,
-            boardId,
-            columnId);
+            EntityIds: [entityId],
+            BoardId: boardId,
+            ColumnId: columnId,
+            AfterEntityIds: [],
+            BeforeEntityIds: []);
 
         using var message = new HttpRequestMessage(
             HttpMethod.Post,
-            "api/placements/create")
+            "/api/placements/create")
         {
             Content = JsonContent.Create(request)
         };
