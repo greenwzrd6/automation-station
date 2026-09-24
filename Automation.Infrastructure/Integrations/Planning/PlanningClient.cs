@@ -65,4 +65,32 @@ public sealed class PlanningClient(
 
         response.EnsureSuccessStatusCode();
     }
+
+    public async Task PublishRandomWordAsync(
+    string word,
+    string definition,
+    string causationEventId,
+    CancellationToken cancellationToken)
+    {
+        var request = new PublishRandomWordRequest(
+            word,
+            definition);
+
+        using var message = new HttpRequestMessage(
+            HttpMethod.Post,
+            "/api/randomword")
+        {
+            Content = JsonContent.Create(request)
+        };
+
+        message.Headers.Add(
+            "Idempotency-Key",
+            causationEventId);
+
+        using var response = await httpClient.SendAsync(
+            message,
+            cancellationToken);
+
+        response.EnsureSuccessStatusCode();
+    }
 }

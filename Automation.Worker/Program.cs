@@ -5,6 +5,7 @@ using Automation.Infrastructure.Actions;
 using Automation.Infrastructure.Actions.Executors;
 using Automation.Infrastructure.Database;
 using Automation.Infrastructure.Integrations.Planning;
+using Automation.Infrastructure.Integrations.Word;
 using Automation.Infrastructure.Persistence;
 using Automation.Worker;
 
@@ -28,6 +29,10 @@ builder.Services.AddScoped<
     CreatePlacementExecutor>();
 
 builder.Services.AddScoped<
+    IActionHandler<PlacementActionContext>,
+    GetRandomWordExecutor>();
+
+builder.Services.AddScoped<
     IActionHandler<ColumnActionContext>,
     CreateColumnEdgeExecutor>();
 
@@ -38,6 +43,17 @@ builder.Services.AddHttpClient<PlanningClient>(
             builder.Configuration["KanbanApi:BaseUrl"]
             ?? throw new InvalidOperationException(
                 "Kanban API URL is missing.");
+
+        client.BaseAddress = new Uri(baseUrl);
+    });
+
+builder.Services.AddHttpClient<WordClient>(
+    client =>
+    {
+        var baseUrl =
+            builder.Configuration["WordApi:BaseUrl"]
+            ?? throw new InvalidOperationException(
+                "Word API URL is missing.");
 
         client.BaseAddress = new Uri(baseUrl);
     });
