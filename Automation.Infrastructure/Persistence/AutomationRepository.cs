@@ -12,6 +12,7 @@ public sealed class AutomationRepository(
     DbConnectionFactory connectionFactory)
     : IAutomationRepository
 {
+
     private static readonly JsonSerializerOptions JsonOptions =
         new(JsonSerializerDefaults.Web)
         {

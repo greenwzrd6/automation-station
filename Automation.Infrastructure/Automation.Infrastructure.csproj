@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Automation.Application\Automation.Application.csproj" />
+    <ProjectReference Include="..\Automation.Core\Automation.Core.csproj" />
   </ItemGroup>
 
 </Project>

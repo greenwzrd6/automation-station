@@ -44,3 +44,14 @@ CREATE TABLE AutomationActions
         FOREIGN KEY (AutomationId)
         REFERENCES Automations(Id)
 );
+
+CREATE TABLE AutomationHistory
+(
+    Id UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
+    AutomationId UNIQUEIDENTIFIER NOT NULL,
+    TriggeredAt DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+
+    CONSTRAINT FK_AutomationHistory_Automations
+        FOREIGN KEY (AutomationId)
+        REFERENCES Automations(Id)
+);

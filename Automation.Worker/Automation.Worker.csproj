@@ -13,6 +13,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Automation.Infrastructure\Automation.Infrastructure.csproj" />
+    <ProjectReference Include="..\Automation.Application\Automation.Application.csproj" />
   </ItemGroup>
 </Project>

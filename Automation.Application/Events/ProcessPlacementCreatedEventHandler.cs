@@ -7,11 +7,13 @@ namespace Automation.Application.Events;
 
 public sealed class ProcessPlacementCreatedEventHandler(
     IAutomationRepository automationRepository,
+    IHistoryRepository historyRepository,
     IActionExecutor actionExecutor)
 {
     private const string PlacementCreated = "PlacementCreated";
 
     private readonly IAutomationRepository _automationRepository = automationRepository;
+    private readonly IHistoryRepository _historyRepository = historyRepository;
     private readonly IActionExecutor _actionExecutor = actionExecutor;
 
     public async Task HandleAsync(
@@ -36,6 +38,18 @@ public sealed class ProcessPlacementCreatedEventHandler(
             if (!Matches(
                     automation.When,
                     integrationEvent))
+            {
+                continue;
+            }
+
+            await _historyRepository.CreateAutomationTimestampAsync(automation.Id, cancellationToken);
+
+            var canBeExecuted = await _historyRepository.HasTriggeredSinceAsync(
+                    automation.Id,
+                    DateTime.UtcNow.AddMilliseconds(-3000),
+                    cancellationToken);
+
+            if (!canBeExecuted)
             {
                 continue;
             }
