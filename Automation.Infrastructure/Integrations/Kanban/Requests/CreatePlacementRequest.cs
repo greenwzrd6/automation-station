@@ -1,4 +1,4 @@
-﻿namespace Automation.Infrastructure.Integrations.Planning.Requests;
+﻿namespace Automation.Infrastructure.Integrations.Kanban.Requests;
 
 public sealed record CreatePlacementRequest(
     IReadOnlyCollection<Guid> EntityIds,

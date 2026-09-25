@@ -1,11 +1,11 @@
 ﻿using Automation.Application.Models;
 using Automation.Core.Automations;
-using Automation.Infrastructure.Integrations.Planning;
+using Automation.Infrastructure.Integrations.Kanban;
 
 namespace Automation.Infrastructure.Actions.Executors
 {
     public sealed class CreateColumnEdgeExecutor(
-        PlanningClient planningClient)
+        KanbanClient planningClient)
         : IActionHandler<ColumnActionContext>
     {
         public string ActionType => "CreateColumnEdge";

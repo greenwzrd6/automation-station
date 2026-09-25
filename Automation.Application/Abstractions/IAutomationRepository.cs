@@ -4,7 +4,7 @@ namespace Automation.Application.Abstractions;
 
 public interface IAutomationRepository
 {
-    Task<IReadOnlyCollection<AutomationRule>>
+    Task<IReadOnlyCollection<Core.Automations.AutomationRule>>
         GetEnabledByEventTypeAsync(
             string eventType,
             CancellationToken cancellationToken);

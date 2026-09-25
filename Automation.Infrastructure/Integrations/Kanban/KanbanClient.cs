@@ -1,9 +1,9 @@
-﻿using Automation.Infrastructure.Integrations.Planning.Requests;
+﻿using Automation.Infrastructure.Integrations.Kanban.Requests;
 using System.Net.Http.Json;
 
-namespace Automation.Infrastructure.Integrations.Planning;
+namespace Automation.Infrastructure.Integrations.Kanban;
 
-public sealed class PlanningClient(
+public sealed class KanbanClient(
     HttpClient httpClient)
 {
     public async Task CreatePlacementAsync(
