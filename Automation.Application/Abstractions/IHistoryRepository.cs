@@ -9,7 +9,7 @@ namespace Automation.Application.Abstractions
             Guid AutomationId,
             CancellationToken cancellationToken);
 
-        Task<bool> HasTriggeredSinceAsync(
+        Task<DateTime?> HasTriggeredSinceAsync(
             Guid AutomationId,
             DateTime since,
             CancellationToken cancellationToken);

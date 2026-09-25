@@ -18,6 +18,10 @@ builder.Services.AddScoped<
     IAutomationRepository,
     AutomationRepository>();
 
+builder.Services.AddScoped<
+    IHistoryRepository,
+    HistoryRepository>();
+
 // Action executor
 builder.Services.AddScoped<
     IActionExecutor,

@@ -1,4 +1,4 @@
-﻿using Automation.Infrastructure.Integrations.Planning.Requests;
+﻿using Automation.Infrastructure.Integrations.Kanban.Requests;
 using System.Net.Http.Json;
 
 namespace Automation.Infrastructure.Integrations.Kanban;

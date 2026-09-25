@@ -42,28 +42,25 @@ public sealed class ProcessPlacementCreatedEventHandler(
                 continue;
             }
 
-            await _historyRepository.CreateAutomationTimestampAsync(automation.Id, cancellationToken);
-
-            var canBeExecuted = await _historyRepository.HasTriggeredSinceAsync(
+            var ts = DateTime.UtcNow;
+            var lastExecution = await _historyRepository.HasTriggeredSinceAsync(
                     automation.Id,
-                    DateTime.UtcNow.AddMilliseconds(-3000),
+                    ts,
                     cancellationToken);
 
-            if (!canBeExecuted)
-            {
-                continue;
-            }
+            if (!lastExecution.HasValue || (lastExecution.Value.AddMilliseconds(3000) <= ts)) {
+                var context = new PlacementActionContext(
+                    EntityId: integrationEvent.Payload.EntityId,
+                    CausationEventId: integrationEvent.EventId);
+                await _historyRepository.CreateAutomationTimestampAsync(automation.Id, cancellationToken);
+                foreach (var then in automation.Thens)
+                {
 
-            var context = new PlacementActionContext(
-                EntityId: integrationEvent.Payload.EntityId,
-                CausationEventId: integrationEvent.EventId);
-
-            foreach (var then in automation.Thens)
-            {
-                await _actionExecutor.ExecuteAsync(
-                    then,
-                    context,
-                    cancellationToken);
+                    await _actionExecutor.ExecuteAsync(
+                        then,
+                        context,
+                        cancellationToken);
+                }
             }
         }
     }

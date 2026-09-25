@@ -17,12 +17,13 @@ public sealed class HistoryRepository(
         using var connection = _connectionFactory.CreateConnection();
 
         const string sql = """
-                INSERT INTO AutomationHistory (AutomationId, TriggeredAt) 
-                VALUES (@AutomationId, @TriggeredAt)
+                INSERT INTO AutomationHistory (Id, AutomationId, TriggeredAt) 
+                VALUES (@Id, @AutomationId, @TriggeredAt)
                 """;
 
         var parameters = new
         {
+            Id = Guid.NewGuid(),
             AutomationId,
             TriggeredAt = DateTime.UtcNow
         };
@@ -36,7 +37,7 @@ public sealed class HistoryRepository(
                 cancellationToken: cancellationToken));
     }
 
-    public async Task<bool> HasTriggeredSinceAsync(
+    public async Task<DateTime?> HasTriggeredSinceAsync(
         Guid AutomationId,
         DateTime since,
         CancellationToken cancellationToken)
@@ -44,17 +45,12 @@ public sealed class HistoryRepository(
         using var connection = _connectionFactory.CreateConnection();
 
         const string sql = """
-            SELECT CAST(
-                CASE WHEN EXISTS (
-                    SELECT 1
+
+                    SELECT top 1 TriggeredAt
                     FROM AutomationHistory
                     WHERE AutomationId = @AutomationId
-                     AND TriggeredAt >= @Since
-                )
-                THEN 1
-                ELSE 0
-                END
-            AS BIT)
+                     Order by TriggeredAt DESC
+
         """;
 
         var parameters = new 
@@ -64,7 +60,7 @@ public sealed class HistoryRepository(
 
         await connection.OpenAsync(cancellationToken);
 
-        return await connection.ExecuteScalarAsync<bool>(
+        return await connection.QueryFirstAsync<DateTime?>(
             new CommandDefinition(
                 sql,
                 parameters,
