@@ -4,7 +4,10 @@ namespace AutomationStation.Application.Contracts;
 
 public sealed record IntegrationEvent<T>(
     [property: JsonPropertyName("eventId")]
-    string EventId,
+    Guid EventId,
+
+    [property: JsonPropertyName("causationEventId")]
+    Guid? CausationEventId,
 
     [property: JsonPropertyName("eventType")]
     string EventType,
