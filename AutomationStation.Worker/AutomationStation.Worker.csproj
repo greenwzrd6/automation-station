@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-AutomationStation.Worker-1211a618-2cf4-47ce-a8db-cff5abc05e7f</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.12" />
+    <PackageReference Include="RabbitMQ.Client" Version="7.2.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AutomationStation.Application\AutomationStation.Application.csproj" />
+    <ProjectReference Include="..\AutomationStation.Core\AutomationStation.Core.csproj" />
+    <ProjectReference Include="..\AutomationStation.Infrastructure\AutomationStation.Infrastructure.csproj" />
+    <ProjectReference Include="..\AutomationStation.Application\AutomationStation.Application.csproj" />
+    <ProjectReference Include="..\AutomationStation.Core\AutomationStation.Core.csproj" />
+    <ProjectReference Include="..\AutomationStation.Infrastructure\AutomationStation.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

@@ -34,7 +34,7 @@ services:
       create-db:
         condition: service_completed_successfully
     volumes:
-      - ./Automation.Infrastructure/Migrations:/flyway/migrations
+      - ./AutomationStation.Infrastructure/Migrations:/flyway/migrations
     command:
       - -locations=filesystem:/flyway/migrations
       - -url=jdbc:sqlserver://sqlserver:1433;databaseName=AutomationStationDb;encrypt=true;trustServerCertificate=true
