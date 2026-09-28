@@ -33,6 +33,7 @@ public sealed class AutomationRepository(
                 a.Id AS AutomationId,
                 a.Name,
                 a.Enabled,
+                a.AutomationTriggerable,
                 t.EventType,
                 t.SourceSystem
             FROM Automations a
@@ -98,16 +99,25 @@ public sealed class AutomationRepository(
                 new { EventType = eventType },
                 cancellationToken: cancellationToken));
 
-        var triggers =
+        var automationRows =
+            (await result.ReadAsync<AutomationRow>()).ToList();
+
+        var triggerRows =
             (await result.ReadAsync<TriggerRow>()).ToList();
 
-        var conditions =
+        var conditionRows =
             (await result.ReadAsync<ConditionRow>()).ToList();
 
-        var actions =
+        var actionRows =
             (await result.ReadAsync<ActionRow>()).ToList();
 
-        var conditionsByAutomation = conditions
+        var triggersByAutomation = triggerRows
+            .GroupBy(trigger => trigger.AutomationId)
+            .ToDictionary(
+                group => group.Key,
+                group => group.ToList());
+
+        var conditionsByAutomation = conditionRows
             .GroupBy(condition => condition.AutomationId)
             .ToDictionary(
                 group => group.Key,
@@ -115,7 +125,7 @@ public sealed class AutomationRepository(
                     .Select(DeserializeCondition)
                     .ToList());
 
-        var actionsByAutomation = actions
+        var actionsByAutomation = actionRows
             .GroupBy(action => action.AutomationId)
             .ToDictionary(
                 group => group.Key,
@@ -126,20 +136,27 @@ public sealed class AutomationRepository(
                         DeserializeParameters(action.ConfigurationJson)))
                     .ToList());
 
-        var automations = triggers.Select(trigger =>
+        var automations = automationRows.Select(automation =>
         {
+            var trigger =
+                triggersByAutomation.GetValueOrDefault(automation.Id)
+                    ?.SingleOrDefault()
+                ?? throw new InvalidOperationException(
+                    $"Automation {automation.Id} has no trigger.");
+
             var automationConditions =
                 conditionsByAutomation.GetValueOrDefault(
-                    trigger.AutomationId) ?? [];
+                    automation.Id) ?? [];
 
             var automationActions =
                 actionsByAutomation.GetValueOrDefault(
-                    trigger.AutomationId) ?? [];
+                    automation.Id) ?? [];
 
             return new Automation(
-                trigger.AutomationId,
-                trigger.Name,
-                trigger.Enabled,
+                automation.Id,
+                automation.Name,
+                automation.IsEnabled,
+                automation.AutomationTriggerable,
                 new When(
                     trigger.EventType,
                     trigger.SourceSystem ?? "",

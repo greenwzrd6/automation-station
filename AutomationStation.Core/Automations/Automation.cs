@@ -4,13 +4,14 @@
         Guid id,
         string name,
         bool isEnabled,
+        bool automationTriggerable,
         When when,
         IEnumerable<Then> thens)
     {
         public Guid Id { get; } = id;
         public string Name { get; } = name;
         public bool IsEnabled { get; private set; } = isEnabled;
-
+        public bool AutomationTriggerable { get; } = automationTriggerable;
         public When When { get; } = when;
         public IReadOnlyCollection<Then> Thens { get; } = thens.ToList().AsReadOnly();
 

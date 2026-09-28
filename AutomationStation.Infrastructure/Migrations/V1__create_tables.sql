@@ -2,7 +2,8 @@ CREATE TABLE Automations
 (
     Id UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
     Name NVARCHAR(255) NOT NULL,
-    Enabled BIT NOT NULL DEFAULT 1
+    Enabled BIT NOT NULL DEFAULT 1,
+    AutomationTriggerable BIT NOT NULL DEFAULT 0,
 );
 
 CREATE TABLE AutomationTriggers
