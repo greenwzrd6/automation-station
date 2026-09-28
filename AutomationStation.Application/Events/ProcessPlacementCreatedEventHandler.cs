@@ -31,6 +31,7 @@ public sealed class ProcessPlacementCreatedEventHandler(
         }
 
         var causationEventId = integrationEvent.CausationEventId ?? integrationEvent.EventId;
+        var sourceAutomationId = integrationEvent.SourceAutomationId;
 
         var automations =
             await _automationRepository.GetEnabledByEventTypeAsync(
@@ -46,12 +47,26 @@ public sealed class ProcessPlacementCreatedEventHandler(
                 continue;
             }
 
+            if (integrationEvent.SourceAutomationId == sourceAutomationId)
+            {
+                if (sourceAutomationId == automation.Id)
+                {
+                    continue;
+                }
+
+                if (!automation.AutomationTriggerable)
+                {
+                    continue;
+                }
+            }
+
             var cooldown = DateTime.UtcNow - ExecutionCooldown;
 
             Console.WriteLine(
                 $"Automation={automation.Id}, " +
                 $"EventId={integrationEvent.EventId}, " +
                 $"CausationEventId={causationEventId}, " +
+                $"SourceAutomationId={integrationEvent.SourceAutomationId}, " +
                 $"Cooldown={cooldown}");
 
             var triggeredRecently =

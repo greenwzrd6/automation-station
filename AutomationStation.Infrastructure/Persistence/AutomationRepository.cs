@@ -138,7 +138,7 @@ public sealed class AutomationRepository(
 
         var automations = automationRows.Select(automation =>
         {
-            var trigger =
+            var automationTrigger =
                 triggersByAutomation.GetValueOrDefault(automation.Id)
                     ?.SingleOrDefault()
                 ?? throw new InvalidOperationException(
@@ -158,8 +158,8 @@ public sealed class AutomationRepository(
                 automation.IsEnabled,
                 automation.AutomationTriggerable,
                 new When(
-                    trigger.EventType,
-                    trigger.SourceSystem ?? "",
+                    automationTrigger.EventType,
+                    automationTrigger.SourceSystem ?? "",
                     automationConditions),
                 automationActions);
         });

@@ -25,6 +25,10 @@ namespace AutomationStation.Application.Events
             {
                 return;
             }
+
+            var causationEventId = integrationEvent.CausationEventId ?? integrationEvent.EventId;
+            var sourceAutomationId = integrationEvent.SourceAutomationId;
+
             var automations =
                 await _automationRepository.GetEnabledByEventTypeAsync(
                     integrationEvent.EventType,
@@ -37,9 +41,26 @@ namespace AutomationStation.Application.Events
                 {
                     continue;
                 }
+
+                if (integrationEvent.SourceAutomationId == sourceAutomationId)
+                {
+                    // Never allow an automation to trigger itself.
+                    if (sourceAutomationId == automation.Id)
+                    {
+                        continue;
+                    }
+
+                    // This automation does not accept events from other automations.
+                    if (!automation.AutomationTriggerable)
+                    {
+                        continue;
+                    }
+                }
+
                 var context = new ColumnActionContext(
                     ColumnId: integrationEvent.Payload.ColumnId,
-                    CausationEventId: integrationEvent.CausationEventId ?? integrationEvent.EventId);
+                    CausationEventId: causationEventId,
+                    SourceAutomationId: sourceAutomationId);
                 foreach (var then in automation.Thens)
                 {
                     await _actionExecutor.ExecuteAsync(
