@@ -28,20 +28,31 @@ public sealed class AutomationRepository(
             CancellationToken cancellationToken)
     {
         const string sql = """
-            -- Automations and triggers
+            -- Automations
             SELECT
-                a.Id AS AutomationId,
+                a.Id,
                 a.Name,
                 a.Enabled,
-                a.AutomationTriggerable,
+                a.AutomationTriggerable
+            FROM Automations a
+            WHERE a.Enabled = 1
+              AND EXISTS (
+                  SELECT 1
+                  FROM AutomationTriggers t
+                  WHERE t.AutomationId = a.Id
+                    AND t.EventType = @EventType
+              );
+
+            -- Trigger
+            SELECT
+                t.AutomationId,
                 t.EventType,
                 t.SourceSystem
-            FROM Automations a
-            INNER JOIN AutomationTriggers t
-                ON t.AutomationId = a.Id
-            WHERE
-                a.Enabled = 1
-                AND t.EventType = @EventType;
+            FROM AutomationTriggers t
+            INNER JOIN Automations a
+                ON a.Id = t.AutomationId
+            WHERE a.Enabled = 1
+              AND t.EventType = @EventType;
 
             -- Conditions
             SELECT
@@ -155,7 +166,7 @@ public sealed class AutomationRepository(
             return new Automation(
                 automation.Id,
                 automation.Name,
-                automation.IsEnabled,
+                automation.Enabled,
                 automation.AutomationTriggerable,
                 new When(
                     automationTrigger.EventType,

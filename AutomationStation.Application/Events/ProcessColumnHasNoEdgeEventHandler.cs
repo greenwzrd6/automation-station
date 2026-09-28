@@ -44,13 +44,11 @@ namespace AutomationStation.Application.Events
 
                 if (integrationEvent.SourceAutomationId == sourceAutomationId)
                 {
-                    // Never allow an automation to trigger itself.
                     if (sourceAutomationId == automation.Id)
                     {
                         continue;
                     }
 
-                    // This automation does not accept events from other automations.
                     if (!automation.AutomationTriggerable)
                     {
                         continue;

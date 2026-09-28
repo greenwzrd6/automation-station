@@ -22,6 +22,7 @@ namespace AutomationStation.Infrastructure.Actions.Executors
                 context.ColumnId,
                 toColumnId,
                 context.CausationEventId,
+                context.SourceAutomationId,
                 cancellationToken);
         }
     }

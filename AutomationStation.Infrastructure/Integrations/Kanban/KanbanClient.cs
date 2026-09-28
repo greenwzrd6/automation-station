@@ -11,7 +11,7 @@ public sealed class KanbanClient(
         Guid boardId,
         Guid columnId,
         Guid causationEventId,
-        Guid sourceAutomationId,
+        Guid? sourceAutomationId,
         CancellationToken cancellationToken)
     {
         var request = new CreatePlacementRequest(
@@ -32,9 +32,12 @@ public sealed class KanbanClient(
             "Idempotency-Key",
             causationEventId.ToString());
 
-        message.Headers.Add(
-            "Source-Automation-Id",
-            sourceAutomationId.ToString());
+        if (sourceAutomationId is Guid automationId)
+        {
+            message.Headers.Add(
+                "X-Source-Automation-Id",
+                automationId.ToString());
+        }
 
         using var response = await httpClient.SendAsync(
             message,
@@ -47,7 +50,7 @@ public sealed class KanbanClient(
     Guid fromColumnId,
     Guid toColumnId,
     Guid causationEventId,
-    Guid sourceAutomationId,
+    Guid? sourceAutomationId,
     CancellationToken cancellationToken)
     {
         var request = new CreateColumnEdgeRequest(
@@ -65,9 +68,12 @@ public sealed class KanbanClient(
             "Idempotency-Key",
             causationEventId.ToString());
 
-        message.Headers.Add(
-            "Source-Automation-Id",
-            sourceAutomationId.ToString());
+        if (sourceAutomationId is Guid automationId)
+        {
+            message.Headers.Add(
+                "X-Source-Automation-Id",
+                automationId.ToString());
+        }
 
         using var response = await httpClient.SendAsync(
             message,

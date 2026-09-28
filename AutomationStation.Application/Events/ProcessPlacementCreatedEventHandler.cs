@@ -86,7 +86,8 @@ public sealed class ProcessPlacementCreatedEventHandler(
 
             var context = new PlacementActionContext(
                 EntityId: integrationEvent.Payload.EntityId,
-                CausationEventId: integrationEvent.CausationEventId ?? integrationEvent.EventId);
+                CausationEventId: causationEventId,
+                SourceAutomationId: sourceAutomationId);
 
             await _historyRepository.CreateAutomationTimestampAsync(
                 automation.Id,

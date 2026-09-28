@@ -3,5 +3,6 @@
     public interface IActionContext
     {
         Guid CausationEventId { get; }
+        Guid? SourceAutomationId { get; }
     }
 }
