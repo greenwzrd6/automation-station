@@ -57,14 +57,18 @@ public sealed class ProcessPlacementCreatedEventHandler(
             var triggeredRecently =
                 await _historyRepository.HasTriggeredRecentlyAsync(
                     automation.Id,
-                    causationEventId,
                     cooldown,
                     cancellationToken);
+
+            var hasCausationId = await _historyRepository.HasCausationEventIdAsync(
+                automation.Id,
+                causationEventId,
+                cancellationToken);
 
             Console.WriteLine(
                 $"Already triggered: {triggeredRecently}");
 
-            if (triggeredRecently)
+            if (triggeredRecently || hasCausationId)
             {
                 continue;
             }
