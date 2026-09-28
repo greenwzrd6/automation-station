@@ -30,7 +30,7 @@ public sealed class KanbanClient(
         };
 
         message.Headers.Add(
-            "X-Causation-Id",
+            "Causation-Id",
             causationEventId.ToString());
 
         message.Headers.Add(
@@ -63,7 +63,7 @@ public sealed class KanbanClient(
         };
 
         message.Headers.Add(
-            "X-Causation-Id",
+            "Causation-Id",
             causationEventId.ToString());
 
         message.Headers.Add(
