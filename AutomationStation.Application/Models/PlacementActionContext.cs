@@ -4,4 +4,4 @@ namespace AutomationStation.Application.Models;
 
 public sealed record PlacementActionContext(
     Guid EntityId,
-    string CausationEventId) : IActionContext;
+    Guid CausationEventId) : IActionContext;

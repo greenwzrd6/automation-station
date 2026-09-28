@@ -2,6 +2,6 @@
 {
     public interface IActionContext
     {
-        string CausationEventId { get; }
+        Guid CausationEventId { get; }
     }
 }

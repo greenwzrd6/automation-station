@@ -10,7 +10,7 @@ public sealed class KanbanClient(
         Guid entityId,
         Guid boardId,
         Guid columnId,
-        string causationEventId,
+        Guid causationEventId,
         CancellationToken cancellationToken)
     {
         var request = new CreatePlacementRequest(
@@ -29,7 +29,7 @@ public sealed class KanbanClient(
 
         message.Headers.Add(
             "Idempotency-Key",
-            causationEventId);
+            causationEventId.ToString());
 
         using var response = await httpClient.SendAsync(
             message,
@@ -41,7 +41,7 @@ public sealed class KanbanClient(
     public async Task CreateColumnEdgeAsync(
     Guid fromColumnId,
     Guid toColumnId,
-    string causationEventId,
+    Guid causationEventId,
     CancellationToken cancellationToken)
     {
         var request = new CreateColumnEdgeRequest(
@@ -57,7 +57,7 @@ public sealed class KanbanClient(
 
         message.Headers.Add(
             "Idempotency-Key",
-            causationEventId);
+            causationEventId.ToString());
 
         using var response = await httpClient.SendAsync(
             message,

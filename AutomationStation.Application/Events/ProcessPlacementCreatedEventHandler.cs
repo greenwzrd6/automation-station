@@ -30,6 +30,8 @@ public sealed class ProcessPlacementCreatedEventHandler(
             return;
         }
 
+        var causationEventId = integrationEvent.CausationEventId ?? integrationEvent.EventId;
+
         var automations =
             await _automationRepository.GetEnabledByEventTypeAsync(
                 integrationEvent.EventType,
@@ -46,11 +48,21 @@ public sealed class ProcessPlacementCreatedEventHandler(
 
             var cooldown = DateTime.UtcNow - ExecutionCooldown;
 
+            Console.WriteLine(
+                $"Automation={automation.Id}, " +
+                $"EventId={integrationEvent.EventId}, " +
+                $"CausationEventId={causationEventId}, " +
+                $"Cooldown={cooldown}");
+
             var triggeredRecently =
                 await _historyRepository.HasTriggeredRecentlyAsync(
                     automation.Id,
+                    causationEventId,
                     cooldown,
                     cancellationToken);
+
+            Console.WriteLine(
+                $"Already triggered: {triggeredRecently}");
 
             if (triggeredRecently)
             {
@@ -59,10 +71,11 @@ public sealed class ProcessPlacementCreatedEventHandler(
 
             var context = new PlacementActionContext(
                 EntityId: integrationEvent.Payload.EntityId,
-                CausationEventId: integrationEvent.EventId);
+                CausationEventId: integrationEvent.CausationEventId ?? integrationEvent.EventId);
 
             await _historyRepository.CreateAutomationTimestampAsync(
                 automation.Id,
+                causationEventId,
                 cancellationToken);
 
             foreach (var then in automation.Thens)
