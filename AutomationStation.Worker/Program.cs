@@ -22,6 +22,14 @@ builder.Services.AddScoped<
     IHistoryRepository,
     HistoryRepository>();
 
+builder.Services.AddScoped<
+    IProcessedMessageRepository,
+    ProcessedMessageRepository>();
+
+builder.Services.AddScoped<
+    IAutomationExecutionRepository,
+    AutomationExecutionRepository>();
+
 // Action executor
 builder.Services.AddScoped<
     IActionExecutor,

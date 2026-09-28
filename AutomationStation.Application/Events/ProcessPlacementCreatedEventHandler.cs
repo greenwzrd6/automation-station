@@ -8,13 +8,15 @@ namespace AutomationStation.Application.Events;
 public sealed class ProcessPlacementCreatedEventHandler(
     IAutomationRepository automationRepository,
     IHistoryRepository historyRepository,
-    IActionExecutor actionExecutor)
+    IActionExecutor actionExecutor,
+    IAutomationExecutionRepository automationExecutionRepository)
 {
     private const string PlacementCreated = "PlacementCreated";
 
     private readonly IAutomationRepository _automationRepository = automationRepository;
     private readonly IHistoryRepository _historyRepository = historyRepository;
     private readonly IActionExecutor _actionExecutor = actionExecutor;
+    private readonly IAutomationExecutionRepository _automationExecutionRepository = automationExecutionRepository;
 
     private static readonly TimeSpan ExecutionCooldown = TimeSpan.FromSeconds(3);
 
@@ -54,19 +56,27 @@ public sealed class ProcessPlacementCreatedEventHandler(
                     cooldown,
                     cancellationToken);
 
-            var hasCausationId = await _historyRepository.HasCausationEventIdAsync(
-                automation.Id,
-                causationEventId,
-                cancellationToken);
+            var hasCausationId =
+                await _historyRepository.HasCausationEventIdAsync(
+                    automation.Id,
+                    causationEventId,
+                    cancellationToken);
 
             if (triggeredRecently || hasCausationId)
             {
                 continue;
             }
 
+            var executionId =
+                await _automationExecutionRepository.GetOrCreateAsync(
+                    automation.Id,
+                    integrationEvent.EventId,
+                    cancellationToken);
+
             var context = new PlacementActionContext(
                 EntityId: integrationEvent.Payload.EntityId,
-                CausationEventId: integrationEvent.CausationEventId ?? integrationEvent.EventId);
+                CausationEventId: integrationEvent.CausationEventId ?? integrationEvent.EventId,
+                ExecutionId: executionId);
 
             await _historyRepository.CreateAutomationTimestampAsync(
                 automation.Id,

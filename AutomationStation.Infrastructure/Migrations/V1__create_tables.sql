@@ -56,3 +56,24 @@ CREATE TABLE AutomationHistory
         FOREIGN KEY (AutomationId)
         REFERENCES Automations(Id)
 );
+
+CREATE TABLE ProcessedMessages
+(
+    MessageId UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
+    ProcessedAt DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME()
+);
+
+CREATE TABLE AutomationExecutions
+(
+    Id UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
+    AutomationId UNIQUEIDENTIFIER NOT NULL,
+    EventId UNIQUEIDENTIFIER NOT NULL,
+    StartedAt DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+
+    CONSTRAINT FK_AutomationExecutions_Automations
+        FOREIGN KEY (AutomationId)
+        REFERENCES Automations(Id),
+
+    CONSTRAINT UQ_AutomationExecutions_AutomationId_EventId
+        UNIQUE (AutomationId, EventId)
+);

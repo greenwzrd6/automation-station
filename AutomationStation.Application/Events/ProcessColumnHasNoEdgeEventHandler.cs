@@ -37,9 +37,12 @@ namespace AutomationStation.Application.Events
                 {
                     continue;
                 }
+
                 var context = new ColumnActionContext(
                     ColumnId: integrationEvent.Payload.ColumnId,
-                    CausationEventId: integrationEvent.CausationEventId ?? integrationEvent.EventId);
+                    CausationEventId: integrationEvent.CausationEventId ?? integrationEvent.EventId,
+                    ExecutionId: Guid.NewGuid());
+
                 foreach (var then in automation.Thens)
                 {
                     await _actionExecutor.ExecuteAsync(
