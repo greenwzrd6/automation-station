@@ -62,22 +62,12 @@ public sealed class ProcessPlacementCreatedEventHandler(
 
             var cooldown = DateTime.UtcNow - ExecutionCooldown;
 
-            Console.WriteLine(
-                $"Automation={automation.Id}, " +
-                $"EventId={integrationEvent.EventId}, " +
-                $"CausationEventId={causationEventId}, " +
-                $"SourceAutomationId={integrationEvent.SourceAutomationId}, " +
-                $"Cooldown={cooldown}");
-
             var triggeredRecently =
                 await _historyRepository.HasTriggeredRecentlyAsync(
                     automation.Id,
                     causationEventId,
                     cooldown,
                     cancellationToken);
-
-            Console.WriteLine(
-                $"Already triggered: {triggeredRecently}");
 
             if (triggeredRecently)
             {

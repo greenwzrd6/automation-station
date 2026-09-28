@@ -35,7 +35,7 @@ public sealed class KanbanClient(
         if (sourceAutomationId is Guid automationId)
         {
             message.Headers.Add(
-                "X-Source-Automation-Id",
+                "Source-Automation-Id",
                 automationId.ToString());
         }
 
@@ -71,7 +71,7 @@ public sealed class KanbanClient(
         if (sourceAutomationId is Guid automationId)
         {
             message.Headers.Add(
-                "X-Source-Automation-Id",
+                "Source-Automation-Id",
                 automationId.ToString());
         }
 

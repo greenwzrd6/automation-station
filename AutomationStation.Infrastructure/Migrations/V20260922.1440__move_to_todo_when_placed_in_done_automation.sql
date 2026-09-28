@@ -1,6 +1,6 @@
 DECLARE @AutomationId UNIQUEIDENTIFIER =
     'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
-    DECLARE @AutomationId2 UNIQUEIDENTIFIER =
+DECLARE @AutomationId2 UNIQUEIDENTIFIER =
     'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaab';
 
 -- AUTOMATION
@@ -16,7 +16,7 @@ VALUES
     @AutomationId,
     'Send entity to To Do',
     1,
-    0
+    1
 );
 
 -- WHEN: Which event starts the automation?
