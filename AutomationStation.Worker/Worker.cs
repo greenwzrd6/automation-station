@@ -1,9 +1,10 @@
-using System.Text;
-using System.Text.Json;
+using AutomationStation.Application.Abstractions;
 using AutomationStation.Application.Contracts;
 using AutomationStation.Application.Events;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using System.Text;
+using System.Text.Json;
 
 namespace AutomationStation.Worker;
 
@@ -16,6 +17,7 @@ public sealed class Worker(
     protected override async Task ExecuteAsync(
         CancellationToken stoppingToken)
     {
+
         var factory = new ConnectionFactory
         {
             HostName = configuration["RabbitMQ:HostName"]!,
@@ -89,11 +91,38 @@ public sealed class Worker(
 
                 using var document = JsonDocument.Parse(json);
 
+                var eventId = document.RootElement
+                    .GetProperty("eventId")
+                    .GetGuid();
+
                 var eventType = document.RootElement
                     .GetProperty("eventType")
                     .GetString();
 
                 using var scope = scopeFactory.CreateScope();
+
+                var processedMessages =
+                    scope.ServiceProvider
+                        .GetRequiredService<
+                            IProcessedMessageRepository>();
+
+                if (await processedMessages
+                .HasProcessedAsync(
+                    eventId,
+                    stoppingToken))
+                {
+                    logger.LogInformation(
+                        "Ignoring duplicate message {EventId}",
+                        eventId);
+
+                    await channel.BasicAckAsync(
+                        args.DeliveryTag,
+                        multiple: false,
+                        cancellationToken:
+                            stoppingToken);
+
+                    return;
+                }
 
                 switch (eventType)
                 {
@@ -115,6 +144,11 @@ public sealed class Worker(
                         throw new NotSupportedException(
                             $"Unsupported event type: {eventType}");
                 }
+
+                await processedMessages
+                    .MarkProcessedAsync(
+                        eventId,
+                        stoppingToken);
 
                 await channel.BasicAckAsync(
                     args.DeliveryTag,
@@ -203,4 +237,47 @@ public sealed class Worker(
             integrationEvent,
             cancellationToken);
     }
+
+    //Test
+
+    //private async Task TestAutomationExecutionRepositoryAsync(
+    //IServiceScopeFactory scopeFactory,
+    //CancellationToken cancellationToken)
+    //{
+    //    using var scope = scopeFactory.CreateScope();
+
+    //    var executionRepository =
+    //        scope.ServiceProvider
+    //            .GetRequiredService<IAutomationExecutionRepository>();
+
+    //    var automationId =
+    //        Guid.Parse("AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA");
+
+    //    var eventId =
+    //        Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaac");
+
+    //    var firstExecutionId =
+    //        await executionRepository.GetOrCreateAsync(
+    //            automationId,
+    //            eventId,
+    //            cancellationToken);
+
+    //    var secondExecutionId =
+    //        await executionRepository.GetOrCreateAsync(
+    //            automationId,
+    //            eventId,
+    //            cancellationToken);
+
+    //    logger.LogInformation(
+    //        "First execution id: {ExecutionId}",
+    //        firstExecutionId);
+
+    //    logger.LogInformation(
+    //        "Second execution id: {ExecutionId}",
+    //        secondExecutionId);
+
+    //    logger.LogInformation(
+    //        "Same execution id: {Same}",
+    //        firstExecutionId == secondExecutionId);
+    //}
 }

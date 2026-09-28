@@ -1,4 +1,5 @@
 ﻿using AutomationStation.Infrastructure.Integrations.Kanban.Requests;
+using System.ComponentModel.Design;
 using System.Net.Http.Json;
 
 namespace AutomationStation.Infrastructure.Integrations.Kanban;
@@ -11,6 +12,7 @@ public sealed class KanbanClient(
         Guid boardId,
         Guid columnId,
         Guid causationEventId,
+        Guid commandId,
         CancellationToken cancellationToken)
     {
         var request = new CreatePlacementRequest(
@@ -28,8 +30,12 @@ public sealed class KanbanClient(
         };
 
         message.Headers.Add(
-            "Idempotency-Key",
+            "X-Causation-Id",
             causationEventId.ToString());
+
+        message.Headers.Add(
+            "Idempotency-Key",
+            commandId.ToString());
 
         using var response = await httpClient.SendAsync(
             message,
@@ -42,6 +48,7 @@ public sealed class KanbanClient(
     Guid fromColumnId,
     Guid toColumnId,
     Guid causationEventId,
+    Guid commandId,
     CancellationToken cancellationToken)
     {
         var request = new CreateColumnEdgeRequest(
@@ -56,8 +63,12 @@ public sealed class KanbanClient(
         };
 
         message.Headers.Add(
-            "Idempotency-Key",
+            "X-Causation-Id",
             causationEventId.ToString());
+
+        message.Headers.Add(
+            "Idempotency-Key",
+            commandId.ToString());
 
         using var response = await httpClient.SendAsync(
             message,
