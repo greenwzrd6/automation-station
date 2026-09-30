@@ -77,3 +77,10 @@ CREATE TABLE AutomationExecutions
     CONSTRAINT UQ_AutomationExecutions_AutomationId_EventId
         UNIQUE (AutomationId, EventId)
 );
+
+CREATE TABLE CorrelationLoopEvents (
+    Id UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
+    CorrelationId UNIQUEIDENTIFIER NOT NULL,
+    EventId UNIQUEIDENTIFIER NOT NULL,
+    ReceivedAt DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME()
+);

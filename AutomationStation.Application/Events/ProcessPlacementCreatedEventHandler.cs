@@ -75,6 +75,7 @@ public sealed class ProcessPlacementCreatedEventHandler(
 
             var context = new PlacementActionContext(
                 EntityId: integrationEvent.Payload.EntityId,
+                CorrelationId: integrationEvent.CorrelationId ?? integrationEvent.EventId,
                 CausationEventId: integrationEvent.CausationEventId ?? integrationEvent.EventId,
                 ExecutionId: executionId);
 

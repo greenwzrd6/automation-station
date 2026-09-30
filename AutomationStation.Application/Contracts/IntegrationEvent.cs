@@ -6,6 +6,9 @@ public sealed record IntegrationEvent<T>(
     [property: JsonPropertyName("eventId")]
     Guid EventId,
 
+    [property: JsonPropertyName("correlationId")]
+    Guid? CorrelationId,
+
     [property: JsonPropertyName("causationEventId")]
     Guid? CausationEventId,
 

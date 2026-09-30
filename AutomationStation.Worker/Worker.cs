@@ -1,6 +1,7 @@
 using AutomationStation.Application.Abstractions;
 using AutomationStation.Application.Contracts;
 using AutomationStation.Application.Events;
+using AutomationStation.Application.Models;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
@@ -64,11 +65,11 @@ public sealed class Worker(
             routingKey: "placement.created",
             cancellationToken: stoppingToken);
 
-        await channel.QueueBindAsync(
-            queue: queue,
-            exchange: exchange,
-            routingKey: "column.no-edge",
-            cancellationToken: stoppingToken);
+        // await channel.QueueBindAsync(
+        //     queue: queue,
+        //     exchange: exchange,
+        //     routingKey: "column.no-edge",
+        //     cancellationToken: stoppingToken);
 
         await channel.BasicQosAsync(
             prefetchSize: 0,
@@ -99,6 +100,11 @@ public sealed class Worker(
                     .GetProperty("eventType")
                     .GetString();
 
+                document.RootElement.TryGetProperty("correlationId", out var correlationElement);
+                var correlationId = correlationElement.ValueKind == JsonValueKind.String
+                    ? correlationElement.GetGuid()
+                    : (Guid?)null;
+
                 using var scope = scopeFactory.CreateScope();
 
                 var processedMessages =
@@ -124,6 +130,34 @@ public sealed class Worker(
                     return;
                 }
 
+                var blockers = scope.ServiceProvider.GetServices<IEventBlocker>();
+
+                var context = new EventBlockerContext(
+                    eventId,
+                    eventType ?? string.Empty,
+                    document.RootElement.GetProperty("source").GetString() ?? string.Empty,
+                    correlationId,
+                    null);
+
+                foreach (var blocker in blockers)
+                {
+                    if (await blocker.IsBlockedAsync(context, stoppingToken))
+                    {
+                        logger.LogWarning(
+                            "Event {EventId} with correlationId {CorrelationId} blocked by {Blocker}",
+                            eventId,
+                            correlationId,
+                            blocker.GetType().Name);
+
+                        await channel.BasicAckAsync(
+                            args.DeliveryTag,
+                            multiple: false,
+                            cancellationToken: stoppingToken);
+
+                        return;
+                    }
+                }
+
                 switch (eventType)
                 {
                     case "PlacementCreated":
@@ -133,12 +167,12 @@ public sealed class Worker(
                             stoppingToken);
                         break;
 
-                    case "ColumnHasNoEdge":
-                        await HandleColumnHasNoEdgeAsync(
-                            json,
-                            scope.ServiceProvider,
-                            stoppingToken);
-                        break;
+                    // case "ColumnHasNoEdge":
+                    //     await HandleColumnHasNoEdgeAsync(
+                    //         json,
+                    //         scope.ServiceProvider,
+                    //         stoppingToken);
+                    //     break;
 
                     default:
                         throw new NotSupportedException(
@@ -216,27 +250,27 @@ public sealed class Worker(
     }
 
     //Move out of worker later
-    private static async Task HandleColumnHasNoEdgeAsync(
-    string json,
-    IServiceProvider serviceProvider,
-    CancellationToken cancellationToken)
-    {
-        var integrationEvent =
-            JsonSerializer.Deserialize<
-                IntegrationEvent<ColumnHasNoEdgePayload>>(
-                    json,
-                    JsonSerializerOptions.Web)
-            ?? throw new JsonException(
-                "Could not deserialize ColumnHasNoEdge event.");
+    // private static async Task HandleColumnHasNoEdgeAsync(
+    // string json,
+    // IServiceProvider serviceProvider,
+    // CancellationToken cancellationToken)
+    // {
+    //     var integrationEvent =
+    //         JsonSerializer.Deserialize<
+    //             IntegrationEvent<ColumnHasNoEdgePayload>>(
+    //                 json,
+    //                 JsonSerializerOptions.Web)
+    //         ?? throw new JsonException(
+    //             "Could not deserialize ColumnHasNoEdge event.");
 
-        var handler = serviceProvider
-            .GetRequiredService<
-                ProcessColumnHasNoEdgeEventHandler>();
+    //     var handler = serviceProvider
+    //         .GetRequiredService<
+    //             ProcessColumnHasNoEdgeEventHandler>();
 
-        await handler.HandleAsync(
-            integrationEvent,
-            cancellationToken);
-    }
+    //     await handler.HandleAsync(
+    //         integrationEvent,
+    //         cancellationToken);
+    // }
 
     //Test
 

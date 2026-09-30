@@ -1,4 +1,5 @@
-﻿using AutomationStation.Application.Models;
+﻿#if false
+using AutomationStation.Application.Models;
 using AutomationStation.Core.Automations;
 using AutomationStation.Infrastructure.Integrations.Kanban;
 
@@ -27,3 +28,4 @@ namespace AutomationStation.Infrastructure.Actions.Executors
         }
     }
 }
+#endif
