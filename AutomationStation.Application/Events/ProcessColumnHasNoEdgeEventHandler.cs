@@ -1,4 +1,5 @@
-﻿using AutomationStation.Application.Abstractions;
+﻿#if false
+using AutomationStation.Application.Abstractions;
 using AutomationStation.Application.Contracts;
 using AutomationStation.Application.Models;
 using AutomationStation.Core.Automations;
@@ -77,3 +78,4 @@ namespace AutomationStation.Application.Events
         }
     }
 }
+#endif

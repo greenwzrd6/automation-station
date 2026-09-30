@@ -11,6 +11,7 @@ public sealed class KanbanClient(
         Guid entityId,
         Guid boardId,
         Guid columnId,
+        Guid correlationId,
         Guid causationEventId,
         Guid commandId,
         CancellationToken cancellationToken)
@@ -30,37 +31,8 @@ public sealed class KanbanClient(
         };
 
         message.Headers.Add(
-            "Causation-Id",
-            causationEventId.ToString());
-
-        message.Headers.Add(
-            "Idempotency-Key",
-            commandId.ToString());
-
-        using var response = await httpClient.SendAsync(
-            message,
-            cancellationToken);
-
-        response.EnsureSuccessStatusCode();
-    }
-
-    public async Task CreateColumnEdgeAsync(
-    Guid fromColumnId,
-    Guid toColumnId,
-    Guid causationEventId,
-    Guid commandId,
-    CancellationToken cancellationToken)
-    {
-        var request = new CreateColumnEdgeRequest(
-            fromColumnId,
-            toColumnId);
-
-        using var message = new HttpRequestMessage(
-            HttpMethod.Post,
-            "/api/columnedges/create")
-        {
-            Content = JsonContent.Create(request)
-        };
+            "Correlation-Id",
+            correlationId.ToString());
 
         message.Headers.Add(
             "Causation-Id",
@@ -76,4 +48,42 @@ public sealed class KanbanClient(
 
         response.EnsureSuccessStatusCode();
     }
+
+    //public async Task CreateColumnEdgeAsync(
+    //    Guid fromColumnId,
+    //    Guid toColumnId,
+    //    Guid correlationId,
+    //    Guid causationEventId,
+    //    Guid commandId,
+    //    CancellationToken cancellationToken)
+    //{
+    //    var request = new CreateColumnEdgeRequest(
+    //        fromColumnId,
+    //        toColumnId);
+
+    //    using var message = new HttpRequestMessage(
+    //        HttpMethod.Post,
+    //        "/api/columnedges/create")
+    //    {
+    //        Content = JsonContent.Create(request)
+    //    };
+
+    //    message.Headers.Add(
+    //        "Correlation-Id",
+    //        correlationId.ToString());
+
+    //    message.Headers.Add(
+    //        "Causation-Id",
+    //        causationEventId.ToString());
+
+    //    message.Headers.Add(
+    //        "Idempotency-Key",
+    //        commandId.ToString());
+
+    //    using var response = await httpClient.SendAsync(
+    //        message,
+    //        cancellationToken);
+
+    //    response.EnsureSuccessStatusCode();
+    //}
 }

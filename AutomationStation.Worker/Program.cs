@@ -1,12 +1,13 @@
-using AutomationStation.Worker;
 using AutomationStation.Application.Abstractions;
 using AutomationStation.Application.Events;
 using AutomationStation.Application.Models;
 using AutomationStation.Infrastructure.Actions;
 using AutomationStation.Infrastructure.Actions.Executors;
+using AutomationStation.Infrastructure.Blockers;
 using AutomationStation.Infrastructure.Database;
 using AutomationStation.Infrastructure.Integrations.Kanban;
 using AutomationStation.Infrastructure.Persistence;
+using AutomationStation.Worker;
 
 var builder = Host.CreateApplicationBuilder(args);
 
@@ -30,6 +31,14 @@ builder.Services.AddScoped<
     IAutomationExecutionRepository,
     AutomationExecutionRepository>();
 
+builder.Services.AddScoped<
+    ICorrelationLoopRepository,
+    CorrelationLoopRepository>();
+
+builder.Services.AddScoped<
+    IEventBlocker,
+    CorrelationLoopBlocker>();
+
 // Action executor
 builder.Services.AddScoped<
     IActionExecutor,
@@ -39,9 +48,9 @@ builder.Services.AddScoped<
     IActionHandler<PlacementActionContext>,
     CreatePlacementExecutor>();
 
-builder.Services.AddScoped<
-    IActionHandler<ColumnActionContext>,
-    CreateColumnEdgeExecutor>();
+// builder.Services.AddScoped<
+//     IActionHandler<ColumnActionContext>,
+//     CreateColumnEdgeExecutor>();
 
 builder.Services.AddHttpClient<KanbanClient>(
     client =>
@@ -58,10 +67,13 @@ builder.Services.AddHttpClient<KanbanClient>(
 builder.Services.AddTransient<
     ProcessPlacementCreatedEventHandler>();
 
-builder.Services.AddTransient<
-    ProcessColumnHasNoEdgeEventHandler>();
+// builder.Services.AddTransient<
+//     ProcessColumnHasNoEdgeEventHandler>();
 
 // RabbitMQ worker
 builder.Services.AddHostedService<Worker>();
+
+// Cleanup old correlation loop events
+builder.Services.AddHostedService<CorrelationLoopCleanupService>();
 
 await builder.Build().RunAsync();

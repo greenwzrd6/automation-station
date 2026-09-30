@@ -5,5 +5,6 @@
   <Project Path="AutomationStation.Application/AutomationStation.Application.csproj" />
   <Project Path="AutomationStation.Core/AutomationStation.Core.csproj" />
   <Project Path="AutomationStation.Infrastructure/AutomationStation.Infrastructure.csproj" />
+  <Project Path="AutomationStation.Infrastructure.Tests/AutomationStation.Infrastructure.Tests.csproj" />
   <Project Path="AutomationStation.Worker/AutomationStation.Worker.csproj" />
 </Solution>
