@@ -2,6 +2,7 @@
 using AutomationStation.Application.Contracts;
 using AutomationStation.Application.Models;
 using AutomationStation.Core.Automations;
+using Microsoft.Extensions.Logging;
 
 namespace AutomationStation.Application.Events;
 
@@ -9,7 +10,8 @@ public sealed class ProcessPlacementCreatedEventHandler(
     IAutomationRepository automationRepository,
     IHistoryRepository historyRepository,
     IActionExecutor actionExecutor,
-    IAutomationExecutionRepository automationExecutionRepository)
+    IAutomationExecutionRepository automationExecutionRepository,
+    ILogger<ProcessPlacementCreatedEventHandler> logger)
 {
     private const string PlacementCreated = "PlacementCreated";
 
@@ -64,6 +66,14 @@ public sealed class ProcessPlacementCreatedEventHandler(
 
             if (triggeredRecently || hasCausationId)
             {
+                logger.LogWarning(
+                    "Event {EventId} with correlationId {CorrelationId} blocked for automation {AutomationId}. TriggeredRecently: {TriggeredRecently}, HasCausationId: {HasCausationId}",
+                    integrationEvent.EventId,
+                    integrationEvent.CorrelationId,
+                    automation.Id,
+                    triggeredRecently,
+                    hasCausationId);
+
                 continue;
             }
 
