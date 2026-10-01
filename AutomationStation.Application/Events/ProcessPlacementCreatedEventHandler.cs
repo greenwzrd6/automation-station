@@ -31,7 +31,7 @@ public sealed class ProcessPlacementCreatedEventHandler(
         }
 
         var causationEventId = integrationEvent.CausationEventId ?? integrationEvent.EventId;
-        var sourceAutomationId = integrationEvent.SourceAutomationId;
+        var actor = integrationEvent.Actor;
 
         var automations =
             await _automationRepository.GetEnabledByEventTypeAsync(
@@ -47,13 +47,8 @@ public sealed class ProcessPlacementCreatedEventHandler(
                 continue;
             }
 
-            if (integrationEvent.SourceAutomationId == sourceAutomationId)
+            if (integrationEvent.Actor.Type == "AutomationExecutor")
             {
-                if (sourceAutomationId == automation.Id)
-                {
-                    continue;
-                }
-
                 if (!automation.AutomationTriggerable)
                 {
                     continue;
@@ -77,7 +72,7 @@ public sealed class ProcessPlacementCreatedEventHandler(
             var context = new PlacementActionContext(
                 EntityId: integrationEvent.Payload.EntityId,
                 CausationEventId: causationEventId,
-                SourceAutomationId: sourceAutomationId);
+                Actor: actor);
 
             await _historyRepository.CreateAutomationTimestampAsync(
                 automation.Id,

@@ -26,7 +26,7 @@ public sealed class CreatePlacementExecutor(
             boardId,
             columnId,
             context.CausationEventId,
-            context.SourceAutomationId,
+            context.Actor,
             cancellationToken);
     }
 }

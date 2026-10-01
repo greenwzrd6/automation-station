@@ -1,4 +1,5 @@
-﻿using AutomationStation.Infrastructure.Integrations.Kanban.Requests;
+﻿using AutomationStation.Application.Models;
+using AutomationStation.Infrastructure.Integrations.Kanban.Requests;
 using System.Net.Http.Json;
 
 namespace AutomationStation.Infrastructure.Integrations.Kanban;
@@ -11,7 +12,7 @@ public sealed class KanbanClient(
         Guid boardId,
         Guid columnId,
         Guid causationEventId,
-        Guid? sourceAutomationId,
+        Actor actor,
         CancellationToken cancellationToken)
     {
         var request = new CreatePlacementRequest(
@@ -32,48 +33,13 @@ public sealed class KanbanClient(
             "Idempotency-Key",
             causationEventId.ToString());
 
-        if (sourceAutomationId is Guid automationId)
-        {
-            message.Headers.Add(
-                "Source-Automation-Id",
-                automationId.ToString());
-        }
-
-        using var response = await httpClient.SendAsync(
-            message,
-            cancellationToken);
-
-        response.EnsureSuccessStatusCode();
-    }
-
-    public async Task CreateColumnEdgeAsync(
-    Guid fromColumnId,
-    Guid toColumnId,
-    Guid causationEventId,
-    Guid? sourceAutomationId,
-    CancellationToken cancellationToken)
-    {
-        var request = new CreateColumnEdgeRequest(
-            fromColumnId,
-            toColumnId);
-
-        using var message = new HttpRequestMessage(
-            HttpMethod.Post,
-            "/api/columnedges/create")
-        {
-            Content = JsonContent.Create(request)
-        };
+        message.Headers.Add(
+            "Actor-Id",
+            actor.Id.ToString());
 
         message.Headers.Add(
-            "Idempotency-Key",
-            causationEventId.ToString());
-
-        if (sourceAutomationId is Guid automationId)
-        {
-            message.Headers.Add(
-                "Source-Automation-Id",
-                automationId.ToString());
-        }
+            "Actor-Type",
+            actor.Type.ToString());
 
         using var response = await httpClient.SendAsync(
             message,
@@ -81,4 +47,40 @@ public sealed class KanbanClient(
 
         response.EnsureSuccessStatusCode();
     }
+
+    //public async Task CreateColumnEdgeAsync(
+    //Guid fromColumnId,
+    //Guid toColumnId,
+    //Guid causationEventId,
+    //Guid? sourceAutomationId,
+    //CancellationToken cancellationToken)
+    //{
+    //    var request = new CreateColumnEdgeRequest(
+    //        fromColumnId,
+    //        toColumnId);
+
+    //    using var message = new HttpRequestMessage(
+    //        HttpMethod.Post,
+    //        "/api/columnedges/create")
+    //    {
+    //        Content = JsonContent.Create(request)
+    //    };
+
+    //    message.Headers.Add(
+    //        "Idempotency-Key",
+    //        causationEventId.ToString());
+
+    //    if (sourceAutomationId is Guid automationId)
+    //    {
+    //        message.Headers.Add(
+    //            "Source-Automation-Id",
+    //            automationId.ToString());
+    //    }
+
+    //    using var response = await httpClient.SendAsync(
+    //        message,
+    //        cancellationToken);
+
+    //    response.EnsureSuccessStatusCode();
+    //}
 }
