@@ -53,12 +53,13 @@ public sealed class ProcessPlacementCreatedEventHandler(
                     //Denna ska användas när vi plockar rätt skit från toj ( tock och jolltortyr )
                     //"AutomationExecutor",
                     "",
-                    StringComparison.OrdinalIgnoreCase))
+                    StringComparison.OrdinalIgnoreCase) &&
+                    !automation.AutomationTriggerable)
             {
-                if (!automation.AutomationTriggerable)
-                {
-                    continue;
-                }
+                logger.LogWarning("Event '{EventId}' can not be triggered through an automation.",
+                    integrationEvent.EventId);
+
+                continue;
             }
 
             var cooldown = DateTime.UtcNow - ExecutionCooldown;
@@ -78,7 +79,7 @@ public sealed class ProcessPlacementCreatedEventHandler(
             if (triggeredRecently || hasCausationId)
             {
                 logger.LogWarning(
-                    "Event {EventId} with correlationId {CorrelationId} blocked for automation {AutomationId}. TriggeredRecently: {TriggeredRecently}, HasCausationId: {HasCausationId}",
+                    "Event '{EventId}' with correlationId '{CorrelationId}' blocked for automation '{AutomationId}'. TriggeredRecently: '{TriggeredRecently}', HasCausationId: '{HasCausationId}'",
                     integrationEvent.EventId,
                     integrationEvent.CorrelationId,
                     automation.Id,

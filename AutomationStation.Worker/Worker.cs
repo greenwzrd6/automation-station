@@ -32,7 +32,7 @@ public sealed class Worker(
         var queue = configuration["RabbitMQ:Queue"]!;
 
         logger.LogInformation(
-            "Connecting to RabbitMQ: {Host}:{Port}, User: {User}, VirtualHost: {VHost}",
+            "Connecting to RabbitMQ: '{Host}:{Port}', User: '{User}', VirtualHost: '{VHost}'",
             factory.HostName,
             factory.Port,
             factory.UserName,
@@ -87,7 +87,7 @@ public sealed class Worker(
                     args.Body.ToArray());
 
                 logger.LogInformation(
-                    "Received RabbitMQ message: {Message}",
+                    "Received RabbitMQ message: '{Message}'",
                     json);
 
                 using var document = JsonDocument.Parse(json);
@@ -118,7 +118,7 @@ public sealed class Worker(
                     stoppingToken))
                 {
                     logger.LogInformation(
-                        "Ignoring duplicate message {EventId}",
+                        "Ignoring duplicate message '{EventId}'",
                         eventId);
 
                     await channel.BasicAckAsync(
@@ -144,7 +144,7 @@ public sealed class Worker(
                     if (await blocker.IsBlockedAsync(context, stoppingToken))
                     {
                         logger.LogWarning(
-                            "Event {EventId} with correlationId {CorrelationId} blocked by {Blocker}",
+                            "Event '{EventId}' with correlationId '{CorrelationId}' blocked by '{Blocker}'",
                             eventId,
                             correlationId,
                             blocker.GetType().Name);
@@ -190,7 +190,7 @@ public sealed class Worker(
                     cancellationToken: stoppingToken);
 
                 logger.LogInformation(
-                    "Successfully processed event type {EventType}",
+                    "Successfully processed event type '{EventType}'",
                     eventType);
             }
             catch (OperationCanceledException)
