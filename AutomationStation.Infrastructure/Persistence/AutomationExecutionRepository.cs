@@ -8,13 +8,15 @@ public sealed class AutomationExecutionRepository(
     DbConnectionFactory connectionFactory)
     : IAutomationExecutionRepository
 {
+    private readonly DbConnectionFactory _connectionFactory = connectionFactory;
+
     public async Task<Guid> GetOrCreateAsync(
         Guid automationId,
         Guid eventId,
         CancellationToken cancellationToken)
     {
         await using var connection =
-            connectionFactory.CreateConnection();
+            _connectionFactory.CreateConnection();
 
         await connection.OpenAsync(cancellationToken);
 

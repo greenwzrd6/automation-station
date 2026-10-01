@@ -7,6 +7,8 @@ public sealed class CorrelationLoopBlocker(
     ICorrelationLoopRepository correlationLoopRepository)
     : IEventBlocker
 {
+    private readonly ICorrelationLoopRepository _correlationLoopRepository = correlationLoopRepository;
+
     public async Task<bool> IsBlockedAsync(
         EventBlockerContext context,
         CancellationToken cancellationToken)
@@ -16,7 +18,7 @@ public sealed class CorrelationLoopBlocker(
             return false;
         }
 
-        return await correlationLoopRepository.IsBlockedAsync(
+        return await _correlationLoopRepository.IsBlockedAsync(
             context.CorrelationId.Value,
             context.EventId,
             cancellationToken);

@@ -1,9 +1,10 @@
 ﻿using AutomationStation.Application.Models;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace AutomationStation.Application.Contracts;
 
-public sealed record IntegrationEvent<T>(
+public sealed record IntegrationEvent(
 
     [property: JsonPropertyName("eventId")]
     Guid EventId,
@@ -27,5 +28,5 @@ public sealed record IntegrationEvent<T>(
     Actor Actor,
 
     [property: JsonPropertyName("payload")]
-    T Payload);
+    JsonElement Payload);
 
