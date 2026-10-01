@@ -144,6 +144,10 @@ public sealed class AutomationRepository(
                     .OrderBy(action => action.ExecutionOrder)
                     .Select(action => new Then(
                         action.ActionType,
+                        action.TargetSystem ?? throw new InvalidOperationException(
+                        $"Action '{action.ActionType}' " +
+                        $"in automation '{action.AutomationId}' " +
+                        $"has no TargetSystem."),
                         DeserializeParameters(action.ConfigurationJson)))
                     .ToList());
 

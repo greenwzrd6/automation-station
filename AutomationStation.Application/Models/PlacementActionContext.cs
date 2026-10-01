@@ -6,4 +6,5 @@ public sealed record PlacementActionContext(
     Guid EntityId,
     Guid CorrelationId,
     Guid CausationEventId,
-    Actor Actor) : IActionContext;
+    Actor Actor,
+    int CompanyId) : IActionContext;

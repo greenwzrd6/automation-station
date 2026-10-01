@@ -8,6 +8,7 @@ using AutomationStation.Infrastructure.Database;
 using AutomationStation.Infrastructure.Integrations.Kanban;
 using AutomationStation.Infrastructure.Persistence;
 using AutomationStation.Worker;
+using AutomationStation.Infrastructure.RateLimiting;
 
 var builder = Host.CreateApplicationBuilder(args);
 
@@ -43,6 +44,13 @@ builder.Services.AddScoped<
 builder.Services.AddScoped<
     IActionHandler<PlacementActionContext>,
     CreatePlacementExecutor>();
+
+builder.Services.AddSingleton<TimeProvider>(
+    TimeProvider.System);
+
+builder.Services.AddSingleton<
+    IActionRateLimiter,
+    InMemoryActionRateLimiter>();
 
 // builder.Services.AddScoped<
 //     IActionHandler<ColumnActionContext>,

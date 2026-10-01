@@ -92,7 +92,8 @@ public sealed class ProcessPlacementCreatedEventHandler(
                 EntityId: integrationEvent.Payload.EntityId,
                 CorrelationId: integrationEvent.CorrelationId,
                 CausationEventId: causationEventId,
-                Actor: integrationEvent.Actor);
+                Actor: integrationEvent.Actor,
+                CompanyId: integrationEvent.CompanyId);
 
             await _historyRepository.CreateAutomationTimestampAsync(
                 automation.Id,

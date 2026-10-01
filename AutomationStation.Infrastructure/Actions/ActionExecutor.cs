@@ -1,11 +1,13 @@
 ﻿using AutomationStation.Application.Abstractions;
 using AutomationStation.Core.Automations;
 using Microsoft.Extensions.DependencyInjection;
+using System.Threading.RateLimiting;
 
 namespace AutomationStation.Infrastructure.Actions;
 
 public sealed class ActionExecutor(
-    IServiceProvider serviceProvider)
+    IServiceProvider serviceProvider,
+    IActionRateLimiter rateLimiter)
     : IActionExecutor
 {
     public async Task ExecuteAsync<T>(
@@ -14,6 +16,7 @@ public sealed class ActionExecutor(
         CancellationToken cancellationToken)
         where T : IActionContext
     {
+        var _rateLimiter = rateLimiter;
         var handlers = serviceProvider.GetServices<IActionHandler<T>>();
 
         var handler = handlers.SingleOrDefault(
@@ -26,6 +29,15 @@ public sealed class ActionExecutor(
                 $"Unsupported action type: '{then.Type}' " +
                 $"for context '{typeof(T).Name}'");
         }
+
+        await _rateLimiter.WaitAsync(
+            new ActionRateLimitKey(
+                CompanyId: context.CompanyId,
+                ActionType: then.Type,
+                TargetSystem: then.TargetSystem),
+            permittedActions: 100,
+            window: TimeSpan.FromMinutes(1),
+            cancellationToken);
 
         await handler.ExecuteAsync(
             then,

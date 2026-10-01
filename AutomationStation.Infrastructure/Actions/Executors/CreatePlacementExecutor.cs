@@ -10,6 +10,13 @@ public sealed class CreatePlacementExecutor(
 {
     public string ActionType => "CreatePlacement";
 
+    public TargetSystem TargetSystem => throw new NotImplementedException();
+
+    public bool CanHandle(string actionType)
+    {
+        throw new NotImplementedException();
+    }
+
     public async Task ExecuteAsync(
         Then then,
         PlacementActionContext context,

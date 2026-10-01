@@ -6,5 +6,6 @@ namespace AutomationStation.Application.Abstractions
     {
         Guid CausationEventId { get; }
         Actor Actor { get; }
+        int CompanyId { get; }
     }
 }
