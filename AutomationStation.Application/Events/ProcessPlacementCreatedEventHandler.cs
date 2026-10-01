@@ -1,8 +1,9 @@
-﻿using AutomationStation.Application.Abstractions;
+﻿using Microsoft.Extensions.Logging;
+
+using AutomationStation.Core.Automations;
+using AutomationStation.Application.Abstractions;
 using AutomationStation.Application.Contracts;
 using AutomationStation.Application.Models;
-using AutomationStation.Core.Automations;
-using Microsoft.Extensions.Logging;
 
 namespace AutomationStation.Application.Events;
 
@@ -64,26 +65,26 @@ public sealed class ProcessPlacementCreatedEventHandler(
             var cooldown = DateTime.UtcNow - ExecutionCooldown;
 
             var triggeredRecently =
-                await _historyRepository.HasTriggeredRecentlyAsync(
+                await _historyRepository.TriggeredRecentlyAsync(
                     automation.Id,
                     cooldown,
                     cancellationToken);
 
-            var hasCausationId =
-                await _historyRepository.HasCausationEventIdAsync(
+            var eventAlreadyProcessed =
+                await _historyRepository.EventAlreadyProcessedAsync(
                     automation.Id,
                     causationEventId,
                     cancellationToken);
 
-            if (triggeredRecently || hasCausationId)
+            if (triggeredRecently || eventAlreadyProcessed)
             {
                 logger.LogWarning(
-                    "Event {EventId} with correlationId {CorrelationId} blocked for automation {AutomationId}. TriggeredRecently: {TriggeredRecently}, HasCausationId: {HasCausationId}",
+                    "Event {EventId} with correlationId {CorrelationId} blocked for automation {AutomationId}. TriggeredRecently: {TriggeredRecently}, EventAlreadyProcessed: {HasCausationId}",
                     integrationEvent.EventId,
                     integrationEvent.CorrelationId,
                     automation.Id,
                     triggeredRecently,
-                    hasCausationId);
+                    eventAlreadyProcessed);
 
                 continue;
             }
