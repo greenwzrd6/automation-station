@@ -1,6 +1,7 @@
-﻿using AutomationStation.Application.Abstractions;
+﻿using Dapper;
+
+using AutomationStation.Application.Abstractions;
 using AutomationStation.Infrastructure.Database;
-using Dapper;
 
 namespace AutomationStation.Infrastructure.Persistence;
 
@@ -39,7 +40,7 @@ public sealed class HistoryRepository(
                 cancellationToken: CancellationToken));
     }
 
-    public async Task<bool> HasTriggeredRecentlyAsync(
+    public async Task<bool> TriggeredRecentlyAsync(
         Guid AutomationId,
         DateTime Cooldown,
         CancellationToken CancellationToken)
@@ -76,7 +77,7 @@ public sealed class HistoryRepository(
                 cancellationToken: CancellationToken));
     }
 
-    public async Task<bool> HasCausationEventIdAsync(
+    public async Task<bool> EventAlreadyProcessedAsync(
         Guid AutomationId,
         Guid CausationEventId,
         CancellationToken CancellationToken)

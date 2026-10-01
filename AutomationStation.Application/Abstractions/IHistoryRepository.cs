@@ -7,12 +7,12 @@
             Guid CausationEventId,
             CancellationToken CancellationToken);
 
-        Task<bool> HasTriggeredRecentlyAsync(
+        Task<bool> TriggeredRecentlyAsync(
             Guid AutomationId,
             DateTime Cooldown,
             CancellationToken CancellationToken);
 
-        Task<bool> HasCausationEventIdAsync(
+        Task<bool> EventAlreadyProcessedAsync(
             Guid AutomationId,
             Guid CausationEventId,
             CancellationToken CancellationToken);

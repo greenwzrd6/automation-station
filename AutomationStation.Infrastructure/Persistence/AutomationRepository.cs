@@ -1,10 +1,11 @@
-﻿using System.Text.Json;
+﻿using Dapper;
+using System.Text.Json;
 using System.Text.Json.Serialization;
-using AutomationStation.Application.Abstractions;
+
 using AutomationStation.Core.Automations;
+using AutomationStation.Application.Abstractions;
 using AutomationStation.Infrastructure.Database;
 using AutomationStation.Infrastructure.Persistence.Models;
-using Dapper;
 
 namespace AutomationStation.Infrastructure.Persistence;
 

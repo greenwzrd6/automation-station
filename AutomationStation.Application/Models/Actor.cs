@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace AutomationStation.Application.Models
+﻿namespace AutomationStation.Application.Models
 {
     public record Actor(
         Guid Id,
