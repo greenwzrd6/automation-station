@@ -2,9 +2,6 @@
 
 using AutomationStation.Core.Automations;
 using AutomationStation.Application.Abstractions;
-using AutomationStation.Core.Automations;
-using Microsoft.Extensions.DependencyInjection;
-using System.Threading.RateLimiting;
 
 namespace AutomationStation.Infrastructure.Actions;
 
