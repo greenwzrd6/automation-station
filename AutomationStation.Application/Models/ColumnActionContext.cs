@@ -1,10 +1,13 @@
-﻿using AutomationStation.Application.Abstractions;
+﻿#if false
+using AutomationStation.Application.Abstractions;
 
 namespace AutomationStation.Application.Models
 {
     public sealed record ColumnActionContext(
         Guid ColumnId,
+        Guid? CorrelationId
         Guid CausationEventId,
         Actor Actor)
         : IActionContext;
 }
+#endif

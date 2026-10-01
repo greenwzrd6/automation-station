@@ -1,6 +1,7 @@
-﻿//using AutomationStation.Application.Models;
-//using AutomationStation.Core.Automations;
-//using AutomationStation.Infrastructure.Integrations.Kanban;
+﻿#if false
+using AutomationStation.Application.Models;
+using AutomationStation.Core.Automations;
+using AutomationStation.Infrastructure.Integrations.Kanban;
 
 //namespace AutomationStation.Infrastructure.Actions.Executors
 //{
@@ -18,12 +19,13 @@
 //            var toColumnId = Guid.Parse(
 //                then.Parameters["toColumnId"]);
 
-//            await planningClient.CreateColumnEdgeAsync(
-//                context.ColumnId,
-//                toColumnId,
-//                context.CausationEventId,
-//                context.Actor.Type),
-//                cancellationToken);
-//        }
-//    }
-//}
+            await planningClient.CreateColumnEdgeAsync(
+                context.ColumnId,
+                toColumnId,
+                context.CausationEventId,
+                context.ExecutionId,
+                cancellationToken);
+        }
+    }
+}
+#endif

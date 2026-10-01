@@ -1,7 +1,8 @@
-﻿//using AutomationStation.Application.Abstractions;
-//using AutomationStation.Application.Contracts;
-//using AutomationStation.Application.Models;
-//using AutomationStation.Core.Automations;
+﻿#if false
+using AutomationStation.Application.Abstractions;
+using AutomationStation.Application.Contracts;
+using AutomationStation.Application.Models;
+using AutomationStation.Core.Automations;
 
 //namespace AutomationStation.Application.Events
 //{
@@ -14,60 +15,44 @@
 //        private readonly IAutomationRepository _automationRepository = automationRepository;
 //        private readonly IActionExecutor _actionExecutor = actionExecutor;
 
-//        public async Task HandleAsync(
-//            IntegrationEvent<ColumnHasNoEdgePayload> integrationEvent,
-//            CancellationToken cancellationToken)
-//        {
-//            if (!string.Equals(
-//                    integrationEvent.EventType,
-//                    ColumnHasNoEdge,
-//                    StringComparison.OrdinalIgnoreCase))
-//            {
-//                return;
-//            }
+        public async Task HandleAsync(
+            IntegrationEvent<ColumnHasNoEdgePayload> integrationEvent,
+            CancellationToken cancellationToken)
+        {
+            if (!string.Equals(
+                    integrationEvent.EventType,
+                    ColumnHasNoEdge,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+            var automations =
+                await _automationRepository.GetEnabledByEventTypeAsync(
+                    integrationEvent.EventType,
+                    cancellationToken);
+            foreach (var automation in automations)
+            {
+                if (!Matches(
+                        automation.When,
+                        integrationEvent))
+                {
+                    continue;
+                }
 
-//            var causationEventId = integrationEvent.CausationEventId ?? integrationEvent.EventId;
-//            var sourceAutomationId = integrationEvent.SourceAutomationId;
+                var context = new ColumnActionContext(
+                    ColumnId: integrationEvent.Payload.ColumnId,
+                    CausationEventId: integrationEvent.CausationEventId ?? integrationEvent.EventId,
+                    ExecutionId: Guid.NewGuid());
 
-//            var automations =
-//                await _automationRepository.GetEnabledByEventTypeAsync(
-//                    integrationEvent.EventType,
-//                    cancellationToken);
-//            foreach (var automation in automations)
-//            {
-//                if (!Matches(
-//                        automation.When,
-//                        integrationEvent))
-//                {
-//                    continue;
-//                }
-
-//                if (integrationEvent.SourceAutomationId == sourceAutomationId)
-//                {
-//                    if (sourceAutomationId == automation.Id)
-//                    {
-//                        continue;
-//                    }
-
-//                    if (!automation.AutomationTriggerable)
-//                    {
-//                        continue;
-//                    }
-//                }
-
-//                var context = new ColumnActionContext(
-//                    ColumnId: integrationEvent.Payload.ColumnId,
-//                    CausationEventId: causationEventId,
-//                    SourceAutomationId: sourceAutomationId);
-//                foreach (var then in automation.Thens)
-//                {
-//                    await _actionExecutor.ExecuteAsync(
-//                        then,
-//                        context,
-//                        cancellationToken);
-//                }
-//            }
-//        }
+                foreach (var then in automation.Thens)
+                {
+                    await _actionExecutor.ExecuteAsync(
+                        then,
+                        context,
+                        cancellationToken);
+                }
+            }
+        }
 
 //        private static bool Matches(
 //            When when,
@@ -89,7 +74,8 @@
 //                return false;
 //            }
 
-//            return true;
-//        }
-//    }
-//}
+            return true;
+        }
+    }
+}
+#endif

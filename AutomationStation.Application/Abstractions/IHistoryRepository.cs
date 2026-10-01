@@ -4,13 +4,17 @@
     {
         Task CreateAutomationTimestampAsync(
             Guid AutomationId,
-            Guid causationEventId,
-            CancellationToken cancellationToken);
+            Guid CausationEventId,
+            CancellationToken CancellationToken);
 
         Task<bool> HasTriggeredRecentlyAsync(
             Guid AutomationId,
-            Guid causationEventId,
-            DateTime cooldown,
-            CancellationToken cancellationToken);
+            DateTime Cooldown,
+            CancellationToken CancellationToken);
+
+        Task<bool> HasCausationEventIdAsync(
+            Guid AutomationId,
+            Guid CausationEventId,
+            CancellationToken CancellationToken);
     }
 }

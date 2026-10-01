@@ -2,19 +2,23 @@
 using AutomationStation.Application.Contracts;
 using AutomationStation.Application.Models;
 using AutomationStation.Core.Automations;
+using Microsoft.Extensions.Logging;
 
 namespace AutomationStation.Application.Events;
 
 public sealed class ProcessPlacementCreatedEventHandler(
     IAutomationRepository automationRepository,
     IHistoryRepository historyRepository,
-    IActionExecutor actionExecutor)
+    IActionExecutor actionExecutor,
+    IAutomationExecutionRepository automationExecutionRepository,
+    ILogger<ProcessPlacementCreatedEventHandler> logger)
 {
     private const string PlacementCreated = "PlacementCreated";
 
     private readonly IAutomationRepository _automationRepository = automationRepository;
     private readonly IHistoryRepository _historyRepository = historyRepository;
     private readonly IActionExecutor _actionExecutor = actionExecutor;
+    private readonly IAutomationExecutionRepository _automationExecutionRepository = automationExecutionRepository;
 
     private static readonly TimeSpan ExecutionCooldown = TimeSpan.FromSeconds(3);
 
@@ -60,18 +64,38 @@ public sealed class ProcessPlacementCreatedEventHandler(
             var triggeredRecently =
                 await _historyRepository.HasTriggeredRecentlyAsync(
                     automation.Id,
-                    causationEventId,
                     cooldown,
                     cancellationToken);
 
-            if (triggeredRecently)
+            var hasCausationId =
+                await _historyRepository.HasCausationEventIdAsync(
+                    automation.Id,
+                    causationEventId,
+                    cancellationToken);
+
+            if (triggeredRecently || hasCausationId)
             {
+                logger.LogWarning(
+                    "Event {EventId} with correlationId {CorrelationId} blocked for automation {AutomationId}. TriggeredRecently: {TriggeredRecently}, HasCausationId: {HasCausationId}",
+                    integrationEvent.EventId,
+                    integrationEvent.CorrelationId,
+                    automation.Id,
+                    triggeredRecently,
+                    hasCausationId);
+
                 continue;
             }
 
+            var executionId =
+                await _automationExecutionRepository.GetOrCreateAsync(
+                    automation.Id,
+                    integrationEvent.EventId,
+                    cancellationToken);
+
             var context = new PlacementActionContext(
                 EntityId: integrationEvent.Payload.EntityId,
-                CausationEventId: causationEventId,
+                CorrelationId: integrationEvent.CorrelationId ?? integrationEvent.EventId,
+                CausationEventId: integrationEvent.CausationEventId ?? integrationEvent.EventId,
                 Actor: actor);
 
             await _historyRepository.CreateAutomationTimestampAsync(

@@ -12,8 +12,8 @@ public sealed class HistoryRepository(
 
     public async Task CreateAutomationTimestampAsync(
         Guid AutomationId,
-        Guid causationEventId,
-        CancellationToken cancellationToken)
+        Guid CausationEventId,
+        CancellationToken CancellationToken)
     {
         using var connection = _connectionFactory.CreateConnection();
 
@@ -26,24 +26,60 @@ public sealed class HistoryRepository(
         {
             Id = Guid.NewGuid(),
             AutomationId,
-            CausationEventId = causationEventId,
+            CausationEventId,
             TriggeredAt = DateTime.UtcNow
         };
 
-        await connection.OpenAsync(cancellationToken);
+        await connection.OpenAsync(CancellationToken);
 
         await connection.ExecuteAsync(
             new CommandDefinition(
                 sql,
                 parameters,
-                cancellationToken: cancellationToken));
+                cancellationToken: CancellationToken));
     }
 
     public async Task<bool> HasTriggeredRecentlyAsync(
         Guid AutomationId,
-        Guid causationEventId,
-        DateTime cooldown,
-        CancellationToken cancellationToken)
+        DateTime Cooldown,
+        CancellationToken CancellationToken)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+
+        const string sql = """
+        SELECT CAST(
+            CASE
+                WHEN EXISTS (
+                    SELECT 1
+                    FROM AutomationHistory
+                    WHERE AutomationId = @AutomationId
+                      AND TriggeredAt >= @Cooldown
+                )
+                THEN 1
+                ELSE 0
+            END
+        AS bit);
+        """;
+
+        var parameters = new
+        {
+            AutomationId,
+            Cooldown
+        };
+
+        await connection.OpenAsync(CancellationToken);
+
+        return await connection.QuerySingleAsync<bool>(
+            new CommandDefinition(
+                sql,
+                parameters,
+                cancellationToken: CancellationToken));
+    }
+
+    public async Task<bool> HasCausationEventIdAsync(
+        Guid AutomationId,
+        Guid CausationEventId,
+        CancellationToken CancellationToken)
     {
         using var connection = _connectionFactory.CreateConnection();
 
@@ -55,25 +91,25 @@ public sealed class HistoryRepository(
                     FROM AutomationHistory
                     WHERE AutomationId = @AutomationId
                       AND CausationEventId = @CausationEventId
-                      AND TriggeredAt >= @Cooldown
                 )
                 THEN 1
                 ELSE 0
             END
-        AS bit);
+        AS bit)
         """;
 
-        var parameters = new 
-        { 
-            AutomationId, CausationEventId = causationEventId, Cooldown = cooldown 
+        var parameters = new
+        {
+            AutomationId,
+            CausationEventId
         };
 
-        await connection.OpenAsync(cancellationToken);
+        await connection.OpenAsync(CancellationToken);
 
         return await connection.QuerySingleAsync<bool>(
             new CommandDefinition(
                 sql,
                 parameters,
-                cancellationToken: cancellationToken));
+                cancellationToken: CancellationToken));
     }
 }
