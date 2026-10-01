@@ -27,8 +27,8 @@ public sealed class CorrelationLoopCleanupService(
                     stoppingToken);
 
                 logger.LogInformation(
-                    "Cleaned up old correlation loop events older than {MaxAge}.",
-                    MaxAge);
+                    "Deleted correlation loop events older than {MaxAge} minutes.",
+                    MaxAge.Minutes);
             }
             catch (OperationCanceledException)
                 when (stoppingToken.IsCancellationRequested)
