@@ -83,12 +83,20 @@ public sealed class Worker(
         {
             try
             {
-                var json = Encoding.UTF8.GetString(
-                    args.Body.ToArray());
+                var json = Encoding.UTF8.GetString(args.Body.ToArray());
+
+                var formattedJson = JsonSerializer.Serialize(JsonSerializer.Deserialize<JsonElement>(json),
+                    new JsonSerializerOptions
+                    {
+                        WriteIndented = true
+                    });
 
                 logger.LogInformation(
-                    "Received RabbitMQ message: {Message}",
-                    json);
+                    """
+                    Received RabbitMQ message: 
+                    {Message}
+                    """,
+                    formattedJson);
 
                 using var document = JsonDocument.Parse(json);
 
@@ -190,7 +198,7 @@ public sealed class Worker(
                     cancellationToken: stoppingToken);
 
                 logger.LogInformation(
-                    "Successfully processed event type {EventType}",
+                    "Successfully processed event {EventType}",
                     eventType);
             }
             catch (OperationCanceledException)
