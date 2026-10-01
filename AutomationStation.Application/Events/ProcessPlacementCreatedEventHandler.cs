@@ -10,7 +10,6 @@ public sealed class ProcessPlacementCreatedEventHandler(
     IAutomationRepository automationRepository,
     IHistoryRepository historyRepository,
     IActionExecutor actionExecutor,
-    IAutomationExecutionRepository automationExecutionRepository,
     ILogger<ProcessPlacementCreatedEventHandler> logger)
 {
     private const string PlacementCreated = "PlacementCreated";
@@ -18,7 +17,6 @@ public sealed class ProcessPlacementCreatedEventHandler(
     private readonly IAutomationRepository _automationRepository = automationRepository;
     private readonly IHistoryRepository _historyRepository = historyRepository;
     private readonly IActionExecutor _actionExecutor = actionExecutor;
-    private readonly IAutomationExecutionRepository _automationExecutionRepository = automationExecutionRepository;
 
     private static readonly TimeSpan ExecutionCooldown = TimeSpan.FromSeconds(3);
 
@@ -35,7 +33,6 @@ public sealed class ProcessPlacementCreatedEventHandler(
         }
 
         var causationEventId = integrationEvent.CausationEventId ?? integrationEvent.EventId;
-        var actor = integrationEvent.Actor;
 
         var automations =
             await _automationRepository.GetEnabledByEventTypeAsync(
@@ -51,7 +48,10 @@ public sealed class ProcessPlacementCreatedEventHandler(
                 continue;
             }
 
-            if (integrationEvent.Actor.Type == "AutomationExecutor")
+            if (string.Equals(
+                    integrationEvent.Actor.Type,
+                    "AutomationExecutor",
+                    StringComparison.OrdinalIgnoreCase))
             {
                 if (!automation.AutomationTriggerable)
                 {
@@ -86,17 +86,11 @@ public sealed class ProcessPlacementCreatedEventHandler(
                 continue;
             }
 
-            var executionId =
-                await _automationExecutionRepository.GetOrCreateAsync(
-                    automation.Id,
-                    integrationEvent.EventId,
-                    cancellationToken);
-
             var context = new PlacementActionContext(
                 EntityId: integrationEvent.Payload.EntityId,
-                CorrelationId: integrationEvent.CorrelationId ?? integrationEvent.EventId,
-                CausationEventId: integrationEvent.CausationEventId ?? integrationEvent.EventId,
-                Actor: actor);
+                CorrelationId: integrationEvent.CorrelationId,
+                CausationEventId: causationEventId,
+                Actor: new Actor(automation.Id, "AutomationExecutor"));
 
             await _historyRepository.CreateAutomationTimestampAsync(
                 automation.Id,

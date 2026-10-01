@@ -28,10 +28,6 @@ builder.Services.AddScoped<
     ProcessedMessageRepository>();
 
 builder.Services.AddScoped<
-    IAutomationExecutionRepository,
-    AutomationExecutionRepository>();
-
-builder.Services.AddScoped<
     ICorrelationLoopRepository,
     CorrelationLoopRepository>();
 
