@@ -20,14 +20,18 @@ public sealed class ActionExecutor(
         var handlers = serviceProvider.GetServices<IActionHandler<T>>();
 
         var handler = handlers.SingleOrDefault(
-            h => h.ActionType == then.Type);
+            handler =>
+                handler.TargetSystem == then.TargetSystem
+                &&
+                handler.CanHandle(then.Type));
 
 
         if (handler is null)
         {
             throw new NotSupportedException(
-                $"Unsupported action type: '{then.Type}' " +
-                $"for context '{typeof(T).Name}'");
+                $"No handler supports action " +
+                $"'{then.Type}' for target system " +
+                $"'{then.TargetSystem}'.");
         }
 
         await _rateLimiter.WaitAsync(
