@@ -16,7 +16,7 @@ VALUES
     @AutomationId,
     'Send entity to To Do',
     1,
-    1
+    0
 );
 
 -- WHEN: Which event starts the automation?

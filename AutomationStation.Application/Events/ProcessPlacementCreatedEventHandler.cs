@@ -50,7 +50,9 @@ public sealed class ProcessPlacementCreatedEventHandler(
 
             if (string.Equals(
                     integrationEvent.Actor.Type,
-                    "AutomationExecutor",
+                    //Denna ska användas när vi plockar rätt skit från toj ( tock och jolltortyr )
+                    //"AutomationExecutor",
+                    "",
                     StringComparison.OrdinalIgnoreCase))
             {
                 if (!automation.AutomationTriggerable)
@@ -90,7 +92,7 @@ public sealed class ProcessPlacementCreatedEventHandler(
                 EntityId: integrationEvent.Payload.EntityId,
                 CorrelationId: integrationEvent.CorrelationId,
                 CausationEventId: causationEventId,
-                Actor: new Actor(automation.Id, "AutomationExecutor"));
+                Actor: integrationEvent.Actor);
 
             await _historyRepository.CreateAutomationTimestampAsync(
                 automation.Id,

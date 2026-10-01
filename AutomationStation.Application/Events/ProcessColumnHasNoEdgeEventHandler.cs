@@ -1,8 +1,7 @@
-﻿#if false
-using AutomationStation.Application.Abstractions;
-using AutomationStation.Application.Contracts;
-using AutomationStation.Application.Models;
-using AutomationStation.Core.Automations;
+﻿//using AutomationStation.Application.Abstractions;
+//using AutomationStation.Application.Contracts;
+//using AutomationStation.Application.Models;
+//using AutomationStation.Core.Automations;
 
 //namespace AutomationStation.Application.Events
 //{
@@ -15,44 +14,44 @@ using AutomationStation.Core.Automations;
 //        private readonly IAutomationRepository _automationRepository = automationRepository;
 //        private readonly IActionExecutor _actionExecutor = actionExecutor;
 
-        public async Task HandleAsync(
-            IntegrationEvent<ColumnHasNoEdgePayload> integrationEvent,
-            CancellationToken cancellationToken)
-        {
-            if (!string.Equals(
-                    integrationEvent.EventType,
-                    ColumnHasNoEdge,
-                    StringComparison.OrdinalIgnoreCase))
-            {
-                return;
-            }
-            var automations =
-                await _automationRepository.GetEnabledByEventTypeAsync(
-                    integrationEvent.EventType,
-                    cancellationToken);
-            foreach (var automation in automations)
-            {
-                if (!Matches(
-                        automation.When,
-                        integrationEvent))
-                {
-                    continue;
-                }
+//        public async Task HandleAsync(
+//            IntegrationEvent<ColumnHasNoEdgePayload> integrationEvent,
+//            CancellationToken cancellationToken)
+//        {
+//            if (!string.Equals(
+//                    integrationEvent.EventType,
+//                    ColumnHasNoEdge,
+//                    StringComparison.OrdinalIgnoreCase))
+//            {
+//                return;
+//            }
+//            var automations =
+//                await _automationRepository.GetEnabledByEventTypeAsync(
+//                    integrationEvent.EventType,
+//                    cancellationToken);
+//            foreach (var automation in automations)
+//            {
+//                if (!Matches(
+//                        automation.When,
+//                        integrationEvent))
+//                {
+//                    continue;
+//                }
 
-                var context = new ColumnActionContext(
-                    ColumnId: integrationEvent.Payload.ColumnId,
-                    CausationEventId: integrationEvent.CausationEventId ?? integrationEvent.EventId,
-                    ExecutionId: Guid.NewGuid());
+//                var context = new ColumnActionContext(
+//                    ColumnId: integrationEvent.Payload.ColumnId,
+//                    CausationEventId: integrationEvent.CausationEventId ?? integrationEvent.EventId,
+//                    ExecutionId: Guid.NewGuid());
 
-                foreach (var then in automation.Thens)
-                {
-                    await _actionExecutor.ExecuteAsync(
-                        then,
-                        context,
-                        cancellationToken);
-                }
-            }
-        }
+//                foreach (var then in automation.Thens)
+//                {
+//                    await _actionExecutor.ExecuteAsync(
+//                        then,
+//                        context,
+//                        cancellationToken);
+//                }
+//            }
+//        }
 
 //        private static bool Matches(
 //            When when,
@@ -74,8 +73,7 @@ using AutomationStation.Core.Automations;
 //                return false;
 //            }
 
-            return true;
-        }
-    }
-}
-#endif
+//            return true;
+//        }
+//    }
+//}
