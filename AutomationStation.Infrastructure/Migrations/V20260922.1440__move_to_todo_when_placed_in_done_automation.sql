@@ -1,6 +1,6 @@
 DECLARE @AutomationId UNIQUEIDENTIFIER =
     'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
-    DECLARE @AutomationId2 UNIQUEIDENTIFIER =
+DECLARE @AutomationId2 UNIQUEIDENTIFIER =
     'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaab';
 
 -- AUTOMATION
@@ -8,13 +8,15 @@ INSERT INTO Automations
 (
     Id,
     Name,
-    Enabled
+    Enabled,
+    AutomationTriggerable
 )
 VALUES
 (
     @AutomationId,
     'Send entity to To Do',
-    1
+    1,
+    0
 );
 
 -- WHEN: Which event starts the automation?
@@ -83,12 +85,14 @@ INSERT INTO Automations
 (
     Id,
     Name,
-    Enabled
+    Enabled,
+    AutomationTriggerable
 )
 VALUES
 (
     @AutomationId2,
     'Send entity to Released',
+    1,
     1
 );
 

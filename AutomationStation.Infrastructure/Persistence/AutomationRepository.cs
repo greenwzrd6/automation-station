@@ -28,19 +28,31 @@ public sealed class AutomationRepository(
             CancellationToken cancellationToken)
     {
         const string sql = """
-            -- Automations and triggers
+            -- Automations
             SELECT
-                a.Id AS AutomationId,
+                a.Id,
                 a.Name,
                 a.Enabled,
+                a.AutomationTriggerable
+            FROM Automations a
+            WHERE a.Enabled = 1
+              AND EXISTS (
+                  SELECT 1
+                  FROM AutomationTriggers t
+                  WHERE t.AutomationId = a.Id
+                    AND t.EventType = @EventType
+              );
+
+            -- Trigger
+            SELECT
+                t.AutomationId,
                 t.EventType,
                 t.SourceSystem
-            FROM Automations a
-            INNER JOIN AutomationTriggers t
-                ON t.AutomationId = a.Id
-            WHERE
-                a.Enabled = 1
-                AND t.EventType = @EventType;
+            FROM AutomationTriggers t
+            INNER JOIN Automations a
+                ON a.Id = t.AutomationId
+            WHERE a.Enabled = 1
+              AND t.EventType = @EventType;
 
             -- Conditions
             SELECT
@@ -98,16 +110,25 @@ public sealed class AutomationRepository(
                 new { EventType = eventType },
                 cancellationToken: cancellationToken));
 
-        var triggers =
+        var automationRows =
+            (await result.ReadAsync<AutomationRow>()).ToList();
+
+        var triggerRows =
             (await result.ReadAsync<TriggerRow>()).ToList();
 
-        var conditions =
+        var conditionRows =
             (await result.ReadAsync<ConditionRow>()).ToList();
 
-        var actions =
+        var actionRows =
             (await result.ReadAsync<ActionRow>()).ToList();
 
-        var conditionsByAutomation = conditions
+        var triggersByAutomation = triggerRows
+            .GroupBy(trigger => trigger.AutomationId)
+            .ToDictionary(
+                group => group.Key,
+                group => group.ToList());
+
+        var conditionsByAutomation = conditionRows
             .GroupBy(condition => condition.AutomationId)
             .ToDictionary(
                 group => group.Key,
@@ -115,7 +136,7 @@ public sealed class AutomationRepository(
                     .Select(DeserializeCondition)
                     .ToList());
 
-        var actionsByAutomation = actions
+        var actionsByAutomation = actionRows
             .GroupBy(action => action.AutomationId)
             .ToDictionary(
                 group => group.Key,
@@ -126,23 +147,30 @@ public sealed class AutomationRepository(
                         DeserializeParameters(action.ConfigurationJson)))
                     .ToList());
 
-        var automations = triggers.Select(trigger =>
+        var automations = automationRows.Select(automation =>
         {
+            var automationTrigger =
+                triggersByAutomation.GetValueOrDefault(automation.Id)
+                    ?.SingleOrDefault()
+                ?? throw new InvalidOperationException(
+                    $"Automation {automation.Id} has no trigger.");
+
             var automationConditions =
                 conditionsByAutomation.GetValueOrDefault(
-                    trigger.AutomationId) ?? [];
+                    automation.Id) ?? [];
 
             var automationActions =
                 actionsByAutomation.GetValueOrDefault(
-                    trigger.AutomationId) ?? [];
+                    automation.Id) ?? [];
 
             return new Automation(
-                trigger.AutomationId,
-                trigger.Name,
-                trigger.Enabled,
+                automation.Id,
+                automation.Name,
+                automation.Enabled,
+                automation.AutomationTriggerable,
                 new When(
-                    trigger.EventType,
-                    trigger.SourceSystem ?? "",
+                    automationTrigger.EventType,
+                    automationTrigger.SourceSystem ?? "",
                     automationConditions),
                 automationActions);
         });

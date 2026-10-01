@@ -10,7 +10,6 @@ public sealed class ProcessPlacementCreatedEventHandler(
     IAutomationRepository automationRepository,
     IHistoryRepository historyRepository,
     IActionExecutor actionExecutor,
-    IAutomationExecutionRepository automationExecutionRepository,
     ILogger<ProcessPlacementCreatedEventHandler> logger)
 {
     private const string PlacementCreated = "PlacementCreated";
@@ -18,7 +17,6 @@ public sealed class ProcessPlacementCreatedEventHandler(
     private readonly IAutomationRepository _automationRepository = automationRepository;
     private readonly IHistoryRepository _historyRepository = historyRepository;
     private readonly IActionExecutor _actionExecutor = actionExecutor;
-    private readonly IAutomationExecutionRepository _automationExecutionRepository = automationExecutionRepository;
 
     private static readonly TimeSpan ExecutionCooldown = TimeSpan.FromSeconds(3);
 
@@ -50,6 +48,19 @@ public sealed class ProcessPlacementCreatedEventHandler(
                 continue;
             }
 
+            if (string.Equals(
+                    integrationEvent.Actor.Type,
+                    //Denna ska användas när vi plockar rätt skit från toj ( tock och jolltortyr )
+                    //"AutomationExecutor",
+                    "",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                if (!automation.AutomationTriggerable)
+                {
+                    continue;
+                }
+            }
+
             var cooldown = DateTime.UtcNow - ExecutionCooldown;
 
             var triggeredRecently =
@@ -77,17 +88,11 @@ public sealed class ProcessPlacementCreatedEventHandler(
                 continue;
             }
 
-            var executionId =
-                await _automationExecutionRepository.GetOrCreateAsync(
-                    automation.Id,
-                    integrationEvent.EventId,
-                    cancellationToken);
-
             var context = new PlacementActionContext(
                 EntityId: integrationEvent.Payload.EntityId,
-                CorrelationId: integrationEvent.CorrelationId ?? integrationEvent.EventId,
-                CausationEventId: integrationEvent.CausationEventId ?? integrationEvent.EventId,
-                ExecutionId: executionId);
+                CorrelationId: integrationEvent.CorrelationId,
+                CausationEventId: causationEventId,
+                Actor: integrationEvent.Actor);
 
             await _historyRepository.CreateAutomationTimestampAsync(
                 automation.Id,

@@ -5,9 +5,9 @@ namespace AutomationStation.Application.Models
 {
     public sealed record ColumnActionContext(
         Guid ColumnId,
+        Guid? CorrelationId
         Guid CausationEventId,
-        Guid ExecutionId,
-        Guid? CorrelationId)
+        Actor Actor)
         : IActionContext;
 }
 #endif

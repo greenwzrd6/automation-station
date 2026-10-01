@@ -21,13 +21,16 @@ public sealed class CreatePlacementExecutor(
         var columnId = Guid.Parse(
             then.Parameters["columnId"]);
 
+        var commandId = Guid.NewGuid();
+
         await planningClient.CreatePlacementAsync(
             context.EntityId,
             boardId,
             columnId,
             context.CorrelationId,
             context.CausationEventId,
-            context.ExecutionId,
+            commandId,
+            context.Actor,
             cancellationToken);
     }
 }

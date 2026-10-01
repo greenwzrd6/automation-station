@@ -1,4 +1,5 @@
-﻿using AutomationStation.Infrastructure.Integrations.Kanban.Requests;
+﻿using AutomationStation.Application.Models;
+using AutomationStation.Infrastructure.Integrations.Kanban.Requests;
 using System.ComponentModel.Design;
 using System.Net.Http.Json;
 
@@ -14,6 +15,7 @@ public sealed class KanbanClient(
         Guid correlationId,
         Guid causationEventId,
         Guid commandId,
+        Actor actor,
         CancellationToken cancellationToken)
     {
         var request = new CreatePlacementRequest(
@@ -37,6 +39,14 @@ public sealed class KanbanClient(
         message.Headers.Add(
             "Causation-Id",
             causationEventId.ToString());
+
+        message.Headers.Add(
+            "Actor-Id",
+            actor.Id.ToString());
+
+        message.Headers.Add(
+            "Actor-Type",
+            actor.Type.ToString());
 
         message.Headers.Add(
             "Idempotency-Key",
