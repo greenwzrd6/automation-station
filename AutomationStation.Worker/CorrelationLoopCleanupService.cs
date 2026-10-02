@@ -10,6 +10,9 @@ public sealed class CorrelationLoopCleanupService(
     private static readonly TimeSpan CleanupInterval = TimeSpan.FromMinutes(5);
     private static readonly TimeSpan MaxAge = TimeSpan.FromMinutes(10);
 
+    private readonly IServiceScopeFactory _scopeFactory = scopeFactory;
+    private readonly ILogger<CorrelationLoopCleanupService> _logger = logger;
+
     protected override async Task ExecuteAsync(
         CancellationToken stoppingToken)
     {
@@ -17,7 +20,7 @@ public sealed class CorrelationLoopCleanupService(
         {
             try
             {
-                using var scope = scopeFactory.CreateScope();
+                using var scope = _scopeFactory.CreateScope();
 
                 var repository = scope.ServiceProvider
                     .GetRequiredService<ICorrelationLoopRepository>();
@@ -26,7 +29,7 @@ public sealed class CorrelationLoopCleanupService(
                     MaxAge,
                     stoppingToken);
 
-                logger.LogInformation(
+                _logger.LogInformation(
                     "Deleted correlation loop events older than {MaxAge} minutes.",
                     MaxAge.Minutes);
             }
@@ -37,7 +40,7 @@ public sealed class CorrelationLoopCleanupService(
             }
             catch (Exception exception)
             {
-                logger.LogError(
+                _logger.LogError(
                     exception,
                     "Failed to clean up old correlation loop events.");
             }

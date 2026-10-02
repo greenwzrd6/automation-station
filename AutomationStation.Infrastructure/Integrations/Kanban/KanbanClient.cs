@@ -1,6 +1,5 @@
 ﻿using System.Net.Http.Json;
 
-using AutomationStation.Application.Models;
 using AutomationStation.Infrastructure.Integrations.Kanban.Requests;
 
 namespace AutomationStation.Infrastructure.Integrations.Kanban;
@@ -8,14 +7,13 @@ namespace AutomationStation.Infrastructure.Integrations.Kanban;
 public sealed class KanbanClient(
     HttpClient httpClient)
 {
+    private readonly HttpClient _httpClient = httpClient;
+
     public async Task CreatePlacementAsync(
         Guid entityId,
         Guid boardId,
         Guid columnId,
-        Guid correlationId,
-        Guid causationEventId,
-        Guid commandId,
-        Actor actor,
+        KanbanRequestContext requestContext,
         CancellationToken cancellationToken)
     {
         var request = new CreatePlacementRequest(
@@ -34,66 +32,28 @@ public sealed class KanbanClient(
 
         message.Headers.Add(
             "Correlation-Id",
-            correlationId.ToString());
+            requestContext.CorrelationId.ToString());
 
         message.Headers.Add(
             "Causation-Id",
-            causationEventId.ToString());
+            requestContext.CausationEventId.ToString());
 
         message.Headers.Add(
             "Actor-Id",
-            actor.Id.ToString());
+            requestContext.Actor.Id.ToString());
 
         message.Headers.Add(
             "Actor-Type",
-            actor.Type.ToString());
+            requestContext.Actor.Type.ToString());
 
         message.Headers.Add(
             "Idempotency-Key",
-            commandId.ToString());
+            requestContext.CommandId.ToString());
 
-        using var response = await httpClient.SendAsync(
+        using var response = await _httpClient.SendAsync(
             message,
             cancellationToken);
 
         response.EnsureSuccessStatusCode();
     }
-
-    //public async Task CreateColumnEdgeAsync(
-    //    Guid fromColumnId,
-    //    Guid toColumnId,
-    //    Guid correlationId,
-    //    Guid causationEventId,
-    //    Guid commandId,
-    //    CancellationToken cancellationToken)
-    //{
-    //    var request = new CreateColumnEdgeRequest(
-    //        fromColumnId,
-    //        toColumnId);
-
-    //    using var message = new HttpRequestMessage(
-    //        HttpMethod.Post,
-    //        "/api/columnedges/create")
-    //    {
-    //        Content = JsonContent.Create(request)
-    //    };
-
-    //    message.Headers.Add(
-    //        "Correlation-Id",
-    //        correlationId.ToString());
-
-    //    message.Headers.Add(
-    //        "Causation-Id",
-    //        causationEventId.ToString());
-
-    //    message.Headers.Add(
-    //        "Idempotency-Key",
-    //        commandId.ToString());
-
-    //    using var response = await httpClient.SendAsync(
-    //        message,
-    //        cancellationToken);
-
-    //    response.EnsureSuccessStatusCode();
-    //}
 }

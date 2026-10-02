@@ -1,38 +1,43 @@
+using System.Text;
+using System.Text.Json;
 using AutomationStation.Application.Abstractions;
 using AutomationStation.Application.Contracts;
-using AutomationStation.Application.Events;
 using AutomationStation.Application.Models;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using System.Text;
-using System.Text.Json;
 
 namespace AutomationStation.Worker;
 
 public sealed class Worker(
-    IServiceScopeFactory scopeFactory,
+    ILogger<Worker> logger,
     IConfiguration configuration,
-    ILogger<Worker> logger)
+    IServiceScopeFactory scopeFactory)
     : BackgroundService
 {
+    private readonly ILogger<Worker> _logger = logger;
+    private readonly IConfiguration _configuration = configuration;
+    private readonly IServiceScopeFactory _scopeFactory = scopeFactory;
+
     protected override async Task ExecuteAsync(
         CancellationToken stoppingToken)
     {
-
         var factory = new ConnectionFactory
         {
-            HostName = configuration["RabbitMQ:HostName"]!,
-            Port = configuration.GetValue<int>("RabbitMQ:Port", 5672),
-            UserName = configuration["RabbitMQ:UserName"]!,
-            Password = configuration["RabbitMQ:Password"]!,
-            VirtualHost = configuration["RabbitMQ:VirtualHost"] ?? "/"
+            HostName = _configuration["RabbitMq:HostName"]!,
+            Port = int.Parse(_configuration["RabbitMq:Port"]!),
+            UserName = _configuration["RabbitMq:UserName"]!,
+            Password = _configuration["RabbitMq:Password"]!,
+            VirtualHost = _configuration["RabbitMq:VirtualHost"]!
         };
 
-        var exchange = configuration["RabbitMQ:Exchange"]!;
-        var queue = configuration["RabbitMQ:Queue"]!;
+        var exchange =
+            _configuration["RabbitMq:Exchange"]!;
 
-        logger.LogInformation(
-            "Connecting to RabbitMQ: {Host}:{Port}, User: {User}, VirtualHost: {VHost}",
+        var queue =
+            _configuration["RabbitMq:Queue"]!;
+
+        _logger.LogInformation(
+            "Connecting to RabbitMQ: '{Host}:{Port}', User: '{User}', VirtualHost: '{VHost}'",
             factory.HostName,
             factory.Port,
             factory.UserName,
@@ -62,14 +67,8 @@ public sealed class Worker(
         await channel.QueueBindAsync(
             queue: queue,
             exchange: exchange,
-            routingKey: "placement.created",
+            routingKey: "#",
             cancellationToken: stoppingToken);
-
-        // await channel.QueueBindAsync(
-        //     queue: queue,
-        //     exchange: exchange,
-        //     routingKey: "column.no-edge",
-        //     cancellationToken: stoppingToken);
 
         await channel.BasicQosAsync(
             prefetchSize: 0,
@@ -77,13 +76,23 @@ public sealed class Worker(
             global: false,
             cancellationToken: stoppingToken);
 
-        var consumer = new AsyncEventingBasicConsumer(channel);
+        var consumer =
+            new AsyncEventingBasicConsumer(channel);
 
         consumer.ReceivedAsync += async (_, args) =>
         {
             try
             {
-                var json = Encoding.UTF8.GetString(args.Body.ToArray());
+                var json =
+                    Encoding.UTF8.GetString(
+                        args.Body.ToArray());
+
+                var integrationEvent =
+                    JsonSerializer.Deserialize<IntegrationEvent>(
+                        json,
+                        JsonSerializerOptions.Web)
+                    ?? throw new JsonException(
+                        "Could not deserialize integration event.");
 
                 var formattedJson = JsonSerializer.Serialize(JsonSerializer.Deserialize<JsonElement>(json),
                     new JsonSerializerOptions
@@ -91,43 +100,27 @@ public sealed class Worker(
                         WriteIndented = true
                     });
 
-                logger.LogInformation(
-                    """
+                logger.LogInformation("""
                     Received RabbitMQ message: 
                     {Message}
                     """,
                     formattedJson);
 
-                using var document = JsonDocument.Parse(json);
-
-                var eventId = document.RootElement
-                    .GetProperty("eventId")
-                    .GetGuid();
-
-                var eventType = document.RootElement
-                    .GetProperty("eventType")
-                    .GetString();
-
-                document.RootElement.TryGetProperty("correlationId", out var correlationElement);
-                var correlationId = correlationElement.ValueKind == JsonValueKind.String
-                    ? correlationElement.GetGuid()
-                    : (Guid?)null;
-
-                using var scope = scopeFactory.CreateScope();
+                using var scope =
+                    _scopeFactory.CreateScope();
 
                 var processedMessages =
                     scope.ServiceProvider
                         .GetRequiredService<
                             IProcessedMessageRepository>();
 
-                if (await processedMessages
-                .HasProcessedAsync(
-                    eventId,
-                    stoppingToken))
+                if (await processedMessages.HasProcessedAsync(
+                        integrationEvent.EventId,
+                        stoppingToken))
                 {
-                    logger.LogInformation(
-                        "Ignoring duplicate message {EventId}",
-                        eventId);
+                    _logger.LogInformation(
+                        "Ignoring duplicate message '{EventId}'",
+                        integrationEvent.EventId);
 
                     await channel.BasicAckAsync(
                         args.DeliveryTag,
@@ -138,77 +131,74 @@ public sealed class Worker(
                     return;
                 }
 
-                var blockers = scope.ServiceProvider.GetServices<IEventBlocker>();
+                var blockers =
+                    scope.ServiceProvider
+                        .GetServices<IEventBlocker>();
 
-                var context = new EventBlockerContext(
-                    eventId,
-                    eventType ?? string.Empty,
-                    document.RootElement.GetProperty("source").GetString() ?? string.Empty,
-                    correlationId,
-                    null);
+                var blockerContext =
+                    new EventBlockerContext(
+                        integrationEvent.EventId,
+                        integrationEvent.EventType,
+                        integrationEvent.Source,
+                        integrationEvent.CorrelationId,
+                        integrationEvent.CausationEventId);
 
                 foreach (var blocker in blockers)
                 {
-                    if (await blocker.IsBlockedAsync(context, stoppingToken))
+                    if (!await blocker.IsBlockedAsync(
+                            blockerContext,
+                            stoppingToken))
                     {
-                        logger.LogWarning(
-                            "Event {EventId} with correlationId {CorrelationId} blocked by {Blocker}",
-                            eventId,
-                            correlationId,
-                            blocker.GetType().Name);
-
-                        await channel.BasicAckAsync(
-                            args.DeliveryTag,
-                            multiple: false,
-                            cancellationToken: stoppingToken);
-
-                        return;
+                        continue;
                     }
-                }
 
-                switch (eventType)
-                {
-                    case "PlacementCreated":
-                        await HandlePlacementCreatedAsync(
-                            json,
-                            scope.ServiceProvider,
+                    _logger.LogWarning(
+                        "Event '{EventId}' with correlationId '{CorrelationId}' blocked by '{Blocker}'",
+                        integrationEvent.EventId,
+                        integrationEvent.CorrelationId,
+                        blocker.GetType().Name);
+
+                    await channel.BasicAckAsync(
+                        args.DeliveryTag,
+                        multiple: false,
+                        cancellationToken:
                             stoppingToken);
-                        break;
 
-                    // case "ColumnHasNoEdge":
-                    //     await HandleColumnHasNoEdgeAsync(
-                    //         json,
-                    //         scope.ServiceProvider,
-                    //         stoppingToken);
-                    //     break;
-
-                    default:
-                        throw new NotSupportedException(
-                            $"Unsupported event type: {eventType}");
+                    return;
                 }
 
-                await processedMessages
-                    .MarkProcessedAsync(
-                        eventId,
-                        stoppingToken);
+                var processor =
+                    scope.ServiceProvider
+                        .GetRequiredService<
+                            IAutomationProcessor>();
+
+                await processor.ProcessAsync(
+                    integrationEvent,
+                    stoppingToken);
+
+                await processedMessages.MarkProcessedAsync(
+                    integrationEvent.EventId,
+                    stoppingToken);
 
                 await channel.BasicAckAsync(
                     args.DeliveryTag,
                     multiple: false,
-                    cancellationToken: stoppingToken);
+                    cancellationToken:
+                        stoppingToken);
 
-                logger.LogInformation(
-                    "Successfully processed event {EventType}",
-                    eventType);
+                _logger.LogInformation(
+                    "Successfully processed event '{EventType}'",
+                    integrationEvent.EventType);
             }
             catch (OperationCanceledException)
                 when (stoppingToken.IsCancellationRequested)
             {
-                // Worker is shutting down.
+                // Hello
             }
+
             catch (Exception exception)
             {
-                logger.LogError(
+                _logger.LogError(
                     exception,
                     "Failed to process RabbitMQ message.");
 
@@ -216,7 +206,8 @@ public sealed class Worker(
                     args.DeliveryTag,
                     multiple: false,
                     requeue: false,
-                    cancellationToken: stoppingToken);
+                    cancellationToken:
+                        stoppingToken);
             }
         };
 
@@ -226,100 +217,11 @@ public sealed class Worker(
             consumer: consumer,
             cancellationToken: stoppingToken);
 
-        logger.LogInformation(
+        _logger.LogInformation(
             "Listening for integration events...");
 
         await Task.Delay(
             Timeout.Infinite,
             stoppingToken);
     }
-
-    //Move out of worker later
-    private static async Task HandlePlacementCreatedAsync(
-    string json,
-    IServiceProvider serviceProvider,
-    CancellationToken cancellationToken)
-    {
-        var integrationEvent =
-            JsonSerializer.Deserialize<
-                IntegrationEvent<PlacementCreatedPayload>>(
-                    json,
-                    JsonSerializerOptions.Web)
-            ?? throw new JsonException(
-                "Could not deserialize PlacementCreated event.");
-
-        var handler = serviceProvider
-            .GetRequiredService<
-                ProcessPlacementCreatedEventHandler>();
-
-        await handler.HandleAsync(
-            integrationEvent,
-            cancellationToken);
-    }
-
-    //Move out of worker later
-    // private static async Task HandleColumnHasNoEdgeAsync(
-    // string json,
-    // IServiceProvider serviceProvider,
-    // CancellationToken cancellationToken)
-    // {
-    //     var integrationEvent =
-    //         JsonSerializer.Deserialize<
-    //             IntegrationEvent<ColumnHasNoEdgePayload>>(
-    //                 json,
-    //                 JsonSerializerOptions.Web)
-    //         ?? throw new JsonException(
-    //             "Could not deserialize ColumnHasNoEdge event.");
-
-    //     var handler = serviceProvider
-    //         .GetRequiredService<
-    //             ProcessColumnHasNoEdgeEventHandler>();
-
-    //     await handler.HandleAsync(
-    //         integrationEvent,
-    //         cancellationToken);
-    // }
-
-    //Test
-
-    //private async Task TestAutomationExecutionRepositoryAsync(
-    //IServiceScopeFactory scopeFactory,
-    //CancellationToken cancellationToken)
-    //{
-    //    using var scope = scopeFactory.CreateScope();
-
-    //    var executionRepository =
-    //        scope.ServiceProvider
-    //            .GetRequiredService<IAutomationExecutionRepository>();
-
-    //    var automationId =
-    //        Guid.Parse("AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA");
-
-    //    var eventId =
-    //        Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaac");
-
-    //    var firstExecutionId =
-    //        await executionRepository.GetOrCreateAsync(
-    //            automationId,
-    //            eventId,
-    //            cancellationToken);
-
-    //    var secondExecutionId =
-    //        await executionRepository.GetOrCreateAsync(
-    //            automationId,
-    //            eventId,
-    //            cancellationToken);
-
-    //    logger.LogInformation(
-    //        "First execution id: {ExecutionId}",
-    //        firstExecutionId);
-
-    //    logger.LogInformation(
-    //        "Second execution id: {ExecutionId}",
-    //        secondExecutionId);
-
-    //    logger.LogInformation(
-    //        "Same execution id: {Same}",
-    //        firstExecutionId == secondExecutionId);
-    //}
 }

@@ -1,31 +1,29 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-
-using AutomationStation.Core.Automations;
+﻿using AutomationStation.Core.Automations;
 using AutomationStation.Application.Abstractions;
+using AutomationStation.Application.Models;
 
 namespace AutomationStation.Infrastructure.Actions;
 
 public sealed class ActionExecutor(
-    IServiceProvider serviceProvider)
+    IEnumerable<IActionHandler> handlers)
     : IActionExecutor
 {
-    public async Task ExecuteAsync<T>(
+    private readonly IReadOnlyDictionary<string, IActionHandler> _handlers =
+        handlers.ToDictionary(
+            handler => handler.ActionType,
+            StringComparer.OrdinalIgnoreCase);
+
+    public async Task ExecuteAsync(
         Then then,
-        T context,
+        AutomationActionContext context,
         CancellationToken cancellationToken)
-        where T : IActionContext
     {
-        var handlers = serviceProvider.GetServices<IActionHandler<T>>();
-
-        var handler = handlers.SingleOrDefault(
-            h => h.ActionType == then.Type);
-
-
-        if (handler is null)
+        if (!_handlers.TryGetValue(
+                then.Type,
+                out var handler))
         {
             throw new NotSupportedException(
-                $"Unsupported action type: '{then.Type}' " +
-                $"for context '{typeof(T).Name}'");
+                $"Unsupported action type '{then.Type}'.");
         }
 
         await handler.ExecuteAsync(
