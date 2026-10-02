@@ -3,21 +3,21 @@ using Dapper;
 using AutomationStation.Application.Abstractions;
 using AutomationStation.Infrastructure.Database;
 
-namespace AutomationStation.Infrastructure.Persistence;
-
-public sealed class CorrelationLoopRepository(
-    DbConnectionFactory connectionFactory)
-    : ICorrelationLoopRepository
+namespace AutomationStation.Infrastructure.Persistence
 {
-    private readonly DbConnectionFactory _connectionFactory = connectionFactory;
-    public async Task<bool> IsBlockedAsync(
-        Guid correlationId,
-        Guid eventId,
-        CancellationToken cancellationToken)
+    public sealed class CorrelationLoopRepository(
+        DbConnectionFactory connectionFactory)
+        : ICorrelationLoopRepository
     {
-        using var connection = _connectionFactory.CreateConnection();
+        private readonly DbConnectionFactory _connectionFactory = connectionFactory;
+        public async Task<bool> IsBlockedAsync(
+            Guid correlationId,
+            Guid eventId,
+            CancellationToken cancellationToken)
+        {
+            using var connection = _connectionFactory.CreateConnection();
 
-        const string sql = """
+            const string sql = """
             SET XACT_ABORT ON;
 
             BEGIN TRANSACTION;
@@ -45,44 +45,45 @@ public sealed class CorrelationLoopRepository(
             SELECT @Blocked;
             """;
 
-        var parameters = new
+            var parameters = new
+            {
+                Id = Guid.NewGuid(),
+                CorrelationId = correlationId,
+                EventId = eventId
+            };
+
+            await connection.OpenAsync(cancellationToken);
+
+            return await connection.QuerySingleAsync<bool>(
+                new CommandDefinition(
+                    sql,
+                    parameters,
+                    cancellationToken: cancellationToken));
+        }
+
+        public async Task CleanupOldEventsAsync(
+            TimeSpan maxAge,
+            CancellationToken cancellationToken)
         {
-            Id = Guid.NewGuid(),
-            CorrelationId = correlationId,
-            EventId = eventId
-        };
+            using var connection = _connectionFactory.CreateConnection();
 
-        await connection.OpenAsync(cancellationToken);
-
-        return await connection.QuerySingleAsync<bool>(
-            new CommandDefinition(
-                sql,
-                parameters,
-                cancellationToken: cancellationToken));
-    }
-
-    public async Task CleanupOldEventsAsync(
-        TimeSpan maxAge,
-        CancellationToken cancellationToken)
-    {
-        using var connection = _connectionFactory.CreateConnection();
-
-        const string sql = """
+            const string sql = """
             DELETE FROM CorrelationLoopEvents
             WHERE ReceivedAt < @Cutoff;
             """;
 
-        var parameters = new
-        {
-            Cutoff = DateTime.UtcNow - maxAge
-        };
+            var parameters = new
+            {
+                Cutoff = DateTime.UtcNow - maxAge
+            };
 
-        await connection.OpenAsync(cancellationToken);
+            await connection.OpenAsync(cancellationToken);
 
-        await connection.ExecuteAsync(
-            new CommandDefinition(
-                sql,
-                parameters,
-                cancellationToken: cancellationToken));
+            await connection.ExecuteAsync(
+                new CommandDefinition(
+                    sql,
+                    parameters,
+                    cancellationToken: cancellationToken));
+        }
     }
 }

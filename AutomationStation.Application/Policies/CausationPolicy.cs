@@ -5,7 +5,8 @@ using AutomationStation.Core.Automations;
 
 namespace AutomationStation.Application.Policies
 {
-    public sealed class CausationPolicy(IHistoryRepository historyRepository) : IAutomationExecutionPolicy
+    public sealed class CausationPolicy(IHistoryRepository historyRepository)
+        : IAutomationExecutionPolicy
     {
         private readonly IHistoryRepository _historyRepository = historyRepository;
 
