@@ -14,12 +14,9 @@ public sealed class ActionExecutor(
         handlers.ToDictionary(
             handler => $"{handler.TargetSystem}:{handler.ActionType}",
             StringComparer.OrdinalIgnoreCase);
+    private readonly IActionRateLimiter _rateLimiter = rateLimiter;
+    private readonly IActionCatalog _actionCatalog = actionCatalog;
 
-        private readonly IActionRateLimiter _rateLimiter =
-            rateLimiter;
-
-    private readonly IActionCatalog _actionCatalog =
-        actionCatalog;
 
     public async Task ExecuteAsync(
         Then then,
@@ -55,10 +52,9 @@ public sealed class ActionExecutor(
             window: catalogEntry.RateLimitWindow,
             cancellationToken);
 
-            await handler.ExecuteAsync(
-                then,
-                context,
-                cancellationToken);
-        }
+        await handler.ExecuteAsync(
+            then,
+            context,
+            cancellationToken);
     }
 }

@@ -232,5 +232,4 @@ public sealed class Worker(
                 Timeout.Infinite,
                 stoppingToken);
         }
-    }
 }
