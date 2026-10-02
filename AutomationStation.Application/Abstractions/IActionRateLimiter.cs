@@ -1,4 +1,4 @@
-﻿using AutomationStation.Core.Automations;
+﻿using AutomationStation.Core.Automations.Systems;
 
 namespace AutomationStation.Application.Abstractions
 {

@@ -36,7 +36,7 @@ namespace AutomationStation.Application.Services
             value = parts[0].ToLowerInvariant() switch
             {
                 "eventtype" => integrationEvent.EventType,
-                "source" => integrationEvent.Source,
+                "source" => integrationEvent.Source.ToString(),
                 "companyid" => integrationEvent.CompanyId.ToString(),
                 "eventid" => integrationEvent.EventId.ToString(),
                 "correlationid" => integrationEvent.CorrelationId.ToString(),

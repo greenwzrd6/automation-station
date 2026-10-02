@@ -1,9 +1,11 @@
-﻿namespace AutomationStation.Application.Models
+﻿using AutomationStation.Core.Automations.Systems;
+
+namespace AutomationStation.Application.Models
 {
     public sealed record EventBlockerContext(
         Guid EventId,
         string EventType,
-        string Source,
+        SourceSystem Source,
         Guid? CorrelationId,
         Guid? CausationEventId);
 }

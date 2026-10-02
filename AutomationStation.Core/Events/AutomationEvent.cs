@@ -1,10 +1,11 @@
-﻿using System.Text.Json;
+﻿using AutomationStation.Core.Automations.Systems;
+using System.Text.Json;
 
 namespace AutomationStation.Core.Events
 {
     public sealed record AutomationEvent(
         Guid Id,
         string Type,
-        string Source,
+        SourceSystem Source,
         JsonElement Payload);
 }

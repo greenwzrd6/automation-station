@@ -1,5 +1,6 @@
 using AutomationStation.Application.Abstractions;
 using AutomationStation.Application.Models;
+using AutomationStation.Core.Automations.Systems;
 using AutomationStation.Infrastructure.Blockers;
 using AutomationStation.Infrastructure.Database;
 using AutomationStation.Infrastructure.Persistence;
@@ -129,7 +130,7 @@ public class CorrelationLoopBlockerTests : IDisposable
         return new EventBlockerContext(
             EventId: Guid.NewGuid(),
             EventType: "PlacementCreated",
-            Source: "PlacementBackend",
+            Source: SourceSystem.Kanban,
             CorrelationId: correlationId,
             CausationEventId: null);
     }
