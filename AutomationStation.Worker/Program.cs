@@ -67,6 +67,14 @@ builder.Services.AddScoped<
     IAutomationExecutionPolicy,
     AutomationTriggerablePolicy>();
 
+// Rate limiting
+builder.Services.AddSingleton<TimeProvider>(
+    TimeProvider.System);
+
+builder.Services.AddSingleton<
+    IActionRateLimiter,
+    InMemoryActionRateLimiter>();
+
 // Actions
 builder.Services.AddScoped<
     IActionExecutor,
