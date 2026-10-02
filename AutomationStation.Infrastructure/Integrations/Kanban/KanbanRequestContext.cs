@@ -5,5 +5,5 @@ namespace AutomationStation.Infrastructure.Integrations.Kanban;
 public sealed record KanbanRequestContext(
     Guid? CorrelationId,
     Guid? CausationEventId,
-    Guid CommandId,
+    Guid ExecutionId,
     Actor Actor);

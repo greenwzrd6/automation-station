@@ -46,6 +46,10 @@ builder.Services.AddScoped<
     AutomationExecutionGuard>();
 
 builder.Services.AddScoped<
+    IAutomationExecutionRepository,
+    AutomationExecutionRepository>();
+
+builder.Services.AddScoped<
     IConditionEvaluator,
     ConditionEvaluator>();
 

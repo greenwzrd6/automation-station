@@ -41,7 +41,7 @@ public sealed class CreatePlacementExecutor(
         var requestContext = new KanbanRequestContext(
             context.CorrelationId,
             context.CausationEventId,
-            Guid.NewGuid(),
+            context.ExecutionId,
             context.Actor);
 
         await _kanbanClient.CreatePlacementAsync(
