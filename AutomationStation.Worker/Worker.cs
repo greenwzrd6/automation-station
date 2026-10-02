@@ -94,10 +94,17 @@ public sealed class Worker(
                     ?? throw new JsonException(
                         "Could not deserialize integration event.");
 
-                _logger.LogInformation(
-                    "Received event '{EventType}' with id '{EventId}'",
-                    integrationEvent.EventType,
-                    integrationEvent.EventId);
+                var formattedJson = JsonSerializer.Serialize(JsonSerializer.Deserialize<JsonElement>(json),
+                    new JsonSerializerOptions
+                    {
+                        WriteIndented = true
+                    });
+
+                logger.LogInformation("""
+                    Received RabbitMQ message: 
+                    {Message}
+                    """,
+                    formattedJson);
 
                 using var scope =
                     _scopeFactory.CreateScope();
@@ -188,7 +195,7 @@ public sealed class Worker(
             {
                 // Hello
             }
-           
+
             catch (Exception exception)
             {
                 _logger.LogError(

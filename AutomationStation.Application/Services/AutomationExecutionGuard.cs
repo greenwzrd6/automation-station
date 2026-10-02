@@ -29,7 +29,8 @@ namespace AutomationStation.Application.Services
                     continue;
 
                 _logger.LogWarning(
-                    "Automation '{AutomationId}' blocked by '{Policy}'. Reason: '{Reason}'",
+                    "Automation '{AutomationName}' with ID: '{AutomationId}' was blocked by '{Policy}'. Reason: '{Reason}'",
+                    automation.Name,
                     automation.Id,
                     policy.GetType().Name,
                     result.Reason);
