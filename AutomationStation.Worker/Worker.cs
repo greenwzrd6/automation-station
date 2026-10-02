@@ -7,17 +7,19 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace AutomationStation.Worker
+namespace AutomationStation.Worker;
+
+public sealed class Worker(
+    ILogger<Worker> logger,
+    IConfiguration configuration,
+    IServiceScopeFactory scopeFactory)
+    : BackgroundService
 {
-    public sealed class Worker(
-        ILogger<Worker> logger,
-        IConfiguration configuration,
-        IServiceScopeFactory scopeFactory)
-        : BackgroundService
-    {
-        private readonly ILogger<Worker> _logger = logger;
-        private readonly IConfiguration _configuration = configuration;
-        private readonly IServiceScopeFactory _scopeFactory = scopeFactory;
+#pragma warning disable CS9124 // Parameter is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.
+    private readonly ILogger<Worker> _logger = logger;
+#pragma warning restore CS9124 // Parameter is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.
+    private readonly IConfiguration _configuration = configuration;
+    private readonly IServiceScopeFactory _scopeFactory = scopeFactory;
 
         protected override async Task ExecuteAsync(
             CancellationToken stoppingToken)
@@ -230,5 +232,4 @@ namespace AutomationStation.Worker
                 Timeout.Infinite,
                 stoppingToken);
         }
-    }
 }
