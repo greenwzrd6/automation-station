@@ -15,7 +15,9 @@ public sealed class Worker(
     IServiceScopeFactory scopeFactory)
     : BackgroundService
 {
+#pragma warning disable CS9124 // Parameter is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.
     private readonly ILogger<Worker> _logger = logger;
+#pragma warning restore CS9124 // Parameter is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.
     private readonly IConfiguration _configuration = configuration;
     private readonly IServiceScopeFactory _scopeFactory = scopeFactory;
 
