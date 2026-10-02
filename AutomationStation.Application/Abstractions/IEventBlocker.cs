@@ -4,6 +4,8 @@ namespace AutomationStation.Application.Abstractions
 {
     public interface IEventBlocker
     {
-        Task<bool> IsBlockedAsync(EventBlockerContext context, CancellationToken cancellationToken);
+        Task<bool> IsBlockedAsync(
+            EventBlockerContext context,
+            CancellationToken cancellationToken);
     }
 }

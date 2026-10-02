@@ -1,109 +1,109 @@
 ﻿using System.Collections.Concurrent;
 using AutomationStation.Application.Abstractions;
 
-namespace AutomationStation.Infrastructure.RateLimiting;
-
-public sealed class InMemoryActionRateLimiter
-    : IActionRateLimiter
+namespace AutomationStation.Infrastructure.RateLimiting
 {
-    private readonly TimeProvider _timeProvider;
-
-    private readonly ConcurrentDictionary<
-        ActionRateLimitKey,
-        WindowState> _windows = new();
-
-    public InMemoryActionRateLimiter(
-        TimeProvider timeProvider)
+    public sealed class InMemoryActionRateLimiter : IActionRateLimiter
     {
-        _timeProvider = timeProvider;
-    }
+        private readonly TimeProvider _timeProvider;
 
-    public async Task WaitAsync(
-        ActionRateLimitKey key,
-        int permittedActions,
-        TimeSpan window,
-        CancellationToken cancellationToken)
-    {
-        while (true)
+        private readonly ConcurrentDictionary<
+            ActionRateLimitKey,
+            WindowState> _windows = new();
+
+        public InMemoryActionRateLimiter(
+            TimeProvider timeProvider)
         {
-            var result = TryAcquire(
-                key,
-                permittedActions,
-                window);
+            _timeProvider = timeProvider;
+        }
 
-            if (result.IsAllowed)
+        public async Task WaitAsync(
+            ActionRateLimitKey key,
+            int permittedActions,
+            TimeSpan window,
+            CancellationToken cancellationToken)
+        {
+            while (true)
             {
-                return;
-            }
+                var result = TryAcquire(
+                    key,
+                    permittedActions,
+                    window);
 
+                if (result.IsAllowed)
+                {
+                    return;
+                }
+
+                var now = _timeProvider.GetUtcNow();
+
+                var delay =
+                    result.RetryAt!.Value - now;
+
+                if (delay > TimeSpan.Zero)
+                {
+                    await Task.Delay(
+                        delay,
+                        _timeProvider,
+                        cancellationToken);
+                }
+            }
+        }
+
+        private RateLimitResult TryAcquire(
+            ActionRateLimitKey key,
+            int permittedActions,
+            TimeSpan window)
+        {
             var now = _timeProvider.GetUtcNow();
 
-            var delay =
-                result.RetryAt!.Value - now;
+            var state = _windows.GetOrAdd(
+                key,
+                _ => new WindowState(now));
 
-            if (delay > TimeSpan.Zero)
+            lock (state.SyncRoot)
             {
-                await Task.Delay(
-                    delay,
-                    _timeProvider,
-                    cancellationToken);
-            }
-        }
-    }
+                var windowHasExpired =
+                    now - state.WindowStartedAt >= window;
 
-    private RateLimitResult TryAcquire(
-        ActionRateLimitKey key,
-        int permittedActions,
-        TimeSpan window)
-    {
-        var now = _timeProvider.GetUtcNow();
+                if (windowHasExpired)
+                {
+                    state.WindowStartedAt = now;
+                    state.ExecutedActions = 0;
+                }
 
-        var state = _windows.GetOrAdd(
-            key,
-            _ => new WindowState(now));
+                if (state.ExecutedActions >= permittedActions)
+                {
+                    return new RateLimitResult(
+                        IsAllowed: false,
+                        RetryAt: state.WindowStartedAt + window);
+                }
 
-        lock (state.SyncRoot)
-        {
-            var windowHasExpired =
-                now - state.WindowStartedAt >= window;
+                state.ExecutedActions++;
 
-            if (windowHasExpired)
-            {
-                state.WindowStartedAt = now;
-                state.ExecutedActions = 0;
-            }
-
-            if (state.ExecutedActions >= permittedActions)
-            {
                 return new RateLimitResult(
-                    IsAllowed: false,
-                    RetryAt: state.WindowStartedAt + window);
+                    IsAllowed: true,
+                    RetryAt: null);
+            }
+        }
+
+        private sealed record RateLimitResult(
+            bool IsAllowed,
+            DateTimeOffset? RetryAt);
+
+        private sealed class WindowState
+        {
+            public WindowState(
+                DateTimeOffset windowStartedAt)
+            {
+                WindowStartedAt = windowStartedAt;
             }
 
-            state.ExecutedActions++;
+            public object SyncRoot { get; } = new();
 
-            return new RateLimitResult(
-                IsAllowed: true,
-                RetryAt: null);
+            public DateTimeOffset WindowStartedAt { get; set; }
+
+            public int ExecutedActions { get; set; }
         }
-    }
-
-    private sealed record RateLimitResult(
-        bool IsAllowed,
-        DateTimeOffset? RetryAt);
-
-    private sealed class WindowState
-    {
-        public WindowState(
-            DateTimeOffset windowStartedAt)
-        {
-            WindowStartedAt = windowStartedAt;
-        }
-
-        public object SyncRoot { get; } = new();
-
-        public DateTimeOffset WindowStartedAt { get; set; }
-
-        public int ExecutedActions { get; set; }
     }
 }
