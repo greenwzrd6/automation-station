@@ -48,7 +48,7 @@ public sealed class KanbanClient(
 
         message.Headers.Add(
             "Idempotency-Key",
-            requestContext.CommandId.ToString());
+            requestContext.ExecutionId.ToString());
 
         using var response = await _httpClient.SendAsync(
             message,

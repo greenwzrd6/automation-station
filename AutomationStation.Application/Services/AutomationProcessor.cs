@@ -10,7 +10,8 @@ namespace AutomationStation.Application.Services
         IConditionEvaluator conditionEvaluator,
         IAutomationExecutionGuard executionGuard,
         IHistoryRepository historyRepository,
-        IActionExecutor actionExecutor)
+        IActionExecutor actionExecutor,
+        IAutomationExecutionRepository automationExecutionRepository)
         : IAutomationProcessor
     {
         private readonly IAutomationRepository _automationRepository = automationRepository;
@@ -18,6 +19,7 @@ namespace AutomationStation.Application.Services
         private readonly IAutomationExecutionGuard _executionGuard = executionGuard;
         private readonly IHistoryRepository _historyRepository = historyRepository;
         private readonly IActionExecutor _actionExecutor = actionExecutor;
+        private readonly IAutomationExecutionRepository _automationExecutionRepository = automationExecutionRepository;
 
         public async Task ProcessAsync(
             IntegrationEvent integrationEvent,
@@ -46,9 +48,15 @@ namespace AutomationStation.Application.Services
 
                 var causationEventId = integrationEvent.CausationEventId ?? integrationEvent.EventId;
 
+                var executionId = await _automationExecutionRepository.GetOrCreateAsync(
+                    automation.Id,
+                    integrationEvent.EventId,
+                    cancellationToken);
+
                 var context = new AutomationActionContext(
                     integrationEvent,
-                    causationEventId);
+                    causationEventId,
+                    executionId);
 
                 await _historyRepository.CreateAutomationTimestampAsync(
                     automation.Id,
