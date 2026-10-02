@@ -40,7 +40,11 @@ public sealed class ActionExecutorTests
                 CancellationToken.None));
 
         // Assert
-        Assert.Contains("not allowed", exception.Message);
+        Assert.Contains(
+            "not allowed",
+            exception.Message,
+            StringComparison.OrdinalIgnoreCase);
+
         Assert.Equal(0, handler.ExecutionCount);
         Assert.Equal(0, rateLimiter.CallCount);
     }
@@ -79,7 +83,9 @@ public sealed class ActionExecutorTests
 
         Assert.NotNull(rateLimiter.LastKey);
         Assert.Equal(42, rateLimiter.LastKey.CompanyId);
-        Assert.Equal("CreatePlacement", rateLimiter.LastKey.ActionType);
+        Assert.Equal(
+            "CreatePlacement",
+            rateLimiter.LastKey.ActionType);
         Assert.Equal(
             TargetSystem.Kanban,
             rateLimiter.LastKey.TargetSystem);
@@ -100,7 +106,8 @@ public sealed class ActionExecutorTests
 
         return new AutomationActionContext(
             Event: integrationEvent,
-            CausationEventId: null);
+            CausationEventId: null,
+            ExecutionId: Guid.NewGuid());
     }
 
     private sealed class FakeActionHandler(
