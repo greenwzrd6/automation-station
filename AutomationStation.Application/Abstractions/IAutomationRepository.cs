@@ -1,11 +1,12 @@
 ﻿using AutomationStation.Core.Automations;
 
-namespace AutomationStation.Application.Abstractions;
-
-public interface IAutomationRepository
+namespace AutomationStation.Application.Abstractions
 {
-    Task<IReadOnlyCollection<Automation>>
-        GetEnabledByEventTypeAsync(
-            string eventType,
-            CancellationToken cancellationToken);
+    public interface IAutomationRepository
+    {
+        Task<IReadOnlyCollection<Automation>>
+            GetEnabledByEventTypeAsync(
+                string eventType,
+                CancellationToken cancellationToken);
+    }
 }

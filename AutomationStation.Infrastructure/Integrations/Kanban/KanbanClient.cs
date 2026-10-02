@@ -2,58 +2,59 @@
 
 using AutomationStation.Infrastructure.Integrations.Kanban.Requests;
 
-namespace AutomationStation.Infrastructure.Integrations.Kanban;
-
-public sealed class KanbanClient(
-    HttpClient httpClient)
+namespace AutomationStation.Infrastructure.Integrations.Kanban
 {
-    private readonly HttpClient _httpClient = httpClient;
-
-    public async Task CreatePlacementAsync(
-        Guid entityId,
-        Guid boardId,
-        Guid columnId,
-        KanbanRequestContext requestContext,
-        CancellationToken cancellationToken)
+    public sealed class KanbanClient(
+    HttpClient httpClient)
     {
-        var request = new CreatePlacementRequest(
-            EntityIds: [entityId],
-            BoardId: boardId,
-            ColumnId: columnId,
-            AfterEntityIds: [],
-            BeforeEntityIds: []);
+        private readonly HttpClient _httpClient = httpClient;
 
-        using var message = new HttpRequestMessage(
-            HttpMethod.Post,
-            "/api/placements/create")
+        public async Task CreatePlacementAsync(
+            Guid entityId,
+            Guid boardId,
+            Guid columnId,
+            KanbanRequestContext requestContext,
+            CancellationToken cancellationToken)
         {
-            Content = JsonContent.Create(request)
-        };
+            var request = new CreatePlacementRequest(
+                EntityIds: [entityId],
+                BoardId: boardId,
+                ColumnId: columnId,
+                AfterEntityIds: [],
+                BeforeEntityIds: []);
 
-        message.Headers.Add(
-            "Correlation-Id",
-            requestContext.CorrelationId.ToString());
+            using var message = new HttpRequestMessage(
+                HttpMethod.Post,
+                "/api/placements/create")
+            {
+                Content = JsonContent.Create(request)
+            };
 
-        message.Headers.Add(
-            "Causation-Id",
-            requestContext.CausationEventId.ToString());
+            message.Headers.Add(
+                "Correlation-Id",
+                requestContext.CorrelationId.ToString());
 
-        message.Headers.Add(
-            "Actor-Id",
-            requestContext.Actor.Id.ToString());
+            message.Headers.Add(
+                "Causation-Id",
+                requestContext.CausationEventId.ToString());
 
-        message.Headers.Add(
-            "Actor-Type",
-            requestContext.Actor.Type.ToString());
+            message.Headers.Add(
+                "Actor-Id",
+                requestContext.Actor.Id.ToString());
 
-        message.Headers.Add(
-            "Idempotency-Key",
-            requestContext.ExecutionId.ToString());
+            message.Headers.Add(
+                "Actor-Type",
+                requestContext.Actor.Type.ToString());
 
-        using var response = await _httpClient.SendAsync(
-            message,
-            cancellationToken);
+            message.Headers.Add(
+                "Idempotency-Key",
+                requestContext.ExecutionId.ToString());
 
-        response.EnsureSuccessStatusCode();
+            using var response = await _httpClient.SendAsync(
+                message,
+                cancellationToken);
+
+            response.EnsureSuccessStatusCode();
+        }
     }
 }

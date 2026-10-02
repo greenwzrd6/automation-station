@@ -10,6 +10,7 @@ namespace AutomationStation.Application.Abstractions
             TimeSpan window,
             CancellationToken cancellationToken);
     }
+
     public sealed record ActionRateLimitKey(
         int CompanyId,
         string ActionType,

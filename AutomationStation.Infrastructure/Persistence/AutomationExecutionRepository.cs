@@ -3,25 +3,25 @@
 using AutomationStation.Application.Abstractions;
 using AutomationStation.Infrastructure.Database;
 
-namespace AutomationStation.Infrastructure.Persistence;
-
-public sealed class AutomationExecutionRepository(
-    DbConnectionFactory connectionFactory)
-    : IAutomationExecutionRepository
+namespace AutomationStation.Infrastructure.Persistence
 {
-    private readonly DbConnectionFactory _connectionFactory = connectionFactory;
-
-    public async Task<Guid> GetOrCreateAsync(
-        Guid automationId,
-        Guid eventId,
-        CancellationToken cancellationToken)
+    public sealed class AutomationExecutionRepository(
+        DbConnectionFactory connectionFactory)
+        : IAutomationExecutionRepository
     {
-        await using var connection =
-            _connectionFactory.CreateConnection();
+        private readonly DbConnectionFactory _connectionFactory = connectionFactory;
 
-        await connection.OpenAsync(cancellationToken);
+        public async Task<Guid> GetOrCreateAsync(
+            Guid automationId,
+            Guid eventId,
+            CancellationToken cancellationToken)
+        {
+            await using var connection =
+                _connectionFactory.CreateConnection();
 
-        const string sql = """
+            await connection.OpenAsync(cancellationToken);
+
+            const string sql = """
             SET XACT_ABORT ON;
 
             BEGIN TRANSACTION;
@@ -58,14 +58,15 @@ public sealed class AutomationExecutionRepository(
             SELECT @ExecutionId;
             """;
 
-        return await connection.QuerySingleAsync<Guid>(
-            new CommandDefinition(
-                sql,
-                new
-                {
-                    AutomationId = automationId,
-                    EventId = eventId
-                },
-                cancellationToken: cancellationToken));
+            return await connection.QuerySingleAsync<Guid>(
+                new CommandDefinition(
+                    sql,
+                    new
+                    {
+                        AutomationId = automationId,
+                        EventId = eventId
+                    },
+                    cancellationToken: cancellationToken));
+        }
     }
 }
