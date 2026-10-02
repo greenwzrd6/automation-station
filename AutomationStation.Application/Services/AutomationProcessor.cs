@@ -77,11 +77,7 @@ namespace AutomationStation.Application.Services
                 return false;
             }
 
-            if (!string.IsNullOrWhiteSpace(when.EventSource) &&
-                !string.Equals(
-                    when.EventSource,
-                    integrationEvent.Source,
-                    StringComparison.OrdinalIgnoreCase))
+            if (when.EventSource != integrationEvent.Source)
             {
                 return false;
             }

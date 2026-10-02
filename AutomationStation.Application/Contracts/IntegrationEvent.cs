@@ -1,4 +1,5 @@
 ﻿using AutomationStation.Application.Models;
+using AutomationStation.Core.Automations.Systems;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -13,7 +14,7 @@ public sealed record IntegrationEvent(
     string EventType,
 
     [property: JsonPropertyName("source")]
-    string Source,
+    SourceSystem Source,
 
     [property: JsonPropertyName("companyId")]
     int CompanyId,

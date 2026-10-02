@@ -1,6 +1,7 @@
 ﻿using AutomationStation.Application.Abstractions;
 using AutomationStation.Application.Models;
 using AutomationStation.Core.Automations;
+using AutomationStation.Core.Automations.Systems;
 using AutomationStation.Infrastructure.Integrations.Kanban;
 
 namespace AutomationStation.Infrastructure.Actions.Executors;
@@ -15,7 +16,7 @@ public sealed class CreatePlacementExecutor(
 
     public string ActionType => "CreatePlacement";
 
-    public TargetSystem TargetSystem => TargetSystem.PlacementBackend;
+    public TargetSystem TargetSystem => TargetSystem.Kanban;
 
     public bool CanHandle(string actionType) =>
         string.Equals(

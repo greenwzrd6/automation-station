@@ -1,8 +1,8 @@
-﻿namespace AutomationStation.Core.Automations
+﻿namespace AutomationStation.Core.Automations.Systems
 {
     public enum TargetSystem
     {
-        PlacementBackend,
+        Kanban,
         TojSystem,
         NotificationService,
     }

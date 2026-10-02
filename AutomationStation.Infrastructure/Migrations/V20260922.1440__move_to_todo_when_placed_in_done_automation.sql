@@ -34,7 +34,7 @@ VALUES
     'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
     @AutomationId,
     'PlacementCreated',
-    'PlacementBackend'
+    'Kanban'
 );
 
 -- CONDITIONS: What must be true?
@@ -51,7 +51,7 @@ VALUES
     'cccccccc-cccc-cccc-cccc-cccccccccccc',
     @AutomationId,
     'ColumnEquals',
-    'PlacementBackend',
+    'Kanban',
     '{
         "field": "payload.columnId",
         "operator": "Equals",
@@ -74,7 +74,7 @@ VALUES
     'dddddddd-dddd-dddd-dddd-dddddddddddd',
     @AutomationId,
     'CreatePlacement',
-    'PlacementBackend',
+    'Kanban',
     '{
         "boardId": "11111111-1111-1111-1111-111111111111",
         "columnId": "22222222-2222-2222-2222-222222222222"
@@ -111,7 +111,7 @@ VALUES
     'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbc',
     @AutomationId2,
     'PlacementCreated',
-    'PlacementBackend'
+    'Kanban'
 );
 
 -- CONDITIONS: What must be true?
@@ -128,7 +128,7 @@ VALUES
     'cccccccc-cccc-cccc-cccc-cccccccccccd',
     @AutomationId2,
     'ColumnEquals',
-    'PlacementBackend',
+    'Kanban',
     '{
         "field": "payload.columnId",
         "operator": "Equals",
@@ -151,7 +151,7 @@ VALUES
     'dddddddd-dddd-dddd-dddd-ddddddddddde',
     @AutomationId2,
     'CreatePlacement',
-    'PlacementBackend',
+    'Kanban',
     '{
         "boardId": "11111111-1111-1111-1111-111111111111",
         "columnId": "22222222-2222-2222-2222-222222222223"
@@ -188,7 +188,7 @@ VALUES
     'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbd',
     @AutomationId3,
     'PlacementCreated',
-    'PlacementBackend'
+    'Kanban'
 );
 
 -- CONDITIONS: What must be true?
@@ -205,7 +205,7 @@ VALUES
     'cccccccc-cccc-cccc-cccc-ccccccccccce',
     @AutomationId3,
     'ColumnEquals',
-    'PlacementBackend',
+    'Kanban',
     '{
         "field": "payload.columnId",
         "operator": "Equals",
@@ -228,7 +228,7 @@ VALUES
     'dddddddd-dddd-dddd-dddd-dddddddddddf',
     @AutomationId3,
     'CreatePlacement',
-    'PlacementBackend',
+    'Kanban',
     '{
         "boardId": "11111111-1111-1111-1111-111111111111",
         "columnId": "22222222-2222-2222-2222-222222222232"

@@ -6,6 +6,7 @@ using AutomationStation.Core.Automations;
 using AutomationStation.Application.Abstractions;
 using AutomationStation.Infrastructure.Database;
 using AutomationStation.Infrastructure.Persistence.Models;
+using AutomationStation.Core.Automations.Systems;
 
 namespace AutomationStation.Infrastructure.Persistence;
 
@@ -175,7 +176,7 @@ public sealed class AutomationRepository(
                 automation.AutomationTriggerable,
                 new When(
                     automationTrigger.EventType,
-                    automationTrigger.SourceSystem ?? "",
+                    automationTrigger.SourceSystem,
                     automationConditions),
                 automationActions);
         });

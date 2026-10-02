@@ -1,7 +1,7 @@
 ﻿using AutomationStation.Application.Abstractions;
 using AutomationStation.Infrastructure.RateLimiting;
 using Microsoft.Extensions.Time.Testing;
-using AutomationStation.Core.Automations;
+using AutomationStation.Core.Automations.Systems;
 
 namespace AutomationStation.Infrastructure.Tests.RateLimiting;
 
@@ -30,7 +30,7 @@ public sealed class InMemoryActionRateLimiterTests
         var key = new ActionRateLimitKey(
             CompanyId: 1,
             ActionType: "CreatePlacement",
-            TargetSystem: TargetSystem.PlacementBackend);
+            TargetSystem: TargetSystem.Kanban);
 
         const int permittedActions = 100;
 

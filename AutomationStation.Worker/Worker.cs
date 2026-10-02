@@ -1,10 +1,11 @@
-using System.Text;
-using System.Text.Json;
 using AutomationStation.Application.Abstractions;
 using AutomationStation.Application.Contracts;
 using AutomationStation.Application.Models;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace AutomationStation.Worker;
 
@@ -87,10 +88,15 @@ public sealed class Worker(
                     Encoding.UTF8.GetString(
                         args.Body.ToArray());
 
+                var options = new JsonSerializerOptions(JsonSerializerOptions.Web);
+
+                options.Converters.Add(
+                    new JsonStringEnumConverter());
+
                 var integrationEvent =
                     JsonSerializer.Deserialize<IntegrationEvent>(
                         json,
-                        JsonSerializerOptions.Web)
+                        options)
                     ?? throw new JsonException(
                         "Could not deserialize integration event.");
 
