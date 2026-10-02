@@ -19,7 +19,7 @@ namespace AutomationStation.Application.Policies
                 ?? integrationEvent.EventId;
 
             var exists =
-                await _historyRepository.HasCausationEventIdAsync(
+                await _historyRepository.EventAlreadyProcessedAsync(
                     automation.Id,
                     causationEventId,
                     cancellationToken);

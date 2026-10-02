@@ -23,9 +23,9 @@ public sealed class Worker(
     {
         var factory = new ConnectionFactory
         {
-            HostName = _configuration["RabbitMq:Host"]!,
+            HostName = _configuration["RabbitMq:HostName"]!,
             Port = int.Parse(_configuration["RabbitMq:Port"]!),
-            UserName = _configuration["RabbitMq:User"]!,
+            UserName = _configuration["RabbitMq:UserName"]!,
             Password = _configuration["RabbitMq:Password"]!,
             VirtualHost = _configuration["RabbitMq:VirtualHost"]!
         };

@@ -1,8 +1,6 @@
 ﻿using System.Net.Http.Json;
 
-using AutomationStation.Application.Models;
 using AutomationStation.Infrastructure.Integrations.Kanban.Requests;
-using System.Net.Http.Json;
 
 namespace AutomationStation.Infrastructure.Integrations.Kanban;
 

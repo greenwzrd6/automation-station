@@ -14,15 +14,17 @@ namespace AutomationStation.Application.Services
             Condition condition,
             IntegrationEvent integrationEvent)
         {
-            if (!_valueResolver.TryGetValue(
-                    integrationEvent,
-                    condition.Field,
-                    out var actualValue))
+            var found = _valueResolver.TryGetValue(
+                integrationEvent,
+                condition.Field,
+                out var actualValue);
+
+            if (!found)
             {
                 return false;
             }
 
-            return condition.Operator switch
+            var result = condition.Operator switch
             {
                 ConditionOperator.Equals =>
                     string.Equals(
@@ -38,6 +40,8 @@ namespace AutomationStation.Application.Services
 
                 _ => false
             };
+
+            return result;
         }
     }
 }

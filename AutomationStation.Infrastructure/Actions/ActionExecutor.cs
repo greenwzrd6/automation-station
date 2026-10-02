@@ -1,9 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-
-using AutomationStation.Core.Automations;
+﻿using AutomationStation.Core.Automations;
 using AutomationStation.Application.Abstractions;
 using AutomationStation.Application.Models;
-using AutomationStation.Core.Automations;
 
 namespace AutomationStation.Infrastructure.Actions;
 
