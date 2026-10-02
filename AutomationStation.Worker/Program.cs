@@ -8,6 +8,7 @@ using AutomationStation.Infrastructure.Database;
 using AutomationStation.Infrastructure.Integrations.Kanban;
 using AutomationStation.Infrastructure.Persistence;
 using AutomationStation.Worker;
+using AutomationStation.Infrastructure.RateLimiting;
 
 var builder = Host.CreateApplicationBuilder(args);
 
@@ -65,6 +66,14 @@ builder.Services.AddScoped<
 builder.Services.AddScoped<
     IAutomationExecutionPolicy,
     AutomationTriggerablePolicy>();
+
+// Rate limiting
+builder.Services.AddSingleton<TimeProvider>(
+    TimeProvider.System);
+
+builder.Services.AddSingleton<
+    IActionRateLimiter,
+    InMemoryActionRateLimiter>();
 
 // Actions
 builder.Services.AddScoped<

@@ -16,7 +16,7 @@ public sealed record IntegrationEvent(
     string Source,
 
     [property: JsonPropertyName("companyId")]
-    Guid CompanyId,
+    int CompanyId,
 
     [property: JsonPropertyName("correlationId")]
     Guid CorrelationId,

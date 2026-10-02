@@ -1,9 +1,11 @@
-﻿namespace AutomationStation.Infrastructure.Persistence.Models
+﻿using AutomationStation.Core.Automations;
+
+namespace AutomationStation.Infrastructure.Persistence.Models
 {
     internal sealed record ActionRow(
         Guid AutomationId,
         string ActionType,
-        string? TargetSystem,
+        TargetSystem? TargetSystem,
         string? ConfigurationJson,
         int ExecutionOrder);
 }

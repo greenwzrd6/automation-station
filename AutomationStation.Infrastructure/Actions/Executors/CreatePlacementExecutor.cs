@@ -15,6 +15,14 @@ public sealed class CreatePlacementExecutor(
 
     public string ActionType => "CreatePlacement";
 
+    public TargetSystem TargetSystem => TargetSystem.PlacementBackend;
+
+    public bool CanHandle(string actionType) =>
+        string.Equals(
+            ActionType,
+            actionType,
+            StringComparison.OrdinalIgnoreCase);
+
     public async Task ExecuteAsync(
         Then then,
         AutomationActionContext context,
