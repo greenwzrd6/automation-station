@@ -1,6 +1,7 @@
-﻿using AutomationStation.Application.Abstractions;
+﻿using Dapper;
+
+using AutomationStation.Application.Abstractions;
 using AutomationStation.Infrastructure.Database;
-using Dapper;
 
 namespace AutomationStation.Infrastructure.Persistence;
 

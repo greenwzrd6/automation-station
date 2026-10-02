@@ -12,7 +12,7 @@
             DateTime Cooldown,
             CancellationToken CancellationToken);
 
-        Task<bool> HasCausationEventIdAsync(
+        Task<bool> EventAlreadyProcessedAsync(
             Guid AutomationId,
             Guid CausationEventId,
             CancellationToken CancellationToken);
