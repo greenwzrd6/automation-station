@@ -1,6 +1,6 @@
 using AutomationStation.Application.Abstractions;
-using AutomationStation.Application.Events;
-using AutomationStation.Application.Models;
+using AutomationStation.Application.Policies;
+using AutomationStation.Application.Services;
 using AutomationStation.Infrastructure.Actions;
 using AutomationStation.Infrastructure.Actions.Executors;
 using AutomationStation.Infrastructure.Blockers;
@@ -15,7 +15,7 @@ var builder = Host.CreateApplicationBuilder(args);
 // Database
 builder.Services.AddSingleton<DbConnectionFactory>();
 
-// Repository
+// Repositories
 builder.Services.AddScoped<
     IAutomationRepository,
     AutomationRepository>();
@@ -32,29 +32,49 @@ builder.Services.AddScoped<
     ICorrelationLoopRepository,
     CorrelationLoopRepository>();
 
+// Event blockers
 builder.Services.AddScoped<
     IEventBlocker,
     CorrelationLoopBlocker>();
 
-// Action executor
+// Generic automation engine
+builder.Services.AddScoped<
+    IAutomationProcessor,
+    AutomationProcessor>();
+
+builder.Services.AddScoped<
+    IAutomationExecutionGuard,
+    AutomationExecutionGuard>();
+
+builder.Services.AddScoped<
+    IConditionEvaluator,
+    ConditionEvaluator>();
+
+builder.Services.AddScoped<
+    IEventValueResolver,
+    EventValueResolver>();
+
+// Generic execution policies
+builder.Services.AddScoped<
+    IAutomationExecutionPolicy,
+    CooldownPolicy>();
+
+builder.Services.AddScoped<
+    IAutomationExecutionPolicy,
+    CausationPolicy>();
+
+builder.Services.AddScoped<
+    IAutomationExecutionPolicy,
+    AutomationTriggerablePolicy>();
+
+// Actions
 builder.Services.AddScoped<
     IActionExecutor,
     ActionExecutor>();
 
 builder.Services.AddScoped<
-    IActionHandler<PlacementActionContext>,
+    IActionHandler,
     CreatePlacementExecutor>();
-
-builder.Services.AddSingleton<TimeProvider>(
-    TimeProvider.System);
-
-builder.Services.AddSingleton<
-    IActionRateLimiter,
-    InMemoryActionRateLimiter>();
-
-// builder.Services.AddScoped<
-//     IActionHandler<ColumnActionContext>,
-//     CreateColumnEdgeExecutor>();
 
 builder.Services.AddHttpClient<KanbanClient>(
     client =>
@@ -66,13 +86,6 @@ builder.Services.AddHttpClient<KanbanClient>(
 
         client.BaseAddress = new Uri(baseUrl);
     });
-
-// Event handler
-builder.Services.AddTransient<
-    ProcessPlacementCreatedEventHandler>();
-
-// builder.Services.AddTransient<
-//     ProcessColumnHasNoEdgeEventHandler>();
 
 // RabbitMQ worker
 builder.Services.AddHostedService<Worker>();

@@ -13,6 +13,7 @@ public sealed class AutomationRepository(
     DbConnectionFactory connectionFactory)
     : IAutomationRepository
 {
+    private readonly DbConnectionFactory _connectionFactory = connectionFactory;
 
     private static readonly JsonSerializerOptions JsonOptions =
         new(JsonSerializerDefaults.Web)
@@ -100,8 +101,7 @@ public sealed class AutomationRepository(
                 act.ExecutionOrder;
             """;
 
-        await using var connection =
-            connectionFactory.CreateConnection();
+        await using var connection = _connectionFactory.CreateConnection();
 
         await connection.OpenAsync(cancellationToken);
 
@@ -183,15 +183,11 @@ public sealed class AutomationRepository(
         return automations.ToList();
     }
 
-    private static Condition DeserializeCondition(ConditionRow row)
+    private static Condition DeserializeCondition(
+        ConditionRow row)
     {
-        if (row.ConditionType != "ColumnEquals")
-        {
-            throw new NotSupportedException(
-                $"Unsupported condition type: {row.ConditionType}");
-        }
-
-        if (string.IsNullOrWhiteSpace(row.ConfigurationJson))
+        if (string.IsNullOrWhiteSpace(
+                row.ConfigurationJson))
         {
             throw new InvalidOperationException(
                 "Condition configuration is missing.");

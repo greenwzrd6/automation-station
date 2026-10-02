@@ -40,7 +40,7 @@ public sealed class HistoryRepository(
                 cancellationToken: CancellationToken));
     }
 
-    public async Task<bool> TriggeredRecentlyAsync(
+    public async Task<bool> HasTriggeredRecentlyAsync(
         Guid AutomationId,
         DateTime Cooldown,
         CancellationToken CancellationToken)

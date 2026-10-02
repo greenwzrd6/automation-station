@@ -1,37 +1,29 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-
-using AutomationStation.Core.Automations;
+﻿using AutomationStation.Core.Automations;
 using AutomationStation.Application.Abstractions;
+using AutomationStation.Application.Models;
 
 namespace AutomationStation.Infrastructure.Actions;
 
 public sealed class ActionExecutor(
-    IServiceProvider serviceProvider,
-    IActionRateLimiter rateLimiter)
+    IEnumerable<IActionHandler> handlers)
     : IActionExecutor
 {
-    public async Task ExecuteAsync<T>(
+    private readonly IReadOnlyDictionary<string, IActionHandler> _handlers =
+        handlers.ToDictionary(
+            handler => handler.ActionType,
+            StringComparer.OrdinalIgnoreCase);
+
+    public async Task ExecuteAsync(
         Then then,
-        T context,
+        AutomationActionContext context,
         CancellationToken cancellationToken)
-        where T : IActionContext
     {
-        var _rateLimiter = rateLimiter;
-        var handlers = serviceProvider.GetServices<IActionHandler<T>>();
-
-        var handler = handlers.SingleOrDefault(
-            handler =>
-                handler.TargetSystem == then.TargetSystem
-                &&
-                handler.CanHandle(then.Type));
-
-
-        if (handler is null)
+        if (!_handlers.TryGetValue(
+                then.Type,
+                out var handler))
         {
             throw new NotSupportedException(
-                $"No handler supports action " +
-                $"'{then.Type}' for target system " +
-                $"'{then.TargetSystem}'.");
+                $"Unsupported action type '{then.Type}'.");
         }
 
         await _rateLimiter.WaitAsync(

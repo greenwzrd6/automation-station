@@ -53,7 +53,7 @@ VALUES
     'ColumnEquals',
     'PlacementBackend',
     '{
-        "field": "columnId",
+        "field": "payload.columnId",
         "operator": "Equals",
         "value": "22222222-2222-2222-2222-222222222232"
     }'
@@ -130,7 +130,7 @@ VALUES
     'ColumnEquals',
     'PlacementBackend',
     '{
-        "field": "columnId",
+        "field": "payload.columnId",
         "operator": "Equals",
         "value": "22222222-2222-2222-2222-222222222222"
     }'
@@ -207,7 +207,7 @@ VALUES
     'ColumnEquals',
     'PlacementBackend',
     '{
-        "field": "columnId",
+        "field": "payload.columnId",
         "operator": "Equals",
         "value": "22222222-2222-2222-2222-222222222223"
     }'
