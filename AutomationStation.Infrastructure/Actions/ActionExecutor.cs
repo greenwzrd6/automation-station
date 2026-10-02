@@ -6,7 +6,8 @@ namespace AutomationStation.Infrastructure.Actions;
 
 public sealed class ActionExecutor(
     IEnumerable<IActionHandler> handlers,
-    IActionRateLimiter rateLimiter)
+    IActionRateLimiter rateLimiter,
+    IActionCatalog actionCatalog)
     : IActionExecutor
 {
     private readonly IReadOnlyDictionary<string, IActionHandler> _handlers =
@@ -17,11 +18,24 @@ public sealed class ActionExecutor(
     private readonly IActionRateLimiter _rateLimiter =
         rateLimiter;
 
+    private readonly IActionCatalog _actionCatalog =
+        actionCatalog;
+
     public async Task ExecuteAsync(
         Then then,
         AutomationActionContext context,
         CancellationToken cancellationToken)
     {
+        if (!_actionCatalog.TryGet(
+        then.Type,
+        then.TargetSystem,
+        out var catalogEntry))
+        {
+            throw new NotSupportedException(
+                $"Action '{then.Type}' is not allowed " +
+                $"for target system '{then.TargetSystem}'.");
+        }
+
         var handlerKey = $"{then.TargetSystem}:{then.Type}";
         if (!_handlers.TryGetValue(
                 handlerKey,
@@ -37,8 +51,8 @@ public sealed class ActionExecutor(
                 CompanyId: context.Event.CompanyId,
                 ActionType: then.Type,
                 TargetSystem: then.TargetSystem),
-            permittedActions: 100,
-            window: TimeSpan.FromMinutes(1),
+            permittedActions: catalogEntry.PermittedActions,
+            window: catalogEntry.RateLimitWindow,
             cancellationToken);
 
         await handler.ExecuteAsync(

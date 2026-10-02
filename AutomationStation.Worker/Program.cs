@@ -32,6 +32,11 @@ builder.Services.AddScoped<
     ICorrelationLoopRepository,
     CorrelationLoopRepository>();
 
+// Action catalog
+builder.Services.AddSingleton<
+    IActionCatalog,
+    ActionCatalog>();
+
 // Event blockers
 builder.Services.AddScoped<
     IEventBlocker,
