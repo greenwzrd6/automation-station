@@ -7,8 +7,7 @@
         public static AutomationPolicyResult Allow() =>
             new(true, null);
 
-        public static AutomationPolicyResult Block(
-            string reason) =>
+        public static AutomationPolicyResult Block(string reason) =>
             new(false, reason);
     }
 }
