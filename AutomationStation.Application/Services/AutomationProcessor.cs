@@ -2,7 +2,6 @@
 using AutomationStation.Application.Contracts;
 using AutomationStation.Application.Models;
 using AutomationStation.Core.Automations;
-using Microsoft.Extensions.Logging;
 
 namespace AutomationStation.Application.Services
 {
@@ -12,8 +11,7 @@ namespace AutomationStation.Application.Services
         IAutomationExecutionGuard executionGuard,
         IHistoryRepository historyRepository,
         IActionExecutor actionExecutor,
-        IAutomationExecutionRepository automationExecutionRepository,
-        ILogger<AutomationProcessor> logger)
+        IAutomationExecutionRepository automationExecutionRepository)
         : IAutomationProcessor
     {
         private readonly IAutomationRepository _automationRepository = automationRepository;
@@ -22,7 +20,6 @@ namespace AutomationStation.Application.Services
         private readonly IHistoryRepository _historyRepository = historyRepository;
         private readonly IActionExecutor _actionExecutor = actionExecutor;
         private readonly IAutomationExecutionRepository _automationExecutionRepository = automationExecutionRepository;
-        private readonly ILogger<AutomationProcessor> _logger = logger;
 
         public async Task ProcessAsync(
             IntegrationEvent integrationEvent,
@@ -42,9 +39,9 @@ namespace AutomationStation.Application.Services
                 }
 
                 if (await _executionGuard.IsBlockedAsync(
-                    automation,
-                    integrationEvent,
-                    cancellationToken))
+                        automation,
+                        integrationEvent,
+                        cancellationToken))
                 {
                     continue;
                 }
@@ -52,8 +49,6 @@ namespace AutomationStation.Application.Services
                 var correlationId = integrationEvent.CorrelationId;
 
                 var causationEventId = integrationEvent.CausationEventId;
-
-                _logger.LogInformation("correlationId: {CorrelationId}, automationId: {AutomationId}", correlationId, automation.Id);
 
                 var executionId = await _automationExecutionRepository.GetOrCreateAsync(
                     automation.Id,

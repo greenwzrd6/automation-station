@@ -36,12 +36,17 @@ namespace AutomationStation.Application.Services
             value = parts[0].ToLowerInvariant() switch
             {
                 "eventtype" => integrationEvent.EventType,
+
                 "source" => integrationEvent.Source.ToString(),
+
                 "companyid" => integrationEvent.CompanyId.ToString(),
+
                 "eventid" => integrationEvent.EventId.ToString(),
+
                 "correlationid" => integrationEvent.CorrelationId.ToString(),
-                "causationeventid" =>
-                    integrationEvent.CausationEventId?.ToString(),
+
+                "causationeventid" => integrationEvent.CausationEventId?.ToString(),
+
                 _ => null
             };
 
@@ -56,7 +61,9 @@ namespace AutomationStation.Application.Services
                 value = parts[1].ToLowerInvariant() switch
                 {
                     "id" => integrationEvent.Actor.Id.ToString(),
+
                     "type" => integrationEvent.Actor.Type,
+
                     _ => null
                 };
 
@@ -85,8 +92,8 @@ namespace AutomationStation.Application.Services
                 foreach (var property in current.EnumerateObject())
                 {
                     if (property.Name.Equals(
-                        propertyName,
-                        StringComparison.OrdinalIgnoreCase))
+                            propertyName,
+                            StringComparison.OrdinalIgnoreCase))
                     {
                         found = property.Value;
                         break;
@@ -102,10 +109,15 @@ namespace AutomationStation.Application.Services
             value = current.ValueKind switch
             {
                 JsonValueKind.String => current.GetString(),
+
                 JsonValueKind.Number => current.GetRawText(),
+
                 JsonValueKind.True => "true",
+
                 JsonValueKind.False => "false",
+
                 JsonValueKind.Null => null,
+
                 _ => current.GetRawText()
             };
 

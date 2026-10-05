@@ -20,9 +20,9 @@ namespace AutomationStation.Infrastructure.Persistence
             using var connection = _connectionFactory.CreateConnection();
 
             const string sql = """
-                INSERT INTO AutomationHistory (Id, AutomationId, CorrelationId, CausationEventId, TriggeredAt) 
-                VALUES (@Id, @AutomationId, @CorrelationId, @CausationEventId, @TriggeredAt)
-                """;
+            INSERT INTO AutomationHistory (Id, AutomationId, CorrelationId, CausationEventId, TriggeredAt) 
+            VALUES (@Id, @AutomationId, @CorrelationId, @CausationEventId, @TriggeredAt)
+            """;
 
             var parameters = new
             {
@@ -50,19 +50,18 @@ namespace AutomationStation.Infrastructure.Persistence
             using var connection = _connectionFactory.CreateConnection();
 
             const string sql = """
-                SELECT CAST(
-                    CASE
-                        WHEN EXISTS (
-                            SELECT 1
-                            FROM AutomationHistory
-                            WHERE AutomationId = @AutomationId
-                                AND CorrelationId = @CorrelationId
-                        )
-                        THEN 1
-                        ELSE 0
-                    END
-                AS bit)
-                """;
+            SELECT CAST(
+               CASE WHEN EXISTS (
+                    SELECT 1
+                    FROM AutomationHistory
+                    WHERE AutomationId = @AutomationId
+                        AND CorrelationId = @CorrelationId
+               )
+               THEN 1
+               ELSE 0
+               END
+            AS bit)
+            """;
 
             var parameters = new
             {
