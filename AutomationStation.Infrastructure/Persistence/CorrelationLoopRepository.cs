@@ -2,6 +2,8 @@ using Dapper;
 
 using AutomationStation.Application.Abstractions;
 using AutomationStation.Infrastructure.Database;
+using AutomationStation.Core.Automations;
+using AutomationStation.Application.Contracts;
 
 namespace AutomationStation.Infrastructure.Persistence
 {
@@ -11,8 +13,8 @@ namespace AutomationStation.Infrastructure.Persistence
     {
         private readonly DbConnectionFactory _connectionFactory = connectionFactory;
         public async Task<bool> IsBlockedAsync(
-            Guid correlationId,
-            Guid eventId,
+            Automation automation,
+            IntegrationEvent integrationEvent,
             CancellationToken cancellationToken)
         {
             using var connection = _connectionFactory.CreateConnection();
@@ -26,9 +28,10 @@ namespace AutomationStation.Infrastructure.Persistence
             DECLARE @Blocked BIT = 0;
 
             SELECT @Count = COUNT(*)
-            FROM CorrelationLoopEvents WITH (UPDLOCK, HOLDLOCK)
-            WHERE CorrelationId = @CorrelationId
-              AND ReceivedAt >= DATEADD(MINUTE, -3, SYSUTCDATETIME());
+            FROM AutomationHistory WITH (UPDLOCK, HOLDLOCK)
+            WHERE AutomationId = @AutomationId
+                AND ActorId = @ActorId
+                AND TriggeredAt >= DATEADD(MINUTE, -3, SYSUTCDATETIME());
 
             IF @Count >= 10
             BEGIN
@@ -36,8 +39,8 @@ namespace AutomationStation.Infrastructure.Persistence
             END
             ELSE
             BEGIN
-                INSERT INTO CorrelationLoopEvents (Id, CorrelationId, EventId, ReceivedAt)
-                VALUES (@Id, @CorrelationId, @EventId, SYSUTCDATETIME());
+                INSERT INTO AutomationHistory (Id, AutomationId, ActorId, CorrelationId, CausationEventId, TriggeredAt)
+                VALUES (@Id, @AutomationId, @ActorId, @CorrelationId, @CausationEventId, SYSUTCDATETIME());
             END
 
             COMMIT TRANSACTION;
@@ -48,8 +51,10 @@ namespace AutomationStation.Infrastructure.Persistence
             var parameters = new
             {
                 Id = Guid.NewGuid(),
-                CorrelationId = correlationId,
-                EventId = eventId
+                AutomationId = automation.Id,
+                ActorId = integrationEvent.Actor.Id,
+                integrationEvent.CorrelationId,
+                integrationEvent.CausationEventId
             };
 
             await connection.OpenAsync(cancellationToken);
@@ -61,29 +66,29 @@ namespace AutomationStation.Infrastructure.Persistence
                     cancellationToken: cancellationToken));
         }
 
-        public async Task CleanupOldEventsAsync(
-            TimeSpan maxAge,
-            CancellationToken cancellationToken)
-        {
-            using var connection = _connectionFactory.CreateConnection();
+        //public async Task CleanupOldEventsAsync(
+        //    TimeSpan maxAge,
+        //    CancellationToken cancellationToken)
+        //{
+        //    using var connection = _connectionFactory.CreateConnection();
 
-            const string sql = """
-            DELETE FROM CorrelationLoopEvents
-            WHERE ReceivedAt < @Cutoff;
-            """;
+        //    const string sql = """
+        //    DELETE FROM CorrelationLoopEvents
+        //    WHERE ReceivedAt < @Cutoff;
+        //    """;
 
-            var parameters = new
-            {
-                Cutoff = DateTime.UtcNow - maxAge
-            };
+        //    var parameters = new
+        //    {
+        //        Cutoff = DateTime.UtcNow - maxAge
+        //    };
 
-            await connection.OpenAsync(cancellationToken);
+        //    await connection.OpenAsync(cancellationToken);
 
-            await connection.ExecuteAsync(
-                new CommandDefinition(
-                    sql,
-                    parameters,
-                    cancellationToken: cancellationToken));
-        }
+        //    await connection.ExecuteAsync(
+        //        new CommandDefinition(
+        //            sql,
+        //            parameters,
+        //            cancellationToken: cancellationToken));
+        //}
     }
 }

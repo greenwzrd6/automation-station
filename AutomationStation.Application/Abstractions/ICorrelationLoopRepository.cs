@@ -1,14 +1,17 @@
+using AutomationStation.Application.Contracts;
+using AutomationStation.Core.Automations;
+
 namespace AutomationStation.Application.Abstractions
 {
     public interface ICorrelationLoopRepository
     {
         Task<bool> IsBlockedAsync(
-            Guid correlationId,
-            Guid eventId,
+            Automation automation,
+            IntegrationEvent integrationEvent,
             CancellationToken cancellationToken);
 
-        Task CleanupOldEventsAsync(
-            TimeSpan maxAge,
-            CancellationToken cancellationToken);
+        //Task CleanupOldEventsAsync(
+        //    TimeSpan maxAge,
+        //    CancellationToken cancellationToken);
     }
 }
