@@ -64,13 +64,10 @@ builder.Services.AddScoped<
     EventValueResolver>();
 
 // Generic execution policies
-builder.Services.AddScoped<
-    IAutomationExecutionPolicy,
-    CooldownPolicy>();
 
 builder.Services.AddScoped<
     IAutomationExecutionPolicy,
-    CausationPolicy>();
+    CorrelationPolicy>();
 
 builder.Services.AddScoped<
     IAutomationExecutionPolicy,

@@ -2,6 +2,7 @@
 using AutomationStation.Application.Contracts;
 using AutomationStation.Application.Models;
 using AutomationStation.Core.Automations;
+using Microsoft.Extensions.Logging;
 
 namespace AutomationStation.Application.Services
 {
@@ -11,7 +12,8 @@ namespace AutomationStation.Application.Services
         IAutomationExecutionGuard executionGuard,
         IHistoryRepository historyRepository,
         IActionExecutor actionExecutor,
-        IAutomationExecutionRepository automationExecutionRepository)
+        IAutomationExecutionRepository automationExecutionRepository,
+        ILogger<AutomationProcessor> logger)
         : IAutomationProcessor
     {
         private readonly IAutomationRepository _automationRepository = automationRepository;
@@ -20,6 +22,7 @@ namespace AutomationStation.Application.Services
         private readonly IHistoryRepository _historyRepository = historyRepository;
         private readonly IActionExecutor _actionExecutor = actionExecutor;
         private readonly IAutomationExecutionRepository _automationExecutionRepository = automationExecutionRepository;
+        private readonly ILogger<AutomationProcessor> _logger = logger;
 
         public async Task ProcessAsync(
             IntegrationEvent integrationEvent,
@@ -46,7 +49,11 @@ namespace AutomationStation.Application.Services
                     continue;
                 }
 
-                var causationEventId = integrationEvent.CausationEventId ?? integrationEvent.EventId;
+                var correlationId = integrationEvent.CorrelationId;
+
+                var causationEventId = integrationEvent.CausationEventId;
+
+                _logger.LogInformation("correlationId: {CorrelationId}, automationId: {AutomationId}", correlationId, automation.Id);
 
                 var executionId = await _automationExecutionRepository.GetOrCreateAsync(
                     automation.Id,
@@ -55,11 +62,12 @@ namespace AutomationStation.Application.Services
 
                 var context = new AutomationActionContext(
                     integrationEvent,
-                    causationEventId,
+                    correlationId,
                     executionId);
 
                 await _historyRepository.CreateAutomationTimestampAsync(
                     automation.Id,
+                    correlationId,
                     causationEventId,
                     cancellationToken);
 

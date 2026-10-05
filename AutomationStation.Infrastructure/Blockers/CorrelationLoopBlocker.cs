@@ -4,8 +4,8 @@ using AutomationStation.Application.Models;
 namespace AutomationStation.Infrastructure.Blockers
 {
     public sealed class CorrelationLoopBlocker(
-    ICorrelationLoopRepository correlationLoopRepository)
-    : IEventBlocker
+        ICorrelationLoopRepository correlationLoopRepository)
+        : IEventBlocker
     {
         private readonly ICorrelationLoopRepository _correlationLoopRepository = correlationLoopRepository;
 
@@ -13,13 +13,9 @@ namespace AutomationStation.Infrastructure.Blockers
             EventBlockerContext context,
             CancellationToken cancellationToken)
         {
-            if (context.CorrelationId is null)
-            {
-                return false;
-            }
 
             return await _correlationLoopRepository.IsBlockedAsync(
-                context.CorrelationId.Value,
+                context.CorrelationId,
                 context.EventId,
                 cancellationToken);
         }
