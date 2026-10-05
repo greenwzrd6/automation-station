@@ -102,11 +102,11 @@ public sealed class ActionExecutorTests
             CorrelationId: Guid.NewGuid(),
             CausationEventId: null,
             Actor: default!,
-            Payload: default(JsonElement));
+            Payload: default);
 
         return new AutomationActionContext(
             Event: integrationEvent,
-            CausationEventId: null,
+            CorrelationId: Guid.NewGuid(),
             ExecutionId: Guid.NewGuid());
     }
 
@@ -120,14 +120,6 @@ public sealed class ActionExecutorTests
         public TargetSystem TargetSystem { get; } = targetSystem;
 
         public int ExecutionCount { get; private set; }
-
-        public bool CanHandle(string actionType)
-        {
-            return string.Equals(
-                ActionType,
-                actionType,
-                StringComparison.OrdinalIgnoreCase);
-        }
 
         public Task ExecuteAsync(
             Then then,

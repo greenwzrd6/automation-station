@@ -5,10 +5,11 @@ namespace AutomationStation.Application.Models
 {
     public sealed record AutomationActionContext(
         IntegrationEvent Event,
-        Guid? CausationEventId,
+        Guid CorrelationId,
         Guid ExecutionId)
     {
         public Actor Actor => Event.Actor;
-        public Guid? CorrelationId => Event.CorrelationId;
+
+        public Guid CausationEventId => Event.EventId;
     }
 }

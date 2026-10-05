@@ -13,20 +13,22 @@ namespace AutomationStation.Infrastructure.Persistence
 
         public async Task CreateAutomationTimestampAsync(
             Guid AutomationId,
-            Guid CausationEventId,
+            Guid CorrelationId,
+            Guid? CausationEventId,
             CancellationToken CancellationToken)
         {
             using var connection = _connectionFactory.CreateConnection();
 
             const string sql = """
-                INSERT INTO AutomationHistory (Id, AutomationId, CausationEventId, TriggeredAt) 
-                VALUES (@Id, @AutomationId, @CausationEventId, @TriggeredAt)
+                INSERT INTO AutomationHistory (Id, AutomationId, CorrelationId, CausationEventId, TriggeredAt) 
+                VALUES (@Id, @AutomationId, @CorrelationId, @CausationEventId, @TriggeredAt)
                 """;
 
             var parameters = new
             {
                 Id = Guid.NewGuid(),
                 AutomationId,
+                CorrelationId,
                 CausationEventId,
                 TriggeredAt = DateTime.UtcNow
             };
@@ -40,69 +42,32 @@ namespace AutomationStation.Infrastructure.Persistence
                     cancellationToken: CancellationToken));
         }
 
-        public async Task<bool> HasTriggeredRecentlyAsync(
-            Guid AutomationId,
-            DateTime Cooldown,
-            CancellationToken CancellationToken)
-        {
-            using var connection = _connectionFactory.CreateConnection();
-
-            const string sql = """
-        SELECT CAST(
-            CASE
-                WHEN EXISTS (
-                    SELECT 1
-                    FROM AutomationHistory
-                    WHERE AutomationId = @AutomationId
-                      AND TriggeredAt >= @Cooldown
-                )
-                THEN 1
-                ELSE 0
-            END
-        AS bit);
-        """;
-
-            var parameters = new
-            {
-                AutomationId,
-                Cooldown
-            };
-
-            await connection.OpenAsync(CancellationToken);
-
-            return await connection.QuerySingleAsync<bool>(
-                new CommandDefinition(
-                    sql,
-                    parameters,
-                    cancellationToken: CancellationToken));
-        }
-
         public async Task<bool> EventAlreadyProcessedAsync(
             Guid AutomationId,
-            Guid CausationEventId,
+            Guid CorrelationId,
             CancellationToken CancellationToken)
         {
             using var connection = _connectionFactory.CreateConnection();
 
             const string sql = """
-        SELECT CAST(
-            CASE
-                WHEN EXISTS (
-                    SELECT 1
-                    FROM AutomationHistory
-                    WHERE AutomationId = @AutomationId
-                      AND CausationEventId = @CausationEventId
-                )
-                THEN 1
-                ELSE 0
-            END
-        AS bit)
-        """;
+                SELECT CAST(
+                    CASE
+                        WHEN EXISTS (
+                            SELECT 1
+                            FROM AutomationHistory
+                            WHERE AutomationId = @AutomationId
+                                AND CorrelationId = @CorrelationId
+                        )
+                        THEN 1
+                        ELSE 0
+                    END
+                AS bit)
+                """;
 
             var parameters = new
             {
                 AutomationId,
-                CausationEventId
+                CorrelationId
             };
 
             await connection.OpenAsync(CancellationToken);
