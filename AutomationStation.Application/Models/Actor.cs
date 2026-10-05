@@ -1,6 +1,6 @@
 ﻿namespace AutomationStation.Application.Models
 {
     public record Actor(
-        Guid Id,
+        int Id,
         string Type);
 }

@@ -149,7 +149,8 @@ public sealed class Worker(
                         integrationEvent.EventType,
                         integrationEvent.Source,
                         integrationEvent.CorrelationId,
-                        integrationEvent.CausationEventId);
+                        integrationEvent.CausationEventId,
+                        integrationEvent.Actor);
 
                 foreach (var blocker in blockers)
                 {

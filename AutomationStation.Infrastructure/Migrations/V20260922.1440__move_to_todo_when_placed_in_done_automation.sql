@@ -94,7 +94,7 @@ VALUES
 (
     @AutomationId2,
     'Send entity to Doing when dropped in Todo',
-    1,
+    0,
     1
 );
 
@@ -171,7 +171,7 @@ VALUES
 (
     @AutomationId3,
     'Send entity to Released when dropped in Doing',
-    1,
+    0,
     1
 );
 

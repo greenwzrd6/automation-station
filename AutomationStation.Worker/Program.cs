@@ -3,7 +3,6 @@ using AutomationStation.Application.Policies;
 using AutomationStation.Application.Services;
 using AutomationStation.Infrastructure.Actions;
 using AutomationStation.Infrastructure.Actions.Executors;
-using AutomationStation.Infrastructure.Blockers;
 using AutomationStation.Infrastructure.Database;
 using AutomationStation.Infrastructure.Integrations.Kanban;
 using AutomationStation.Infrastructure.Persistence;
@@ -36,11 +35,6 @@ builder.Services.AddScoped<
 builder.Services.AddSingleton<
     IActionCatalog,
     ActionCatalog>();
-
-// Event blockers
-builder.Services.AddScoped<
-    IEventBlocker,
-    CorrelationLoopBlocker>();
 
 // Generic automation engine
 builder.Services.AddScoped<
@@ -103,8 +97,5 @@ builder.Services.AddHttpClient<KanbanClient>(
 
 // RabbitMQ worker
 builder.Services.AddHostedService<Worker>();
-
-// Cleanup old correlation loop events
-builder.Services.AddHostedService<CorrelationLoopCleanupService>();
 
 await builder.Build().RunAsync();

@@ -1,5 +1,0 @@
-CREATE INDEX IX_CorrelationLoopEvents_CorrelationId_ReceivedAt
-ON CorrelationLoopEvents(CorrelationId, ReceivedAt);
-
-CREATE UNIQUE INDEX UX_CorrelationLoopEvents_CorrelationId_EventId
-ON CorrelationLoopEvents(CorrelationId, EventId);
