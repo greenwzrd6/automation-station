@@ -7,8 +7,9 @@ using AutomationStation.Infrastructure.Blockers;
 using AutomationStation.Infrastructure.Database;
 using AutomationStation.Infrastructure.Integrations.Kanban;
 using AutomationStation.Infrastructure.Persistence;
-using AutomationStation.Worker;
 using AutomationStation.Infrastructure.RateLimiting;
+using AutomationStation.Infrastructure.Integrations.Toj;
+using AutomationStation.Worker;
 
 var builder = Host.CreateApplicationBuilder(args);
 
@@ -93,6 +94,14 @@ builder.Services.AddScoped<
     IActionHandler,
     CreatePlacementExecutor>();
 
+builder.Services.AddScoped<
+    IActionHandler,
+    CreateTojTaskExecutor>();
+
+builder.Services.AddScoped<
+    IActionHandler,
+    UpdateTojTaskStatusExecutor>();
+
 builder.Services.AddHttpClient<KanbanClient>(
     client =>
     {
@@ -102,6 +111,26 @@ builder.Services.AddHttpClient<KanbanClient>(
                 "Kanban API URL is missing.");
 
         client.BaseAddress = new Uri(baseUrl);
+    });
+
+builder.Services.AddHttpClient<TojClient>(
+    client =>
+    {
+        var baseUrl =
+            builder.Configuration["TojApi:BaseUrl"]
+            ?? throw new InvalidOperationException(
+                "TojApi:BaseUrl is missing.");
+
+        var apiKey =
+            builder.Configuration["TojApi:ApiKey"]
+            ?? throw new InvalidOperationException(
+                "TojApi:ApiKey is missing.");
+
+        client.BaseAddress = new Uri(baseUrl);
+
+        client.DefaultRequestHeaders.Add(
+            "X-Automation-Api-Key",
+            apiKey);
     });
 
 // RabbitMQ worker
