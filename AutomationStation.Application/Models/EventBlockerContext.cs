@@ -6,6 +6,7 @@ namespace AutomationStation.Application.Models
         Guid EventId,
         string EventType,
         SourceSystem Source,
-        Guid? CorrelationId,
-        Guid? CausationEventId);
+        Guid CorrelationId,
+        Guid? CausationEventId,
+        Actor Actor);
 }

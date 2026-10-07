@@ -18,12 +18,6 @@ namespace AutomationStation.Infrastructure.Actions.Executors
 
         public TargetSystem TargetSystem => TargetSystem.Kanban;
 
-        public bool CanHandle(string actionType) =>
-            string.Equals(
-                ActionType,
-                actionType,
-                StringComparison.OrdinalIgnoreCase);
-
         public async Task ExecuteAsync(
             Then then,
             AutomationActionContext context,

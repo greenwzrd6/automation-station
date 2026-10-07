@@ -2,6 +2,7 @@
 using AutomationStation.Application.Contracts;
 using AutomationStation.Application.Models;
 using AutomationStation.Core.Automations;
+using Microsoft.Extensions.Logging;
 
 namespace AutomationStation.Application.Services
 {
@@ -11,15 +12,18 @@ namespace AutomationStation.Application.Services
         IAutomationExecutionGuard executionGuard,
         IHistoryRepository historyRepository,
         IActionExecutor actionExecutor,
-        IAutomationExecutionRepository automationExecutionRepository)
+        IAutomationExecutionRepository automationExecutionRepository,
+        ICorrelationLoopRepository correlationLoopRepository,
+        ILogger<AutomationProcessor> logger)
         : IAutomationProcessor
     {
         private readonly IAutomationRepository _automationRepository = automationRepository;
         private readonly IConditionEvaluator _conditionEvaluator = conditionEvaluator;
         private readonly IAutomationExecutionGuard _executionGuard = executionGuard;
-        private readonly IHistoryRepository _historyRepository = historyRepository;
         private readonly IActionExecutor _actionExecutor = actionExecutor;
         private readonly IAutomationExecutionRepository _automationExecutionRepository = automationExecutionRepository;
+        private readonly ICorrelationLoopRepository _correlationLoopRepository = correlationLoopRepository;
+        private readonly ILogger<AutomationProcessor> _logger = logger;
 
         public async Task ProcessAsync(
             IntegrationEvent integrationEvent,
@@ -39,14 +43,32 @@ namespace AutomationStation.Application.Services
                 }
 
                 if (await _executionGuard.IsBlockedAsync(
-                    automation,
-                    integrationEvent,
-                    cancellationToken))
+                        automation,
+                        integrationEvent,
+                        cancellationToken))
                 {
                     continue;
                 }
 
-                var causationEventId = integrationEvent.CausationEventId ?? integrationEvent.EventId;
+                if (await _correlationLoopRepository.IsBlockedAsync(
+                    automation,
+                    integrationEvent,
+                    cancellationToken))
+                {
+                    _logger.LogWarning(
+                    """
+                    Automation '{AutomationName}' ({AutomationId}) blocked.
+                    ActorId: {ActorId}, CorrelationId: {CorrelationId}, EventId: {EventId}.
+                    Reason: actor reached the limit of 10 executions within 3 minutes.
+                    """,
+                    automation.Name,
+                    automation.Id,
+                    integrationEvent.Actor.Id,
+                    integrationEvent.CorrelationId,
+                    integrationEvent.EventId);
+
+                    continue;
+                }
 
                 var executionId = await _automationExecutionRepository.GetOrCreateAsync(
                     automation.Id,
@@ -55,13 +77,8 @@ namespace AutomationStation.Application.Services
 
                 var context = new AutomationActionContext(
                     integrationEvent,
-                    causationEventId,
+                    integrationEvent.CorrelationId,
                     executionId);
-
-                await _historyRepository.CreateAutomationTimestampAsync(
-                    automation.Id,
-                    causationEventId,
-                    cancellationToken);
 
                 foreach (var then in automation.Thens)
                 {

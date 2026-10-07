@@ -7,27 +7,27 @@ namespace AutomationStation.Application.Contracts
 {
     public sealed record IntegrationEvent(
 
-        [property: JsonPropertyName("eventId")]
+    [property: JsonPropertyName("eventId")]
     Guid EventId,
 
-        [property: JsonPropertyName("eventType")]
+    [property: JsonPropertyName("eventType")]
     string EventType,
 
-        [property: JsonPropertyName("source")]
+    [property: JsonPropertyName("source")]
     SourceSystem Source,
 
-        [property: JsonPropertyName("companyId")]
+    [property: JsonPropertyName("companyId")]
     int CompanyId,
 
-        [property: JsonPropertyName("correlationId")]
+    [property: JsonPropertyName("correlationId")]
     Guid CorrelationId,
 
-        [property: JsonPropertyName("causationEventId")]
+    [property: JsonPropertyName("causationEventId")]
     Guid? CausationEventId,
 
-        [property: JsonPropertyName("actor")]
+    [property: JsonPropertyName("actor")]
     Actor Actor,
 
-        [property: JsonPropertyName("payload")]
+    [property: JsonPropertyName("payload")]
     JsonElement Payload);
 }

@@ -10,7 +10,7 @@ public sealed class ActionExecutor(
     IActionCatalog actionCatalog)
     : IActionExecutor
 {
-    private readonly IReadOnlyDictionary<string, IActionHandler> _handlers =
+    private readonly Dictionary<string, IActionHandler> _handlers =
         handlers.ToDictionary(
             handler => $"{handler.TargetSystem}:{handler.ActionType}",
             StringComparer.OrdinalIgnoreCase);
@@ -24,9 +24,9 @@ public sealed class ActionExecutor(
         CancellationToken cancellationToken)
     {
         if (!_actionCatalog.TryGet(
-        then.Type,
-        then.TargetSystem,
-        out var catalogEntry))
+            then.Type,
+            then.TargetSystem,
+            out var catalogEntry))
         {
             throw new NotSupportedException(
                 $"Action '{then.Type}' is not allowed " +
