@@ -8,7 +8,6 @@ namespace AutomationStation.Application.Abstractions
     {
         string ActionType { get; }
         TargetSystem TargetSystem { get; }
-        bool CanHandle(string actionType);
 
         Task ExecuteAsync(
             Then then,

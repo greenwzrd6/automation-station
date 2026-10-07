@@ -3,19 +3,14 @@ using AutomationStation.Application.Abstractions;
 
 namespace AutomationStation.Infrastructure.RateLimiting
 {
-    public sealed class InMemoryActionRateLimiter : IActionRateLimiter
+    public sealed class InMemoryActionRateLimiter(
+        TimeProvider timeProvider) : IActionRateLimiter
     {
-        private readonly TimeProvider _timeProvider;
+        private readonly TimeProvider _timeProvider = timeProvider;
 
         private readonly ConcurrentDictionary<
             ActionRateLimitKey,
             WindowState> _windows = new();
-
-        public InMemoryActionRateLimiter(
-            TimeProvider timeProvider)
-        {
-            _timeProvider = timeProvider;
-        }
 
         public async Task WaitAsync(
             ActionRateLimitKey key,

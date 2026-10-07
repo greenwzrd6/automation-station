@@ -5,13 +5,9 @@ using AutomationStation.Core.Automations;
 
 namespace AutomationStation.Application.Policies
 {
-    public sealed class CooldownPolicy(
-        IHistoryRepository historyRepository)
+    public sealed class CorrelationPolicy(IHistoryRepository historyRepository)
         : IAutomationExecutionPolicy
     {
-        private static readonly TimeSpan Cooldown =
-            TimeSpan.FromSeconds(3);
-
         private readonly IHistoryRepository _historyRepository = historyRepository;
 
         public async Task<AutomationPolicyResult> EvaluateAsync(
@@ -19,16 +15,17 @@ namespace AutomationStation.Application.Policies
             IntegrationEvent integrationEvent,
             CancellationToken cancellationToken)
         {
-            var since = DateTime.UtcNow - Cooldown;
+            var correlationId = integrationEvent.CorrelationId;
 
-            var triggeredRecently =
-                await _historyRepository.HasTriggeredRecentlyAsync(
+            var exists =
+                await _historyRepository.EventAlreadyProcessedAsync(
                     automation.Id,
-                    since,
+                    correlationId,
                     cancellationToken);
 
-            return triggeredRecently
-                ? AutomationPolicyResult.Block("Cooldown")
+            return exists
+                ? AutomationPolicyResult.Block(
+                    "Correlation event already processed.")
                 : AutomationPolicyResult.Allow();
         }
     }

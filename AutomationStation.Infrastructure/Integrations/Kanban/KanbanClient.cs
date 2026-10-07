@@ -5,7 +5,7 @@ using AutomationStation.Infrastructure.Integrations.Kanban.Requests;
 namespace AutomationStation.Infrastructure.Integrations.Kanban
 {
     public sealed class KanbanClient(
-    HttpClient httpClient)
+        HttpClient httpClient)
     {
         private readonly HttpClient _httpClient = httpClient;
 

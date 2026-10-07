@@ -180,7 +180,7 @@ namespace AutomationStation.Infrastructure.Persistence
                     automationActions);
             });
 
-            return automations.ToList();
+            return [.. automations];
         }
 
         private static Condition DeserializeCondition(
