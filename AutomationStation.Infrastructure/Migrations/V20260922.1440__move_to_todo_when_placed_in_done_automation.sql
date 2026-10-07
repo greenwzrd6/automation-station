@@ -17,7 +17,7 @@ VALUES
 (
     @AutomationId,
     'Send card to Todo when dropped in Released',
-    1,
+    0,
     1
 );
 

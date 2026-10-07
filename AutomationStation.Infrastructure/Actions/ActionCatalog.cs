@@ -12,15 +12,19 @@ public sealed class ActionCatalog : IActionCatalog
             ActionType: "CreatePlacement",
             TargetSystem: TargetSystem.Kanban,
             PermittedActions: 100,
-            RateLimitWindow: TimeSpan.FromMinutes(1))
+            RateLimitWindow: TimeSpan.FromMinutes(1)),
 
-        // Möjligt exempel för när TOJ är integrerat:
-        //
-        // new ActionCatalogEntry(
-        //     ActionType: "CreateTask",
-        //     TargetSystem: TargetSystem.TojSystem,
-        //     PermittedActions: 50,
-        //     RateLimitWindow: TimeSpan.FromMinutes(1))
+         new ActionCatalogEntry(
+             ActionType: "CreateTask",
+             TargetSystem: TargetSystem.TojSystem,
+             PermittedActions: 10,
+             RateLimitWindow: TimeSpan.FromMinutes(1)),
+
+        new ActionCatalogEntry(
+            ActionType: "UpdateTaskStatus",
+            TargetSystem: TargetSystem.TojSystem,
+            PermittedActions: 100,
+            RateLimitWindow: TimeSpan.FromMinutes(1))
     ];
 
     public bool TryGet(
