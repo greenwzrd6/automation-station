@@ -3,9 +3,6 @@ using AutomationStation.Application.Models;
 using AutomationStation.Core.Automations;
 using AutomationStation.Core.Automations.Systems;
 using AutomationStation.Infrastructure.Integrations.Toj;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace AutomationStation.Infrastructure.Actions.Executors
 {
@@ -51,9 +48,17 @@ namespace AutomationStation.Infrastructure.Actions.Executors
                     "a valid statusId.");
             }
 
+            if (!then.ExecutorId.HasValue)
+            {
+                throw new InvalidOperationException("The action requires an executor.");
+            }
+
+            Guid executorId = then.ExecutorId.Value;
+
             await tojClient.UpdateTaskStatusAsync(
                 taskId,
                 statusId,
+                executorId,
                 cancellationToken);
         }
     }

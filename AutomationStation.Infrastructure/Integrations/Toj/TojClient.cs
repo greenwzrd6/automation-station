@@ -9,18 +9,28 @@ public sealed class TojClient(
     public async Task CreateTaskInSameRootAsync(
         Guid sourceTaskId,
         string title,
+        Guid executorId,
         CancellationToken cancellationToken)
     {
-        var request = new CreateTojTaskInSameRootRequest(
+        var body = new CreateTojTaskInSameRootRequest(
             Title: title);
 
-        var response = await httpClient.PostAsJsonAsync(
-            $"api/automation/tasks/{sourceTaskId}",
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            $"api/automation/tasks/{sourceTaskId}");
+
+        request.Headers.Add(
+            "X-Automation-Executor-Id",
+            executorId.ToString());
+
+        request.Content = JsonContent.Create(body);
+
+        var response = await httpClient.SendAsync(
             request,
             cancellationToken);
 
         var responseBody = await response.Content.ReadAsStringAsync(
-            cancellationToken);
+                cancellationToken);
 
         if (!response.IsSuccessStatusCode)
         {
@@ -31,18 +41,29 @@ public sealed class TojClient(
     }
 
     public async Task UpdateTaskStatusAsync(
-        Guid taskId,
-        int statusId,
-        CancellationToken cancellationToken)
+    Guid taskId,
+    int statusId,
+    Guid executorId,
+    CancellationToken cancellationToken)
     {
-        var request = new UpdateTojTaskStatusRequest(
+        var body = new UpdateTojTaskStatusRequest(
             StatusId: statusId);
-        var response = await httpClient.PatchAsJsonAsync(
-            $"api/automation/tasks/{taskId}/status",
+
+        using var request = new HttpRequestMessage(
+            HttpMethod.Patch,
+            $"api/automation/tasks/{taskId}/status");
+
+        request.Headers.Add(
+            "X-Automation-Executor-Id",
+            executorId.ToString());
+
+        request.Content = JsonContent.Create(body);
+
+        var response = await httpClient.SendAsync(
             request,
             cancellationToken);
         var responseBody = await response.Content.ReadAsStringAsync(
-            cancellationToken);
+                cancellationToken);
         if (!response.IsSuccessStatusCode)
         {
             throw new HttpRequestException(

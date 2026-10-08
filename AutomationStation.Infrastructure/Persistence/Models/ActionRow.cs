@@ -2,10 +2,13 @@
 
 namespace AutomationStation.Infrastructure.Persistence.Models
 {
-    internal sealed record ActionRow(
-        Guid AutomationId,
-        string ActionType,
-        TargetSystem? TargetSystem,
-        string? ConfigurationJson,
-        int ExecutionOrder);
+    public sealed record ActionRow
+    {
+        public Guid AutomationId { get; set; }
+        public string ActionType { get; set; } = string.Empty;
+        public TargetSystem? TargetSystem { get; set; } = null;
+        public string? ConfigurationJson { get; set; } = string.Empty;
+        public int ExecutionOrder { get; set; }
+        public Guid? ExecutorId { get; set; }
+    }
 }

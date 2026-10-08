@@ -49,9 +49,17 @@ public sealed class CreateTojTaskExecutor(
                 "The CreateTask action requires a title.");
         }
 
+        if (!then.ExecutorId.HasValue)
+        {
+            throw new InvalidOperationException("The action requires an executor.");
+        }
+
+        Guid executorId = then.ExecutorId.Value;
+
         await tojClient.CreateTaskInSameRootAsync(
             sourceTaskId,
             title,
+            executorId,
             cancellationToken);
     }
 }

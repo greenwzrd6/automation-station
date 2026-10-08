@@ -5,5 +5,6 @@ namespace AutomationStation.Core.Automations
     public sealed record Then(
         string Type,
         TargetSystem TargetSystem,
+        Guid? ExecutorId,
         IReadOnlyDictionary<string, string> Parameters);
 }

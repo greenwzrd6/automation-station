@@ -103,19 +103,22 @@ builder.Services.AddHttpClient<KanbanClient>(
 
         client.BaseAddress = new Uri(baseUrl);
     });
-
 builder.Services.AddHttpClient<TojClient>(
-    client =>
+    (serviceProvider, client) =>
     {
+        var configuration =
+            serviceProvider.GetRequiredService<IConfiguration>();
+
         var baseUrl =
-            builder.Configuration["TojApi:BaseUrl"]
+            configuration["TojApi:BaseUrl"]
             ?? throw new InvalidOperationException(
-                "TojApi:BaseUrl is missing.");
+                "Toj:BaseUrl is missing.");
 
         var apiKey =
-            builder.Configuration["TojApi:ApiKey"]
+            configuration["TojApi:ApiKey"]
             ?? throw new InvalidOperationException(
-                "TojApi:ApiKey is missing.");
+                "Toj:ApiKey is missing.");
+
 
         client.BaseAddress = new Uri(baseUrl);
 

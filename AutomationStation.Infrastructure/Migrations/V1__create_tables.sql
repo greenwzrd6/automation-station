@@ -3,7 +3,7 @@ CREATE TABLE Automations
     Id UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
     Name NVARCHAR(255) NOT NULL,
     Enabled BIT NOT NULL DEFAULT 1,
-    AutomationTriggerable BIT NOT NULL DEFAULT 0,
+    AutomationTriggerable BIT NOT NULL DEFAULT 0
 );
 
 CREATE TABLE AutomationTriggers
@@ -32,10 +32,28 @@ CREATE TABLE AutomationConditions
         REFERENCES Automations(Id)
 );
 
+CREATE TABLE AutomationExecutors
+(
+    Id UNIQUEIDENTIFIER NOT NULL
+        CONSTRAINT PK_AutomationExecutors
+        PRIMARY KEY,
+
+    CompanyId INT NOT NULL,
+
+    TargetSystem NVARCHAR(100) NOT NULL,
+
+    Name NVARCHAR(200) NOT NULL,
+
+    Enabled BIT NOT NULL
+        CONSTRAINT DF_AutomationExecutors_Enabled
+        DEFAULT 1
+);
+
 CREATE TABLE AutomationActions
 (
     Id UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
     AutomationId UNIQUEIDENTIFIER NOT NULL,
+    AutomationExecutorId UNIQUEIDENTIFIER NULL,
     ActionType NVARCHAR(255) NOT NULL,
     TargetSystem NVARCHAR(255) NULL,
     ConfigurationJson NVARCHAR(MAX) NULL,
@@ -43,7 +61,11 @@ CREATE TABLE AutomationActions
 
     CONSTRAINT FK_AutomationActions_Automations
         FOREIGN KEY (AutomationId)
-        REFERENCES Automations(Id)
+        REFERENCES Automations(Id),
+
+    CONSTRAINT FK_AutomationActions_AutomationExecutors
+        FOREIGN KEY (AutomationExecutorId)
+        REFERENCES AutomationExecutors(Id)
 );
 
 CREATE TABLE AutomationHistory
@@ -70,6 +92,7 @@ CREATE TABLE AutomationExecutions
 (
     Id UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
     AutomationId UNIQUEIDENTIFIER NOT NULL,
+    AutomationExecutorId UNIQUEIDENTIFIER NULL,
     EventId UNIQUEIDENTIFIER NOT NULL,
     StartedAt DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
 
@@ -78,5 +101,9 @@ CREATE TABLE AutomationExecutions
         REFERENCES Automations(Id),
 
     CONSTRAINT UQ_AutomationExecutions_AutomationId_EventId
-        UNIQUE (AutomationId, EventId)
+        UNIQUE (AutomationId, EventId),
+
+    CONSTRAINT FK_AutomationExecutions_AutomationExecutors
+        FOREIGN KEY (AutomationExecutorId)
+        REFERENCES AutomationExecutors(Id)
 );
