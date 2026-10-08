@@ -1,6 +1,5 @@
 ﻿using AutomationStation.Application.Abstractions;
-using AutomationStation.Application.Contracts;
-using AutomationStation.Core.Automations;
+using AutomationStation.Application.Models;
 using Microsoft.Extensions.Logging;
 
 namespace AutomationStation.Application.Services
@@ -14,15 +13,13 @@ namespace AutomationStation.Application.Services
         private readonly ILogger<AutomationExecutionGuard> _logger = logger;
 
         public async Task<bool> IsBlockedAsync(
-            Automation automation,
-            IntegrationEvent integrationEvent,
+            LoopBlockerContext context,
             CancellationToken cancellationToken)
         {
             foreach (var policy in _policies)
             {
                 var result = await policy.EvaluateAsync(
-                    automation,
-                    integrationEvent,
+                    context,
                     cancellationToken);
 
                 if (result.Allowed)
@@ -30,8 +27,8 @@ namespace AutomationStation.Application.Services
 
                 _logger.LogWarning(
                     "Automation '{AutomationName}' with ID: '{AutomationId}' was blocked by '{Policy}'. Reason: '{Reason}'",
-                    automation.Name,
-                    automation.Id,
+                    context.Automation.Name,
+                    context.Automation.Id,
                     policy.GetType().Name,
                     result.Reason);
 

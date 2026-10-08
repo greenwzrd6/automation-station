@@ -43,17 +43,15 @@ namespace AutomationStation.Application.Services
                 }
 
                 if (await _executionGuard.IsBlockedAsync(
-                        automation,
-                        integrationEvent,
+                        new LoopBlockerContext(automation, integrationEvent),
                         cancellationToken))
                 {
                     continue;
                 }
 
                 if (await _correlationLoopRepository.IsBlockedAsync(
-                    automation,
-                    integrationEvent,
-                    cancellationToken))
+                        new LoopBlockerContext(automation, integrationEvent),
+                        cancellationToken))
                 {
                     _logger.LogWarning(
                     """

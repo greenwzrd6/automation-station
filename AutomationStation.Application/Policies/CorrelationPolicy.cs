@@ -11,15 +11,14 @@ namespace AutomationStation.Application.Policies
         private readonly IHistoryRepository _historyRepository = historyRepository;
 
         public async Task<AutomationPolicyResult> EvaluateAsync(
-            Automation automation,
-            IntegrationEvent integrationEvent,
+            LoopBlockerContext context,
             CancellationToken cancellationToken)
         {
-            var correlationId = integrationEvent.CorrelationId;
+            var correlationId = context.Event.CorrelationId;
 
             var exists =
                 await _historyRepository.EventAlreadyProcessedAsync(
-                    automation.Id,
+                    context.Automation.Id,
                     correlationId,
                     cancellationToken);
 

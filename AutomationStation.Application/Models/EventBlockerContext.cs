@@ -6,6 +6,7 @@ namespace AutomationStation.Application.Models
     public sealed record EventBlockerContext(
         IntegrationEvent Event)
     {
+        public Guid Id;
         public Guid EventId => Event.EventId;
         public string EventType => Event.EventType;
         public SourceSystem Source => Event.Source;

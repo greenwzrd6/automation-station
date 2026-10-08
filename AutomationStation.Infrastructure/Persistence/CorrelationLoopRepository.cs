@@ -2,8 +2,7 @@ using Dapper;
 
 using AutomationStation.Application.Abstractions;
 using AutomationStation.Infrastructure.Database;
-using AutomationStation.Core.Automations;
-using AutomationStation.Application.Contracts;
+using AutomationStation.Application.Models;
 
 namespace AutomationStation.Infrastructure.Persistence
 {
@@ -13,8 +12,7 @@ namespace AutomationStation.Infrastructure.Persistence
     {
         private readonly DbConnectionFactory _connectionFactory = connectionFactory;
         public async Task<bool> IsBlockedAsync(
-            Automation automation,
-            IntegrationEvent integrationEvent,
+            LoopBlockerContext context,
             CancellationToken cancellationToken)
         {
             using var connection = _connectionFactory.CreateConnection();
@@ -51,10 +49,10 @@ namespace AutomationStation.Infrastructure.Persistence
             var parameters = new
             {
                 Id = Guid.NewGuid(),
-                AutomationId = automation.Id,
-                ActorId = integrationEvent.Actor.Id,
-                integrationEvent.CorrelationId,
-                integrationEvent.CausationEventId
+                AutomationId = context.Automation.Id,
+                ActorId = context.Event.Actor.Id,
+                context.Event.CorrelationId,
+                context.Event.CausationEventId
             };
 
             await connection.OpenAsync(cancellationToken);
@@ -65,30 +63,5 @@ namespace AutomationStation.Infrastructure.Persistence
                     parameters,
                     cancellationToken: cancellationToken));
         }
-
-        //public async Task CleanupOldEventsAsync(
-        //    TimeSpan maxAge,
-        //    CancellationToken cancellationToken)
-        //{
-        //    using var connection = _connectionFactory.CreateConnection();
-
-        //    const string sql = """
-        //    DELETE FROM CorrelationLoopEvents
-        //    WHERE ReceivedAt < @Cutoff;
-        //    """;
-
-        //    var parameters = new
-        //    {
-        //        Cutoff = DateTime.UtcNow - maxAge
-        //    };
-
-        //    await connection.OpenAsync(cancellationToken);
-
-        //    await connection.ExecuteAsync(
-        //        new CommandDefinition(
-        //            sql,
-        //            parameters,
-        //            cancellationToken: cancellationToken));
-        //}
     }
 }
