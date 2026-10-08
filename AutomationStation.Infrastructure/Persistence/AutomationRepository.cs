@@ -24,10 +24,9 @@ namespace AutomationStation.Infrastructure.Persistence
                 }
             };
 
-        public async Task<IReadOnlyCollection<Automation>>
-            GetEnabledByEventTypeAsync(
-                string eventType,
-                CancellationToken cancellationToken)
+        public async Task<IReadOnlyCollection<Automation>> GetEnabledByEventTypeAsync(
+            string eventType,
+            CancellationToken cancellationToken)
         {
             const string sql = """
             -- Automations
@@ -112,17 +111,13 @@ namespace AutomationStation.Infrastructure.Persistence
                     new { EventType = eventType },
                     cancellationToken: cancellationToken));
 
-            var automationRows =
-                (await result.ReadAsync<AutomationRow>()).ToList();
+            var automationRows = (await result.ReadAsync<AutomationRow>()).ToList();
 
-            var triggerRows =
-                (await result.ReadAsync<TriggerRow>()).ToList();
+            var triggerRows = (await result.ReadAsync<TriggerRow>()).ToList();
 
-            var conditionRows =
-                (await result.ReadAsync<ConditionRow>()).ToList();
+            var conditionRows = (await result.ReadAsync<ConditionRow>()).ToList();
 
-            var actionRows =
-                (await result.ReadAsync<ActionRow>()).ToList();
+            var actionRows = (await result.ReadAsync<ActionRow>()).ToList();
 
             var triggersByAutomation = triggerRows
                 .GroupBy(trigger => trigger.AutomationId)
@@ -147,9 +142,9 @@ namespace AutomationStation.Infrastructure.Persistence
                         .Select(action => new Then(
                             action.ActionType,
                             action.TargetSystem ?? throw new InvalidOperationException(
-                            $"Action '{action.ActionType}' " +
-                            $"in automation '{action.AutomationId}' " +
-                            $"has no TargetSystem."),
+                                $"Action '{action.ActionType}' " +
+                                $"in automation '{action.AutomationId}' " +
+                                $"has no TargetSystem."),
                             action.ExecutorId,
                             DeserializeParameters(action.ConfigurationJson)))
                         .ToList());
@@ -163,12 +158,12 @@ namespace AutomationStation.Infrastructure.Persistence
                         $"Automation {automation.Id} has no trigger.");
 
                 var automationConditions =
-                    conditionsByAutomation.GetValueOrDefault(
-                        automation.Id) ?? [];
+                    conditionsByAutomation.GetValueOrDefault(automation.Id)
+                    ?? [];
 
                 var automationActions =
-                    actionsByAutomation.GetValueOrDefault(
-                        automation.Id) ?? [];
+                    actionsByAutomation.GetValueOrDefault(automation.Id)
+                    ?? [];
 
                 return new Automation(
                     automation.Id,
