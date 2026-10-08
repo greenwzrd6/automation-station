@@ -40,11 +40,11 @@ namespace AutomationStation.Infrastructure.Integrations.Kanban
 
             message.Headers.Add(
                 "Actor-Id",
-                requestContext.Actor.Id.ToString());
+                requestContext.Actor.Id);
 
             message.Headers.Add(
                 "Actor-Type",
-                requestContext.Actor.Type.ToString());
+                requestContext.Actor.Type);
 
             message.Headers.Add(
                 "Idempotency-Key",
