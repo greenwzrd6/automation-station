@@ -33,7 +33,7 @@ namespace AutomationStation.Infrastructure.Persistence
                 AND ActorId = @ActorId
                 AND TriggeredAt >= DATEADD(MINUTE, -3, SYSUTCDATETIME());
 
-            IF @Count >= 10
+            IF @Count >= 10000
             BEGIN
                 SET @Blocked = 1;
             END
