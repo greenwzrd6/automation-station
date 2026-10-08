@@ -103,25 +103,36 @@ builder.Services.AddHttpClient<KanbanClient>(
 
         client.BaseAddress = new Uri(baseUrl);
     });
-
 builder.Services.AddHttpClient<TojClient>(
-    client =>
+    (serviceProvider, client) =>
     {
+        var configuration =
+            serviceProvider.GetRequiredService<IConfiguration>();
+
         var baseUrl =
-            builder.Configuration["TojApi:BaseUrl"]
+            configuration["TojApi:BaseUrl"]
             ?? throw new InvalidOperationException(
-                "TojApi:BaseUrl is missing.");
+                "Toj:BaseUrl is missing.");
 
         var apiKey =
-            builder.Configuration["TojApi:ApiKey"]
+            configuration["TojApi:ApiKey"]
             ?? throw new InvalidOperationException(
-                "TojApi:ApiKey is missing.");
+                "Toj:ApiKey is missing.");
+
+        var executorId =
+            configuration["TojApi:ExecutorId"]
+            ?? throw new InvalidOperationException(
+                "Toj:ExecutorId is missing.");
 
         client.BaseAddress = new Uri(baseUrl);
 
         client.DefaultRequestHeaders.Add(
             "X-Automation-Api-Key",
             apiKey);
+
+        client.DefaultRequestHeaders.Add(
+            "X-Automation-Executor-Id",
+            executorId);
     });
 
 // RabbitMQ worker
