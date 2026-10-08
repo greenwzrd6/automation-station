@@ -7,8 +7,8 @@ namespace AutomationStation.Application.Models
         IntegrationEvent Event,
         Guid ExecutionId)
     {
-        public Actor Actor => Event.Actor;
-        public Guid CausationEventId => Event.EventId;
         public Guid CorrelationId => Event.CorrelationId;
+        public Guid? CausationEventId => Event.CausationEventId;
+        public Actor Actor => Event.Actor;
     }
 }

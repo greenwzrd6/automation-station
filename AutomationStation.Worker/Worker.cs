@@ -144,13 +144,7 @@ public sealed class Worker(
                         .GetServices<IEventBlocker>();
 
                 var blockerContext =
-                    new EventBlockerContext(
-                        integrationEvent.EventId,
-                        integrationEvent.EventType,
-                        integrationEvent.Source,
-                        integrationEvent.CorrelationId,
-                        integrationEvent.CausationEventId,
-                        integrationEvent.Actor);
+                    new EventBlockerContext(integrationEvent);
 
                 foreach (var blocker in blockers)
                 {
