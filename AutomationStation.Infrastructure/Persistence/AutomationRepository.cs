@@ -82,7 +82,8 @@ namespace AutomationStation.Infrastructure.Persistence
                 act.ActionType,
                 act.TargetSystem,
                 act.ConfigurationJson,
-                act.ExecutionOrder
+                act.ExecutionOrder,
+                act.AutomationExecutorId AS ExecutorId
             FROM AutomationActions act
             INNER JOIN Automations a
                 ON a.Id = act.AutomationId
@@ -149,6 +150,7 @@ namespace AutomationStation.Infrastructure.Persistence
                             $"Action '{action.ActionType}' " +
                             $"in automation '{action.AutomationId}' " +
                             $"has no TargetSystem."),
+                            action.ExecutorId,
                             DeserializeParameters(action.ConfigurationJson)))
                         .ToList());
 

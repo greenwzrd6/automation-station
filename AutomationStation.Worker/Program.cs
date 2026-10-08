@@ -119,20 +119,12 @@ builder.Services.AddHttpClient<TojClient>(
             ?? throw new InvalidOperationException(
                 "Toj:ApiKey is missing.");
 
-        var executorId =
-            configuration["TojApi:ExecutorId"]
-            ?? throw new InvalidOperationException(
-                "Toj:ExecutorId is missing.");
 
         client.BaseAddress = new Uri(baseUrl);
 
         client.DefaultRequestHeaders.Add(
             "X-Automation-Api-Key",
             apiKey);
-
-        client.DefaultRequestHeaders.Add(
-            "X-Automation-Executor-Id",
-            executorId);
     });
 
 // RabbitMQ worker
