@@ -11,6 +11,7 @@ namespace AutomationStation.Infrastructure.Persistence
         : ICorrelationLoopRepository
     {
         private readonly DbConnectionFactory _connectionFactory = connectionFactory;
+
         public async Task<bool> IsBlockedAsync(
             EvaluationContext context,
             CancellationToken cancellationToken)
