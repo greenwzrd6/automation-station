@@ -77,7 +77,6 @@ namespace AutomationStation.Application.Services
 
                 var context = new AutomationActionContext(
                     integrationEvent,
-                    integrationEvent.CorrelationId,
                     executionId);
 
                 foreach (var then in automation.Thens)
