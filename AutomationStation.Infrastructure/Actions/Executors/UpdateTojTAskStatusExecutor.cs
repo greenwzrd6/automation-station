@@ -24,7 +24,7 @@ namespace AutomationStation.Infrastructure.Actions.Executors
 
         public async Task ExecuteAsync(
             Then then,
-            AutomationActionContext context,
+            ActionContext context,
             CancellationToken cancellationToken)
         {
             if (!context.Event.Payload.TryGetProperty(

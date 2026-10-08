@@ -12,7 +12,7 @@ namespace AutomationStation.Infrastructure.Persistence
     {
         private readonly DbConnectionFactory _connectionFactory = connectionFactory;
         public async Task<bool> IsBlockedAsync(
-            LoopBlockerContext context,
+            EvaluationContext context,
             CancellationToken cancellationToken)
         {
             using var connection = _connectionFactory.CreateConnection();
@@ -49,10 +49,10 @@ namespace AutomationStation.Infrastructure.Persistence
             var parameters = new
             {
                 Id = Guid.NewGuid(),
-                AutomationId = context.Automation.Id,
-                ActorId = context.Event.Actor.Id,
-                context.Event.CorrelationId,
-                context.Event.CausationEventId
+                context.AutomationId,
+                context.ActorId,
+                context.CorrelationId,
+                context.CausationEventId
             };
 
             await connection.OpenAsync(cancellationToken);

@@ -1,13 +1,11 @@
-﻿using AutomationStation.Application.Contracts;
-using AutomationStation.Application.Models;
-using AutomationStation.Core.Automations;
+﻿using AutomationStation.Application.Models;
 
 namespace AutomationStation.Application.Abstractions
 {
     public interface IAutomationExecutionGuard
     {
         Task<bool> IsBlockedAsync(
-            LoopBlockerContext context,
+            EvaluationContext context,
             CancellationToken cancellationToken);
     }
 }

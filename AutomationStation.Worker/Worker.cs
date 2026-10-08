@@ -139,36 +139,6 @@ public sealed class Worker(
                     return;
                 }
 
-                var blockers =
-                    scope.ServiceProvider
-                        .GetServices<IEventBlocker>();
-
-                var blockerContext =
-                    new EventBlockerContext(integrationEvent);
-
-                foreach (var blocker in blockers)
-                {
-                    if (!await blocker.IsBlockedAsync(
-                            blockerContext,
-                            stoppingToken))
-                    {
-                        continue;
-                    }
-
-                    _logger.LogWarning(
-                        "Event '{EventId}' with correlationId '{CorrelationId}' blocked by '{Blocker}'",
-                        integrationEvent.EventId,
-                        integrationEvent.CorrelationId,
-                        blocker.GetType().Name);
-
-                    await channel.BasicAckAsync(
-                        args.DeliveryTag,
-                        multiple: false,
-                        cancellationToken: stoppingToken);
-
-                    return;
-                }
-
                 var processor =
                     scope.ServiceProvider
                         .GetRequiredService<

@@ -9,7 +9,7 @@ namespace AutomationStation.Application.Policies
         : IAutomationExecutionPolicy
     {
         public Task<AutomationPolicyResult> EvaluateAsync(
-            LoopBlockerContext context,
+            EvaluationContext context,
             CancellationToken cancellationToken)
         {
             var triggeredByAutomation =

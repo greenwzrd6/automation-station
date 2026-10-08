@@ -7,7 +7,7 @@ namespace AutomationStation.Application.Abstractions
     public interface IAutomationExecutionPolicy
     {
         Task<AutomationPolicyResult> EvaluateAsync(
-            LoopBlockerContext context,
+            EvaluationContext context,
             CancellationToken cancellationToken);
     }
 }

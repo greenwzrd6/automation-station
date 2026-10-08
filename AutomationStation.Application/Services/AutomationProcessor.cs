@@ -10,7 +10,6 @@ namespace AutomationStation.Application.Services
         IAutomationRepository automationRepository,
         IConditionEvaluator conditionEvaluator,
         IAutomationExecutionGuard executionGuard,
-        IHistoryRepository historyRepository,
         IActionExecutor actionExecutor,
         IAutomationExecutionRepository automationExecutionRepository,
         ICorrelationLoopRepository correlationLoopRepository,
@@ -42,28 +41,30 @@ namespace AutomationStation.Application.Services
                     continue;
                 }
 
+                var evaluationContext = new EvaluationContext(automation, integrationEvent);
+
                 if (await _executionGuard.IsBlockedAsync(
-                        new LoopBlockerContext(automation, integrationEvent),
+                        evaluationContext,
                         cancellationToken))
                 {
                     continue;
                 }
 
                 if (await _correlationLoopRepository.IsBlockedAsync(
-                        new LoopBlockerContext(automation, integrationEvent),
+                        evaluationContext,
                         cancellationToken))
                 {
                     _logger.LogWarning(
-                    """
-                    Automation '{AutomationName}' ({AutomationId}) blocked.
-                    ActorId: {ActorId}, CorrelationId: {CorrelationId}, EventId: {EventId}.
-                    Reason: actor reached the limit of 10 executions within 3 minutes.
-                    """,
-                    automation.Name,
-                    automation.Id,
-                    integrationEvent.Actor.Id,
-                    integrationEvent.CorrelationId,
-                    integrationEvent.EventId);
+                        """
+                        Automation '{AutomationName}' ({AutomationId}) blocked.
+                        ActorId: {ActorId}, CorrelationId: {CorrelationId}, EventId: {EventId}.
+                        Reason: actor reached the limit of 10 executions within 3 minutes.
+                        """,
+                        evaluationContext.AutomationName,
+                        evaluationContext.AutomationId,
+                        evaluationContext.ActorId,
+                        evaluationContext.CorrelationId,
+                        integrationEvent.EventId);
 
                     continue;
                 }
@@ -73,7 +74,7 @@ namespace AutomationStation.Application.Services
                     integrationEvent.EventId,
                     cancellationToken);
 
-                var context = new AutomationActionContext(
+                var context = new ActionContext(
                     integrationEvent,
                     executionId);
 

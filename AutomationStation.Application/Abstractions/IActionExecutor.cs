@@ -7,7 +7,7 @@ namespace AutomationStation.Application.Abstractions
     {
         Task ExecuteAsync(
             Then then,
-            AutomationActionContext context,
+            ActionContext context,
             CancellationToken cancellationToken);
     }
 }

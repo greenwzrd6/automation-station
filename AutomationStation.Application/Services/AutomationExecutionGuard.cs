@@ -13,7 +13,7 @@ namespace AutomationStation.Application.Services
         private readonly ILogger<AutomationExecutionGuard> _logger = logger;
 
         public async Task<bool> IsBlockedAsync(
-            LoopBlockerContext context,
+            EvaluationContext context,
             CancellationToken cancellationToken)
         {
             foreach (var policy in _policies)
@@ -27,8 +27,8 @@ namespace AutomationStation.Application.Services
 
                 _logger.LogWarning(
                     "Automation '{AutomationName}' with ID: '{AutomationId}' was blocked by '{Policy}'. Reason: '{Reason}'",
-                    context.Automation.Name,
-                    context.Automation.Id,
+                    context.AutomationName,
+                    context.AutomationId,
                     policy.GetType().Name,
                     result.Reason);
 

@@ -7,7 +7,7 @@ namespace AutomationStation.Application.Abstractions
     public interface ICorrelationLoopRepository
     {
         Task<bool> IsBlockedAsync(
-            LoopBlockerContext context,
+            EvaluationContext context,
             CancellationToken cancellationToken);
 
         //Task CleanupOldEventsAsync(

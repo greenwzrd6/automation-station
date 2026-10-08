@@ -8,7 +8,7 @@ namespace AutomationStation.Infrastructure.Integrations.Kanban
         Guid ExecutionId)
     {
         public Guid CorrelationId => Event.CorrelationId;
-        public Guid? CausationEventId => Event.CausationEventId;
+        public Guid CausationEventId => Event.EventId;
         public Actor Actor => Event.Actor;
     }
 }
