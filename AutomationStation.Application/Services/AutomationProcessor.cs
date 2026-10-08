@@ -62,7 +62,7 @@ namespace AutomationStation.Application.Services
                         """,
                         evaluationContext.AutomationName,
                         evaluationContext.AutomationId,
-                        evaluationContext.ActorId,
+                        evaluationContext.Actor.Id,
                         evaluationContext.CorrelationId,
                         integrationEvent.EventId);
 
