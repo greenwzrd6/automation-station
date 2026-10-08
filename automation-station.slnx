@@ -4,7 +4,9 @@
   </Folder>
   <Project Path="AutomationStation.Application/AutomationStation.Application.csproj" />
   <Project Path="AutomationStation.Core/AutomationStation.Core.csproj" />
-  <Project Path="AutomationStation.Infrastructure/AutomationStation.Infrastructure.csproj" />
   <Project Path="AutomationStation.Infrastructure.Tests/AutomationStation.Infrastructure.Tests.csproj" />
+  <Project Path="AutomationStation.Infrastructure/AutomationStation.Infrastructure.csproj" />
+  <Project Path="AutomationStation.Integration.Tests/AutomationStation.Integration.Tests.csproj" Id="9d81f4e4-35e6-40f8-8116-e50a3f8cf4a0" />
+  <Project Path="AutomationStation.Unit.Tests/AutomationStation.Unit.Tests.csproj" Id="60db4534-8cce-476e-8b62-7298be662b2d" />
   <Project Path="AutomationStation.Worker/AutomationStation.Worker.csproj" />
 </Solution>
