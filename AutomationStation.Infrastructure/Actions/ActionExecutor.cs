@@ -20,7 +20,7 @@ public sealed class ActionExecutor(
 
     public async Task ExecuteAsync(
         Then then,
-        AutomationActionContext context,
+        ActionContext context,
         CancellationToken cancellationToken)
     {
         if (!_actionCatalog.TryGet(

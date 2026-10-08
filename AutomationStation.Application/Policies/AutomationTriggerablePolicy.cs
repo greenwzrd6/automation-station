@@ -9,20 +9,19 @@ namespace AutomationStation.Application.Policies
         : IAutomationExecutionPolicy
     {
         public Task<AutomationPolicyResult> EvaluateAsync(
-            Automation automation,
-            IntegrationEvent integrationEvent,
+            EvaluationContext context,
             CancellationToken cancellationToken)
         {
             var triggeredByAutomation =
                 string.Equals(
-                    integrationEvent.Actor.Type,
+                    context.Event.Actor.Type,
                     // Ändra tillbaka när vi faktiskt får toj data ( tock och jolltortyr )
                     //"AutomationExecutor",
                     "",
                     StringComparison.OrdinalIgnoreCase);
 
             if (triggeredByAutomation &&
-                !automation.AutomationTriggerable)
+                !context.Automation.AutomationTriggerable)
             {
                 return Task.FromResult(
                     AutomationPolicyResult.Block(

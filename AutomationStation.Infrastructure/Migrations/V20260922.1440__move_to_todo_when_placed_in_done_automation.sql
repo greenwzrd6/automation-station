@@ -17,7 +17,7 @@ VALUES
 (
     @AutomationId,
     'Send card to Todo when dropped in Released',
-    0,
+    1,
     1
 );
 
@@ -94,7 +94,7 @@ VALUES
 (
     @AutomationId2,
     'Send entity to Doing when dropped in Todo',
-    0,
+    1,
     1
 );
 
@@ -171,7 +171,7 @@ VALUES
 (
     @AutomationId3,
     'Send entity to Released when dropped in Doing',
-    0,
+    1,
     1
 );
 

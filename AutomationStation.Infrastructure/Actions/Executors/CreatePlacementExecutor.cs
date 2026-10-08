@@ -20,7 +20,7 @@ namespace AutomationStation.Infrastructure.Actions.Executors
 
         public async Task ExecuteAsync(
             Then then,
-            AutomationActionContext context,
+            ActionContext context,
             CancellationToken cancellationToken)
         {
             if (!_valueResolver.TryGetValue(
@@ -42,10 +42,8 @@ namespace AutomationStation.Infrastructure.Actions.Executors
                 Guid.Parse(then.Parameters["columnId"]);
 
             var requestContext = new KanbanRequestContext(
-                context.CorrelationId,
-                context.CausationEventId,
-                context.ExecutionId,
-                context.Actor);
+                context.Event,
+                context.ExecutionId);
 
             await _kanbanClient.CreatePlacementAsync(
                 entityId,

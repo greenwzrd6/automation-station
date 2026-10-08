@@ -7,8 +7,7 @@ namespace AutomationStation.Application.Abstractions
     public interface IAutomationExecutionPolicy
     {
         Task<AutomationPolicyResult> EvaluateAsync(
-            Automation automation,
-            IntegrationEvent integrationEvent,
+            EvaluationContext context,
             CancellationToken cancellationToken);
     }
 }
