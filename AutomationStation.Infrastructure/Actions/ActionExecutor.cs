@@ -48,9 +48,9 @@ public sealed class ActionExecutor(
                 CompanyId: context.Event.CompanyId,
                 ActionType: then.Type,
                 TargetSystem: then.TargetSystem),
-            permittedActions: catalogEntry.PermittedActions,
-            window: catalogEntry.RateLimitWindow,
-            cancellationToken);
+                permittedActions: catalogEntry.PermittedActions,
+                window: catalogEntry.RateLimitWindow,
+                cancellationToken);
 
         await handler.ExecuteAsync(
             then,
