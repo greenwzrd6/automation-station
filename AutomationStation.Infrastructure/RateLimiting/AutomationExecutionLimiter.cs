@@ -58,7 +58,7 @@ namespace AutomationStation.Infrastructure.RateLimiting
                 return false;
             }
 
-            await _historyRepository.CreateAutomationTimestampAsync(
+            await HistoryRepository.CreateAutomationTimestampAsync(
                 context,
                 connection,
                 transaction,

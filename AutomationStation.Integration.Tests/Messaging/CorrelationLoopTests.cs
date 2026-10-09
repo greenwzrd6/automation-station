@@ -25,7 +25,7 @@ namespace AutomationStation.Integration.Tests.Messaging
                 new HistoryRepository(database.ConnectionFactory));
 
         [Fact]
-        public async Task IsBlockedAsync_ShouldBlockNextExecution_WhenActorReachesAutomationLimit()
+        public async Task TryRecordExecutionAsync_ShouldBlockNextExecution_WhenActorReachesAutomationLimit()
         {
             // Arrange
             var cancellationToken = TestContext.Current.CancellationToken;
@@ -44,16 +44,19 @@ namespace AutomationStation.Integration.Tests.Messaging
             try
             {
                 await connection.ExecuteAsync(
+                    new CommandDefinition(
                     """
                     INSERT INTO Automations
                         (Id, Name, Enabled, AutomationTriggerable)
                     VALUES
                         (@AutomationId, 'Test Automation', 1, 1)
                     """,
-                    new { AutomationId = automationId });
+                    new { AutomationId = automationId },
+                    cancellationToken: cancellationToken));
 
                 // Seed limit - 1 executions inside the time window.
                 await connection.ExecuteAsync(
+                    new CommandDefinition(
                     """
                     ;WITH Numbers AS (
                         SELECT 1 AS Number
@@ -79,7 +82,8 @@ namespace AutomationStation.Integration.Tests.Messaging
                         AutomationId = automationId,
                         ActorId = actorId,
                         Count = limit - 1
-                    });
+                    },
+                    cancellationToken: cancellationToken));
 
                 // Assert
                 // Check if the next execution is blocked (should not be blocked yet)
@@ -97,6 +101,7 @@ namespace AutomationStation.Integration.Tests.Messaging
                 Assert.False(recordedOverLimit);
 
                 var historyCount = await connection.QuerySingleAsync<int>(
+                    new CommandDefinition(
                     """
                     SELECT COUNT(*)
                     FROM AutomationHistory
@@ -107,7 +112,8 @@ namespace AutomationStation.Integration.Tests.Messaging
                     {
                         AutomationId = automationId,
                         ActorId = actorId
-                    });
+                    },
+                    cancellationToken: cancellationToken));
 
                 Assert.Equal(limit, historyCount);
             }
@@ -115,6 +121,7 @@ namespace AutomationStation.Integration.Tests.Messaging
             {
                 // Cleanup
                 await connection.ExecuteAsync(
+                    new CommandDefinition(
                     """
                     DELETE FROM AutomationHistory
                     WHERE AutomationId = @AutomationId;
@@ -122,7 +129,8 @@ namespace AutomationStation.Integration.Tests.Messaging
                     DELETE FROM Automations
                     WHERE Id = @AutomationId;
                     """,
-                    new { AutomationId = automationId });
+                    new { AutomationId = automationId },
+                    cancellationToken: CancellationToken.None));
             }
         }
 
