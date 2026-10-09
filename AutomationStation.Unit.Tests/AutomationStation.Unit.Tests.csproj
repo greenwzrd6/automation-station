@@ -18,7 +18,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AutomationStation.Application\AutomationStation.Application.csproj" />
+    <ProjectReference Include="..\AutomationStation.Core\AutomationStation.Core.csproj" />
     <ProjectReference Include="..\AutomationStation.Infrastructure\AutomationStation.Infrastructure.csproj" />
+    <ProjectReference Include="..\AutomationStation.Worker\AutomationStation.Worker.csproj" />
   </ItemGroup>
 
   <ItemGroup>

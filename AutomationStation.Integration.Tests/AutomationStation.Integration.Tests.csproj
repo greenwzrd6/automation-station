@@ -16,13 +16,16 @@
 		<PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
 	</ItemGroup>
 
-	<ItemGroup>
-		<ProjectReference Include="..\AutomationStation.Infrastructure\AutomationStation.Infrastructure.csproj" />
-	</ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AutomationStation.Application\AutomationStation.Application.csproj" />
+    <ProjectReference Include="..\AutomationStation.Core\AutomationStation.Core.csproj" />
+    <ProjectReference Include="..\AutomationStation.Infrastructure\AutomationStation.Infrastructure.csproj" />
+    <ProjectReference Include="..\AutomationStation.Worker\AutomationStation.Worker.csproj" />
+  </ItemGroup>
 
-	<ItemGroup>
-		<Using Include="Xunit" />
-	</ItemGroup>
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
 
 	<ItemGroup>
 		<None Update="appsettings.Test.json">
