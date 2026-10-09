@@ -29,8 +29,8 @@ namespace AutomationStation.Integration.Tests.Infrastructure
             // The limit currently used in correlationlooprepo
             const int limit = 10000;
 
-//            var automationId = Guid.NewGuid();
-//            var actorId = $"test-{Guid.NewGuid()}";
+            var automationId = Guid.NewGuid();
+            var actorId = $"test-{Guid.NewGuid()}";
 
             // Creates a connection to the testdatabase
             using var connection = _database.ConnectionFactory.CreateConnection();
@@ -122,32 +122,32 @@ namespace AutomationStation.Integration.Tests.Infrastructure
             }
         }
 
-//        private static EvaluationContext CreateContext(Guid automationId, string actorId)
-//        {
-//            var automation = new Automation(
-//                id: automationId,
-//                name: "Test Automation",
-//                isEnabled: true,
-//                automationTriggerable: true,
-//                when: new When(
-//                    EventType: "PlacementCreated",
-//                    EventSource: SourceSystem.Kanban,
-//                    Conditions: []),
-//                thens: []);
+        private static EvaluationContext CreateContext(Guid automationId, string actorId)
+        {
+            var automation = new Automation(
+                id: automationId,
+                name: "Test Automation",
+                isEnabled: true,
+                automationTriggerable: true,
+                when: new When(
+                    EventType: "PlacementCreated",
+                    EventSource: SourceSystem.Kanban,
+                    Conditions: []),
+                thens: []);
 
-//            var integrationEvent = new IntegrationEvent(
-//                EventId: Guid.NewGuid(),
-//                EventType: "PlacementCreated",
-//                Source: SourceSystem.Kanban,
-//                CompanyId: 1,
-//                CorrelationId: Guid.NewGuid(),
-//                CausationEventId: null,
-//                Actor: new Actor(actorId, "User"),
-//                Payload: JsonSerializer.SerializeToElement(new { }));
+            var integrationEvent = new IntegrationEvent(
+                EventId: Guid.NewGuid(),
+                EventType: "PlacementCreated",
+                Source: SourceSystem.Kanban,
+                CompanyId: 1,
+                CorrelationId: Guid.NewGuid(),
+                CausationEventId: null,
+                Actor: new Actor(actorId, "User"),
+                Payload: JsonSerializer.SerializeToElement(new { }));
 
-//            return new EvaluationContext(
-//                automation,
-//                integrationEvent);
-//        }
-//    }
-//}
+            return new EvaluationContext(
+                automation,
+                integrationEvent);
+        }
+    }
+}
