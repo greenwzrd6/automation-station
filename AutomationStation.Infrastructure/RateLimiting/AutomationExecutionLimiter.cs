@@ -8,12 +8,10 @@ using AutomationStation.Infrastructure.Persistence;
 namespace AutomationStation.Infrastructure.RateLimiting
 {
     public sealed class AutomationExecutionLimiter(
-        DbConnectionFactory connectionFactory,
-        HistoryRepository historyRepository)
+        DbConnectionFactory connectionFactory)
         : IAutomationExecutionLimiter
     {
         private readonly DbConnectionFactory _connectionFactory = connectionFactory;
-        private readonly HistoryRepository _historyRepository = historyRepository;
 
         public async Task<bool> TryRecordExecutionAsync(
             EvaluationContext context,
@@ -34,7 +32,7 @@ namespace AutomationStation.Infrastructure.RateLimiting
                 AS BIT)
                 FROM AutomationHistory WITH (UPDLOCK, HOLDLOCK)
                 WHERE AutomationId = @AutomationId
-                  AND ActorId = @ActorId
+                  AND CorrelationId = @CorrelationId
                   AND TriggeredAt >= DATEADD(
                       MINUTE, -3, SYSUTCDATETIME());
                 """;
@@ -42,7 +40,7 @@ namespace AutomationStation.Infrastructure.RateLimiting
             var parameters = new
             {
                 context.AutomationId,
-                ActorId = context.Actor.Id
+                context.CorrelationId
             };
 
             var blocked = await connection.QuerySingleAsync<bool>(

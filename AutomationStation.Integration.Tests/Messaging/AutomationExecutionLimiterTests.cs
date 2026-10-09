@@ -5,27 +5,26 @@ using AutomationStation.Core.Automations.Systems;
 using AutomationStation.Infrastructure.Persistence;
 using AutomationStation.Infrastructure.RateLimiting;
 using AutomationStation.Integration.Tests.Fixtures;
-using Dapper;
 using System.Text.Json;
+using Dapper;
 
 namespace AutomationStation.Integration.Tests.Messaging
 {
 
     /// <summary>
-    /// Class <c>CorrelationLoopTests</c> is the test class for <c>CorrelationLoopRepository/CorrelationPolicy</c>
+    /// Class <c>AutomationExecutionLimiterTests</c> is the test class for <c>AutomationExecutionLimiter</c>
     /// </summary>
     /// <param name="database">Primary constructor for <c>DatabaseFixture</c></param>
     [Collection(DatabaseCollection.Name)]
-    public sealed class CorrelationLoopTests(DatabaseFixture database)
+    public sealed class AutomationExecutionLimiterTests(DatabaseFixture database)
     {
         // Initializes the DatabaseFixture and repository
         private readonly DatabaseFixture _database = database;
         private readonly AutomationExecutionLimiter _repository = new(
-                database.ConnectionFactory,
-                new HistoryRepository(database.ConnectionFactory));
+                database.ConnectionFactory);
 
         [Fact]
-        public async Task TryRecordExecutionAsync_ShouldBlockNextExecution_WhenActorReachesAutomationLimit()
+        public async Task TryRecordExecutionAsync_ShouldRejectNextExecution_WhenCorrelationReachesAutomationLimit()
         {
             // Arrange
             var cancellationToken = TestContext.Current.CancellationToken;
@@ -34,7 +33,7 @@ namespace AutomationStation.Integration.Tests.Messaging
             const int limit = 10000;
 
             var automationId = Guid.NewGuid();
-            var actorId = $"test-{Guid.NewGuid()}";
+            var correlationId = Guid.NewGuid();
 
             // Creates a connection to the testdatabase
             using var connection = _database.ConnectionFactory.CreateConnection();
@@ -71,7 +70,7 @@ namespace AutomationStation.Integration.Tests.Messaging
                         NEWID(),
                         @AutomationId,
                         @ActorId,
-                        NEWID(),
+                        @CorrelationId,
                         NULL,
                         SYSUTCDATETIME()
                     FROM Numbers
@@ -80,7 +79,8 @@ namespace AutomationStation.Integration.Tests.Messaging
                     new
                     {
                         AutomationId = automationId,
-                        ActorId = actorId,
+                        ActorId = "-1",
+                        CorrelationId = correlationId,
                         Count = limit - 1
                     },
                     cancellationToken: cancellationToken));
@@ -88,15 +88,15 @@ namespace AutomationStation.Integration.Tests.Messaging
                 // Assert
                 // Check if the next execution is blocked (should not be blocked yet)
                 var recordedAtLimit = await _repository.TryRecordExecutionAsync(
-                    CreateContext(automationId, actorId),
-                    CancellationToken.None);
+                    CreateContext(automationId, correlationId),
+                    cancellationToken);
 
                 Assert.True(recordedAtLimit);
 
                 // Check if the next execution is blocked (should be blocked now)
                 var recordedOverLimit = await _repository.TryRecordExecutionAsync(
-                    CreateContext(automationId, actorId),
-                    CancellationToken.None);
+                    CreateContext(automationId, correlationId),
+                    cancellationToken);
 
                 Assert.False(recordedOverLimit);
 
@@ -106,12 +106,12 @@ namespace AutomationStation.Integration.Tests.Messaging
                     SELECT COUNT(*)
                     FROM AutomationHistory
                     WHERE AutomationId = @AutomationId
-                      AND ActorId = @ActorId;
+                      AND CorrelationId = @CorrelationId;
                     """,
                     new
                     {
                         AutomationId = automationId,
-                        ActorId = actorId
+                        CorrelationId = correlationId
                     },
                     cancellationToken: cancellationToken));
 
@@ -134,7 +134,7 @@ namespace AutomationStation.Integration.Tests.Messaging
             }
         }
 
-        private static EvaluationContext CreateContext(Guid automationId, string actorId)
+        private static EvaluationContext CreateContext(Guid automationId, Guid correlationId)
         {
             var automation = new Automation(
                 id: automationId,
@@ -152,9 +152,9 @@ namespace AutomationStation.Integration.Tests.Messaging
                 EventType: "PlacementCreated",
                 Source: SourceSystem.Kanban,
                 CompanyId: 1,
-                CorrelationId: Guid.NewGuid(),
+                CorrelationId: correlationId,
                 CausationEventId: null,
-                Actor: new Actor(actorId, "User"),
+                Actor: new Actor("-1", "User"),
                 Payload: JsonSerializer.SerializeToElement(new { }));
 
             return new EvaluationContext(

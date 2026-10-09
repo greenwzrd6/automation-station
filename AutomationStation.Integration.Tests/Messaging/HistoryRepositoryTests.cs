@@ -6,9 +6,14 @@ using AutomationStation.Infrastructure.Persistence;
 using AutomationStation.Integration.Tests.Fixtures;
 using Dapper;
 using System.Data.Common;
+using System.Text.Json;
 
 namespace AutomationStation.Integration.Tests.Messaging
 {
+    /// <summary>
+    /// Class <c>HistoryRepositoryTests</c> is the test class for <c>HistoryRepository</c>
+    /// </summary>
+    /// <param name="database">Primary constructor for <c>DatabaseFixture</c></param>
     [Collection(DatabaseCollection.Name)]
     public sealed class HistoryRepositoryTests(DatabaseFixture database)
     {
@@ -17,7 +22,7 @@ namespace AutomationStation.Integration.Tests.Messaging
             database.ConnectionFactory);
 
         [Fact]
-        public async Task Creates_AutomationTimestamp_WhenUsingCreateAutomationTimestampAsync()
+        public async Task CreateAutomationTimestampAsync_CreatesCorrectAutomationId_WhenUsed()
         {
             // Arrange
             var cancellationToken = TestContext.Current.CancellationToken;
@@ -156,52 +161,32 @@ namespace AutomationStation.Integration.Tests.Messaging
                     cancellationToken: cancellationToken));
         }
 
-        private static EvaluationContext CreateContext(
-            Guid automationId,
-            Guid correlationId)
+        private static EvaluationContext CreateContext(Guid automationId, Guid correlationId)
         {
-            var when = new When(
-                "TestEvent",
-                SourceSystem.Kanban,
-                []);
-
-            var thens = new[]
-            {
-            new Then(
-                "TestAction",
-                TargetSystem.Kanban,
-                null,
-                new Dictionary<string, string>())
-            };
-
             var automation = new Automation(
-                automationId,
-                "TestAutomation",
-                true,
-                true,
-                when,
-                thens);
-
-            var actor = new Actor(
-                "",
-                "");
-
-            var payload = System.Text.Json.JsonDocument
-                .Parse("{}")
-                .RootElement
-                .Clone();
+                id: automationId,
+                name: "Test Automation",
+                isEnabled: true,
+                automationTriggerable: true,
+                when: new When(
+                    EventType: "PlacementCreated",
+                    EventSource: SourceSystem.Kanban,
+                    Conditions: []),
+                thens: []);
 
             var integrationEvent = new IntegrationEvent(
-                Guid.NewGuid(),
-                "TestEvent",
-                SourceSystem.Kanban,
-                0,
-                correlationId,
-                null,
-                actor,
-                payload);
+                EventId: Guid.NewGuid(),
+                EventType: "PlacementCreated",
+                Source: SourceSystem.Kanban,
+                CompanyId: 1,
+                CorrelationId: correlationId,
+                CausationEventId: null,
+                Actor: new Actor("-1", "User"),
+                Payload: JsonSerializer.SerializeToElement(new { }));
 
-            return new EvaluationContext(automation, integrationEvent);
+            return new EvaluationContext(
+                automation,
+                integrationEvent);
         }
     }
 }
