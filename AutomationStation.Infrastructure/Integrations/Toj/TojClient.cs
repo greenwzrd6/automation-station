@@ -20,7 +20,7 @@ public sealed class TojClient(
             $"api/automation/tasks/{sourceTaskId}");
 
         request.Headers.Add(
-            "X-Automation-Executor-Id",
+            "Automation-Executor-Id",
             executorId.ToString());
 
         request.Content = JsonContent.Create(body);
@@ -41,10 +41,10 @@ public sealed class TojClient(
     }
 
     public async Task UpdateTaskStatusAsync(
-    Guid taskId,
-    int statusId,
-    Guid executorId,
-    CancellationToken cancellationToken)
+        Guid taskId,
+        int statusId,
+        Guid executorId,
+        CancellationToken cancellationToken)
     {
         var body = new UpdateTojTaskStatusRequest(
             StatusId: statusId);
@@ -54,7 +54,7 @@ public sealed class TojClient(
             $"api/automation/tasks/{taskId}/status");
 
         request.Headers.Add(
-            "X-Automation-Executor-Id",
+            "Automation-Executor-Id",
             executorId.ToString());
 
         request.Content = JsonContent.Create(body);
