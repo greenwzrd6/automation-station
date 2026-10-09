@@ -4,7 +4,7 @@ using AutomationStation.Application.Policies;
 using AutomationStation.Core.Automations;
 using AutomationStation.Core.Automations.Systems;
 
-namespace AutomationStation.Unit.Tests.Application;
+namespace AutomationStation.Unit.Tests.Application.Policies;
 
 public class AutomationTriggerablePolicyTests
 {
