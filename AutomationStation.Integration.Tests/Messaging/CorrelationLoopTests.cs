@@ -25,7 +25,7 @@ namespace AutomationStation.Integration.Tests.Messaging
                 new HistoryRepository(database.ConnectionFactory));
 
         [Fact]
-        public async Task IsBlockedAsync_ShouldBlockNextExecution_WhenActorReachesAutomationLimit()
+        public async Task TryRecordExecutionAsync_ShouldBlockNextExecution_WhenActorReachesAutomationLimit()
         {
             // Arrange
             var cancellationToken = TestContext.Current.CancellationToken;
