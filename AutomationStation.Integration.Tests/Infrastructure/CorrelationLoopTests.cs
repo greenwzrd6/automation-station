@@ -1,38 +1,39 @@
-﻿
-using AutomationStation.Application.Abstractions;
-using AutomationStation.Application.Contracts;
+﻿using AutomationStation.Application.Contracts;
 using AutomationStation.Application.Models;
 using AutomationStation.Core.Automations;
 using AutomationStation.Core.Automations.Systems;
-using AutomationStation.Infrastructure.Database;
 using AutomationStation.Infrastructure.Persistence;
+using AutomationStation.Integration.Tests.Fixtures;
 using Dapper;
-using Microsoft.Extensions.Configuration;
 using System.Text.Json;
 
-namespace AutomationStation.Infrastructure.Tests
+namespace AutomationStation.Integration.Tests.Infrastructure
 {
-    public sealed class CorrelationLoopTests
+
+    /// <summary>
+    /// Class <c>CorrelationLoopTests</c> is the test class for <c>CorrelationLoopRepository/CorrelationPolicy</c>
+    /// </summary>
+    /// <param name="database">Primary constructor for <c>DatabaseFixture</c></param>
+    [Collection(DatabaseCollection.Name)]
+    public sealed class CorrelationLoopTests(DatabaseFixture database)
     {
+        // Initializes the DatabaseFixture and repository
+        private readonly DatabaseFixture _database = database;
+        private readonly CorrelationLoopRepository _repository = new(
+                database.ConnectionFactory);
+
         [Fact]
         public async Task IsBlockedAsync_ShouldReturnTrue_WhenLoopDetected()
         {
             // Arrange
-            var configuration = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json")
-                .Build();
-
-            var connectionFactory = new DbConnectionFactory(configuration);
-            var repository = new CorrelationLoopRepository(connectionFactory);
-
             // The limit currently used in correlationlooprepo
             const int limit = 10000;
 
             var automationId = Guid.NewGuid();
             var actorId = $"test-{Guid.NewGuid()}";
 
-            using var connection = connectionFactory.CreateConnection();
+            // Creates a connection to the testdatabase
+            using var connection = _database.ConnectionFactory.CreateConnection();
             await connection.OpenAsync();
 
             // Act
@@ -41,9 +42,9 @@ namespace AutomationStation.Infrastructure.Tests
                 await connection.ExecuteAsync(
                     """
                     INSERT INTO Automations
-                        (Id, Name, IsEnabled, AutomationTriggerable)
+                        (Id, Name, Enabled, AutomationTriggerable)
                     VALUES
-                        (@Id, 'Test Automation', 1, 1)
+                        (@AutomationId, 'Test Automation', 1, 1)
                     """,
                     new { AutomationId = automationId });
 
@@ -76,9 +77,49 @@ namespace AutomationStation.Infrastructure.Tests
                         ActorId = actorId,
                         Count = limit - 1
                     });
+
+                // Check if the next execution is blocked (should not be blocked yet)
+                var blockedAtLimit = await _repository.IsBlockedAsync(
+                    CreateContext(automationId, actorId),
+                    CancellationToken.None);
+
+                Assert.False(blockedAtLimit);
+
+                // Check if the next execution is blocked (should be blocked now)
+                var blockedOverLimit = await _repository.IsBlockedAsync(
+                    CreateContext(automationId, actorId),
+                    CancellationToken.None);
+
+                Assert.True(blockedOverLimit);
+
+                var historyCount = await connection.QuerySingleAsync<int>(
+                    """
+                    SELECT COUNT(*)
+                    FROM AutomationHistory
+                    WHERE AutomationId = @AutomationId
+                      AND ActorId = @ActorId;
+                    """,
+                    new
+                    {
+                        AutomationId = automationId,
+                        ActorId = actorId
+                    });
+
+                Assert.Equal(limit, historyCount);
             }
-            // Assert
-            Assert.False(blocked);
+            finally
+            {
+                // Cleanup
+                await connection.ExecuteAsync(
+                    """
+                    DELETE FROM AutomationHistory
+                    WHERE AutomationId = @AutomationId;
+
+                    DELETE FROM Automations
+                    WHERE Id = @AutomationId;
+                    """,
+                    new { AutomationId = automationId });
+            }
         }
 
         private static EvaluationContext CreateContext(Guid automationId, string actorId)
