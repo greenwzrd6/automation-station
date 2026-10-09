@@ -1,8 +1,9 @@
-﻿using AutomationStation.Application.Contracts;
+﻿using System.Net;
+
+using AutomationStation.Application.Contracts;
 using AutomationStation.Application.Models;
 using AutomationStation.Core.Automations.Systems;
 using AutomationStation.Infrastructure.Integrations.Kanban;
-using System.Net;
 
 namespace AutomationStation.Unit.Tests.Infrastructure.Systems
 {

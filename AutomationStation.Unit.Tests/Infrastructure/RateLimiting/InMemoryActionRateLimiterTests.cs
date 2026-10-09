@@ -1,6 +1,7 @@
-﻿using AutomationStation.Application.Abstractions;
+﻿using Microsoft.Extensions.Time.Testing;
+
+using AutomationStation.Application.Abstractions;
 using AutomationStation.Infrastructure.RateLimiting;
-using Microsoft.Extensions.Time.Testing;
 using AutomationStation.Core.Automations.Systems;
 
 namespace AutomationStation.Unit.Tests.Infrastructure.RateLimiting
