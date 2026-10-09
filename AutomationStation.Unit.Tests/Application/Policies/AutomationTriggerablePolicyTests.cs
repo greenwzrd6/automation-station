@@ -13,46 +13,9 @@ public class AutomationTriggerablePolicyTests
     {
         // Arrange
         var policy = new AutomationTriggerablePolicy();
-
-        var when = new When(
-            "TestEvent",
-            SourceSystem.Kanban,
-            []);
-
-        var thens = new[]
-        {
-            new Then(
-                "TestAction",
-                TargetSystem.Kanban,
-                null,
-                new Dictionary<string, string>())
-        };
-
-        var automation = new Automation(
-            Guid.Empty,
-            "TestAutomation",
-            true,
-            true,
-            when,
-            thens);
-
-        var actor = new Actor(
-            "",
-            "Automation");
-
-        var integrationEvent = new IntegrationEvent(
-            Guid.Empty,
-            "TestEvent",
-            SourceSystem.Kanban,
-            0,
-            Guid.Empty,
-            null,
-            actor,
-            new System.Text.Json.JsonElement());
-
-        var context = new EvaluationContext(
-            automation,
-            integrationEvent);
+        var context = CreateContext(
+            automationTriggerable: true,
+            actorType: "Automation");
 
         // Act
         var result = await policy.EvaluateAsync(
@@ -68,46 +31,9 @@ public class AutomationTriggerablePolicyTests
     {
         // Arrange
         var policy = new AutomationTriggerablePolicy();
-
-        var when = new When(
-            "TestEvent",
-            SourceSystem.Kanban,
-            []);
-
-        var thens = new[]
-        {
-            new Then(
-                "TestAction",
-                TargetSystem.Kanban,
-                null,
-                new Dictionary<string, string>())
-        };
-
-        var automation = new Automation(
-            Guid.Empty,
-            "TestAutomation",
-            true,
-            false,
-            when,
-            thens);
-
-        var actor = new Actor(
-            "", 
-            "User");
-
-        var integrationEvent = new IntegrationEvent(
-            Guid.Empty, 
-            "TestEvent", 
-            SourceSystem.Kanban, 
-            0, 
-            Guid.Empty, 
-            null, 
-            actor, 
-            new System.Text.Json.JsonElement());
-
-        var context = new EvaluationContext(
-            automation,
-            integrationEvent);
+        var context = CreateContext(
+            automationTriggerable: false,
+            actorType: "User");
 
         // Act
         var result = await policy.EvaluateAsync(
@@ -123,7 +49,23 @@ public class AutomationTriggerablePolicyTests
     {
         // Arrange
         var policy = new AutomationTriggerablePolicy();
+        var context = CreateContext(
+            automationTriggerable: false,
+            actorType: "Automation");
 
+        // Act
+        var result = await policy.EvaluateAsync(
+            context,
+            CancellationToken.None);
+
+        // Assert
+        Assert.False(result.Allowed);
+    }
+
+    private static EvaluationContext CreateContext(
+            bool automationTriggerable,
+            string actorType)
+    {
         var when = new When(
             "TestEvent",
             SourceSystem.Kanban,
@@ -136,40 +78,35 @@ public class AutomationTriggerablePolicyTests
                 TargetSystem.Kanban,
                 null,
                 new Dictionary<string, string>())
-        };
+            };
 
         var automation = new Automation(
-            Guid.Empty,
+            Guid.NewGuid(),
             "TestAutomation",
             true,
-            false,
+            automationTriggerable,
             when,
             thens);
 
         var actor = new Actor(
             "",
-            "Automation");
+            actorType);
+
+        var payload = System.Text.Json.JsonDocument
+            .Parse("{}")
+            .RootElement
+            .Clone();
 
         var integrationEvent = new IntegrationEvent(
-            Guid.Empty,
+            Guid.NewGuid(),
             "TestEvent",
             SourceSystem.Kanban,
             0,
-            Guid.Empty,
+            Guid.NewGuid(),
             null,
             actor,
-            new System.Text.Json.JsonElement());
+            payload);
 
-        var context = new EvaluationContext(
-            automation,
-            integrationEvent);
-
-        // Act
-        var result = await policy.EvaluateAsync(
-            context,
-            CancellationToken.None);
-
-        // Assert
-        Assert.False(result.Allowed);
+        return new EvaluationContext(automation, integrationEvent);
     }
 }
