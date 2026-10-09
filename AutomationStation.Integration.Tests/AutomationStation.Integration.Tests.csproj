@@ -31,9 +31,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Include="..\AutomationStation.Infrastructure\Migrations\V1__create_tables.sql"
-			  Link="Database\V1__create_tables.sql"
-			  CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\AutomationStation.Infrastructure\Migrations\V1__create_tables.sql" Link="Database\V1__create_tables.sql" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
 </Project>

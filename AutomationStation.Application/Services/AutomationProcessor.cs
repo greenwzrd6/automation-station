@@ -12,7 +12,7 @@ namespace AutomationStation.Application.Services
         IAutomationExecutionGuard executionGuard,
         IActionExecutor actionExecutor,
         IAutomationExecutionRepository automationExecutionRepository,
-        ICorrelationLoopRepository correlationLoopRepository,
+        IAutomationExecutionLimiter correlationLoopRepository,
         ILogger<AutomationProcessor> logger)
         : IAutomationProcessor
     {
@@ -21,7 +21,7 @@ namespace AutomationStation.Application.Services
         private readonly IAutomationExecutionGuard _executionGuard = executionGuard;
         private readonly IActionExecutor _actionExecutor = actionExecutor;
         private readonly IAutomationExecutionRepository _automationExecutionRepository = automationExecutionRepository;
-        private readonly ICorrelationLoopRepository _correlationLoopRepository = correlationLoopRepository;
+        private readonly IAutomationExecutionLimiter _correlationLoopRepository = correlationLoopRepository;
         private readonly ILogger<AutomationProcessor> _logger = logger;
 
         public async Task ProcessAsync(
@@ -50,7 +50,7 @@ namespace AutomationStation.Application.Services
                     continue;
                 }
 
-                if (await _correlationLoopRepository.IsBlockedAsync(
+                if (!await _correlationLoopRepository.TryRecordExecutionAsync(
                         evaluationContext,
                         cancellationToken))
                 {

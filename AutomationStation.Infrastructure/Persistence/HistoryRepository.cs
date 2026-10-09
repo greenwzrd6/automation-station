@@ -1,7 +1,8 @@
-﻿using Dapper;
-
-using AutomationStation.Application.Abstractions;
+﻿using AutomationStation.Application.Abstractions;
+using AutomationStation.Application.Models;
 using AutomationStation.Infrastructure.Database;
+using Dapper;
+using System.Data.Common;
 
 namespace AutomationStation.Infrastructure.Persistence
 {
@@ -12,40 +13,54 @@ namespace AutomationStation.Infrastructure.Persistence
         private readonly DbConnectionFactory _connectionFactory = connectionFactory;
 
         public async Task CreateAutomationTimestampAsync(
-            Guid AutomationId,
-            Guid CorrelationId,
-            Guid? CausationEventId,
-            CancellationToken CancellationToken)
+            EvaluationContext context,
+            CancellationToken cancellationToken)
         {
             using var connection = _connectionFactory.CreateConnection();
 
+            await connection.OpenAsync(cancellationToken);
+
+            await CreateAutomationTimestampAsync(
+                context,
+                connection,
+                transaction: null,
+                cancellationToken: cancellationToken);
+        }
+
+        internal async Task CreateAutomationTimestampAsync(
+            EvaluationContext context,
+            DbConnection connection,
+            DbTransaction? transaction,
+            CancellationToken cancellationToken)
+        {
             const string sql = """
-            INSERT INTO AutomationHistory (Id, AutomationId, CorrelationId, CausationEventId, TriggeredAt) 
-            VALUES (@Id, @AutomationId, @CorrelationId, @CausationEventId, @TriggeredAt)
+            INSERT INTO AutomationHistory 
+                (Id, AutomationId, ActorId, CorrelationId, CausationEventId, TriggeredAt)
+            VALUES 
+                (@Id, @AutomationId, @ActorId, @CorrelationId, @CausationEventId, SYSUTCDATETIME());
             """;
 
             var parameters = new
             {
                 Id = Guid.NewGuid(),
-                AutomationId,
-                CorrelationId,
-                CausationEventId,
-                TriggeredAt = DateTime.UtcNow
+                context.AutomationId,
+                ActorId = context.Actor.Id,
+                context.CorrelationId,
+                context.CausationEventId
             };
-
-            await connection.OpenAsync(CancellationToken);
 
             await connection.ExecuteAsync(
                 new CommandDefinition(
                     sql,
                     parameters,
-                    cancellationToken: CancellationToken));
+                    transaction: transaction,
+                    cancellationToken: cancellationToken));
         }
 
         public async Task<bool> EventAlreadyProcessedAsync(
             Guid AutomationId,
             Guid CorrelationId,
-            CancellationToken CancellationToken)
+            CancellationToken cancellationToken)
         {
             using var connection = _connectionFactory.CreateConnection();
 
@@ -60,7 +75,7 @@ namespace AutomationStation.Infrastructure.Persistence
                THEN 1
                ELSE 0
                END
-            AS bit)
+            AS bit);
             """;
 
             var parameters = new
@@ -69,13 +84,13 @@ namespace AutomationStation.Infrastructure.Persistence
                 CorrelationId
             };
 
-            await connection.OpenAsync(CancellationToken);
+            await connection.OpenAsync(cancellationToken);
 
             return await connection.QuerySingleAsync<bool>(
                 new CommandDefinition(
                     sql,
                     parameters,
-                    cancellationToken: CancellationToken));
+                    cancellationToken: cancellationToken));
         }
     }
 }
