@@ -92,6 +92,118 @@ public sealed class ActionExecutorTests
             rateLimiter.LastKey.TargetSystem);
     }
 
+    [Fact]
+    public async Task ExecuteAsync_CreatePlacementToKanban_ExceedsRateLimit_IsBlocked()
+    {
+        // Arrange
+        var handler = new FakeActionHandler(
+            actionType: "CreatePlacement",
+            targetSystem: TargetSystem.Kanban);
+        var rateLimiter = new FakeActionRateLimiter();
+        var executor = new ActionExecutor(
+            [handler],
+            rateLimiter,
+            new ActionCatalog());
+        var then = new Then(
+            Type: "CreatePlacement",
+            TargetSystem: TargetSystem.Kanban,
+            ExecutorId: Guid.NewGuid(),
+            Parameters: new Dictionary<string, string>());
+        var context = CreateContext(companyId: 42);
+        // Act
+        for (var i = 0; i < 100; i++)
+        {
+            await executor.ExecuteAsync(
+                then,
+                context,
+                CancellationToken.None);
+        }
+        // The 101st execution should exceed the rate limit.
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => executor.ExecuteAsync(
+                then,
+                context,
+                CancellationToken.None));
+        // Assert
+        Assert.Contains(
+            "rate limit exceeded",
+            exception.Message,
+            StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(100, handler.ExecutionCount);
+        Assert.Equal(101, rateLimiter.CallCount);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_CreateTaskToToj_NoExecutor_IsBlocked()
+    {
+        // Arrange
+        var handler = new FakeActionHandler(
+            actionType: "CreateTask",
+            targetSystem: TargetSystem.TojSystem);
+        var rateLimiter = new FakeActionRateLimiter();
+        var executor = new ActionExecutor(
+            [handler],
+            rateLimiter,
+            new ActionCatalog());
+        var then = new Then(
+            Type: "CreateTask",
+            TargetSystem: TargetSystem.TojSystem,
+            ExecutorId: null,
+            Parameters: new Dictionary<string, string>());
+        var context = CreateContext();
+        // Act
+        var exception =
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                () => executor.ExecuteAsync(
+                    then,
+                    context,
+                    CancellationToken.None));
+
+        // Assert
+        Assert.Contains(
+            "executor",
+            exception.Message,
+            StringComparison.OrdinalIgnoreCase);
+
+        Assert.Equal(0, handler.ExecutionCount);
+        Assert.Equal(0, rateLimiter.CallCount);
+
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_CreateTaskToToj_ExecutorIdEmptyGuid_IsBlocked()
+    {
+        // Arrange
+        var handler = new FakeActionHandler(
+            actionType: "CreateTask",
+            targetSystem: TargetSystem.TojSystem);
+        var rateLimiter = new FakeActionRateLimiter();
+        var executor = new ActionExecutor(
+            [handler],
+            rateLimiter,
+            new ActionCatalog());
+        var then = new Then(
+            Type: "CreateTask",
+            TargetSystem: TargetSystem.TojSystem,
+            ExecutorId: Guid.Empty, // Invalid GUID
+            Parameters: new Dictionary<string, string>());
+        var context = CreateContext();
+        // Act
+        var exception =
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                () => executor.ExecuteAsync(
+                    then,
+                    context,
+                    CancellationToken.None));
+        // Assert
+        Assert.Contains(
+            "executor",
+            exception.Message,
+            StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(0, handler.ExecutionCount);
+        Assert.Equal(0, rateLimiter.CallCount);
+    }
+
     private static ActionContext CreateContext(
         int companyId = 1)
     {
@@ -136,7 +248,6 @@ public sealed class ActionExecutorTests
         : IActionRateLimiter
     {
         public int CallCount { get; private set; }
-
         public ActionRateLimitKey? LastKey { get; private set; }
 
         public Task WaitAsync(
@@ -147,6 +258,12 @@ public sealed class ActionExecutorTests
         {
             CallCount++;
             LastKey = key;
+
+            if (CallCount > permittedActions)
+            {
+                throw new InvalidOperationException(
+                    "Rate limit exceeded.");
+            }
 
             return Task.CompletedTask;
         }
