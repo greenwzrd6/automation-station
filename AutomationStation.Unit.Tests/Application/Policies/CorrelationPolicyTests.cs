@@ -21,45 +21,10 @@ namespace AutomationStation.Unit.Tests.Application.Policies
         public async Task Evaluate_WhenEventNotProcessed_IsAllowed()
         {
             // Arrange
-            var when = new When(
-                "TestEvent",
-                SourceSystem.Kanban,
-                []);
-
-            var thens = new[]
-            {
-                new Then(
-                    "TestAction",
-                    TargetSystem.Kanban,
-                    null,
-                    new Dictionary<string, string>())
-            };
-
-            var automation = new Automation(
-                Guid.Empty,
-                "TestAutomation",
-                true,
-                true,
-                when,
-                thens);
-
-            var actor = new Actor(
-                "",
-                "Automation");
-
-            var integrationEvent = new IntegrationEvent(
-                Guid.Empty,
-                "TestEvent",
-                SourceSystem.Kanban,
-                0,
-                Guid.Empty,
-                null,
-                actor,
-                new System.Text.Json.JsonElement());
-
-            var context = new EvaluationContext(
-                automation,
-                integrationEvent);
+            var automationId = Guid.NewGuid();
+            var correlationId = Guid.NewGuid();
+            
+            var context = CreateContext(automationId, correlationId);
 
             _historyRepositoryMock
                 .Setup(x => x.EventAlreadyProcessedAsync(
@@ -88,45 +53,10 @@ namespace AutomationStation.Unit.Tests.Application.Policies
         public async Task Evaluate_WhenEventAlreadyProcessed_IsBlocked()
         {
             // Arrange
-            var when = new When(
-            "TestEvent",
-            SourceSystem.Kanban,
-            []);
+            var automationId = Guid.NewGuid();
+            var correlationId = Guid.NewGuid();
 
-            var thens = new[]
-            {
-            new Then(
-                "TestAction",
-                TargetSystem.Kanban,
-                null,
-                new Dictionary<string, string>())
-            };
-
-            var automation = new Automation(
-                Guid.Empty,
-                "TestAutomation",
-                true,
-                true,
-                when,
-                thens);
-
-            var actor = new Actor(
-                "",
-                "Automation");
-
-            var integrationEvent = new IntegrationEvent(
-                Guid.Empty,
-                "TestEvent",
-                SourceSystem.Kanban,
-                0,
-                Guid.Empty,
-                null,
-                actor,
-                new System.Text.Json.JsonElement());
-
-            var context = new EvaluationContext(
-                automation,
-                integrationEvent);
+            var context = CreateContext(automationId, correlationId);
 
             _historyRepositoryMock
                 .Setup(x => x.EventAlreadyProcessedAsync(
@@ -150,6 +80,54 @@ namespace AutomationStation.Unit.Tests.Application.Policies
                     context.CorrelationId,
                     It.IsAny<CancellationToken>()),
                 Times.Once);
+        }
+
+        private static EvaluationContext CreateContext(
+            Guid automationId,
+            Guid correlationId)
+        {
+            var when = new When(
+                "TestEvent",
+                SourceSystem.Kanban,
+                []);
+
+            var thens = new[]
+            {
+            new Then(
+                "TestAction",
+                TargetSystem.Kanban,
+                null,
+                new Dictionary<string, string>())
+            };
+
+            var automation = new Automation(
+                automationId,
+                "TestAutomation",
+                true,
+                true,
+                when,
+                thens);
+
+            var actor = new Actor(
+                "", 
+                "");
+
+            var payload = System.Text.Json.JsonDocument
+                .Parse("{}")
+                .RootElement
+                .Clone();
+
+            var integrationEvent = new IntegrationEvent(
+                Guid.NewGuid(),
+                "TestEvent",
+                SourceSystem.Kanban,
+                0,
+                correlationId,
+                null,
+                actor,
+                payload);
+
+            return new EvaluationContext(automation, integrationEvent);
         }
     }
 }
