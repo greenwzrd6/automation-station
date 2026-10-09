@@ -20,17 +20,18 @@ builder.Services.AddScoped<
     IAutomationRepository,
     AutomationRepository>();
 
-builder.Services.AddScoped<
-    IHistoryRepository,
-    HistoryRepository>();
+builder.Services.AddScoped<HistoryRepository>();
+
+builder.Services.AddScoped<IHistoryRepository>(
+    services => services.GetRequiredService<HistoryRepository>());
 
 builder.Services.AddScoped<
     IProcessedMessageRepository,
     ProcessedMessageRepository>();
 
 builder.Services.AddScoped<
-    ICorrelationLoopRepository,
-    CorrelationLoopRepository>();
+    IAutomationExecutionLimiter,
+    AutomationExecutionLimiter>();
 
 // Action catalog
 builder.Services.AddSingleton<

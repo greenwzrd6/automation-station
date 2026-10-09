@@ -3,6 +3,7 @@ using AutomationStation.Application.Models;
 using AutomationStation.Core.Automations;
 using AutomationStation.Core.Automations.Systems;
 using AutomationStation.Infrastructure.Persistence;
+using AutomationStation.Infrastructure.RateLimiting;
 using AutomationStation.Integration.Tests.Fixtures;
 using Dapper;
 using System.Text.Json;
@@ -19,13 +20,16 @@ namespace AutomationStation.Integration.Tests.Messaging
     {
         // Initializes the DatabaseFixture and repository
         private readonly DatabaseFixture _database = database;
-        private readonly CorrelationLoopRepository _repository = new(
-                database.ConnectionFactory);
+        private readonly AutomationExecutionLimiter _repository = new(
+                database.ConnectionFactory,
+                new HistoryRepository(database.ConnectionFactory));
 
         [Fact]
-        public async Task IsBlockedAsync_ShouldReturnTrue_WhenLoopDetected()
+        public async Task IsBlockedAsync_ShouldBlockNextExecution_WhenActorReachesAutomationLimit()
         {
             // Arrange
+            var cancellationToken = TestContext.Current.CancellationToken;
+
             // The limit currently used in correlationlooprepo
             const int limit = 10000;
 
@@ -34,7 +38,7 @@ namespace AutomationStation.Integration.Tests.Messaging
 
             // Creates a connection to the testdatabase
             using var connection = _database.ConnectionFactory.CreateConnection();
-            await connection.OpenAsync();
+            await connection.OpenAsync(cancellationToken);
 
             // Act
             try
@@ -59,8 +63,7 @@ namespace AutomationStation.Integration.Tests.Messaging
                         WHERE Number < @Count
                     )
                     INSERT INTO AutomationHistory
-                        (Id, AutomationId, ActorId, CorrelationId,
-                         CausationEventId, TriggeredAt)
+                        (Id, AutomationId, ActorId, CorrelationId, CausationEventId, TriggeredAt)
                     SELECT
                         NEWID(),
                         @AutomationId,
@@ -78,19 +81,20 @@ namespace AutomationStation.Integration.Tests.Messaging
                         Count = limit - 1
                     });
 
+                // Assert
                 // Check if the next execution is blocked (should not be blocked yet)
-                var blockedAtLimit = await _repository.IsBlockedAsync(
+                var recordedAtLimit = await _repository.TryRecordExecutionAsync(
                     CreateContext(automationId, actorId),
                     CancellationToken.None);
 
-                Assert.False(blockedAtLimit);
+                Assert.True(recordedAtLimit);
 
                 // Check if the next execution is blocked (should be blocked now)
-                var blockedOverLimit = await _repository.IsBlockedAsync(
+                var recordedOverLimit = await _repository.TryRecordExecutionAsync(
                     CreateContext(automationId, actorId),
                     CancellationToken.None);
 
-                Assert.True(blockedOverLimit);
+                Assert.False(recordedOverLimit);
 
                 var historyCount = await connection.QuerySingleAsync<int>(
                     """

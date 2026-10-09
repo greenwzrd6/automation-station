@@ -1,16 +1,16 @@
-﻿namespace AutomationStation.Application.Abstractions
+﻿using AutomationStation.Application.Models;
+
+namespace AutomationStation.Application.Abstractions
 {
     public interface IHistoryRepository
     {
         Task CreateAutomationTimestampAsync(
-            Guid AutomationId,
-            Guid CorrelationId,
-            Guid? CausationEventId,
-            CancellationToken CancellationToken);
+            EvaluationContext context,
+            CancellationToken cancellationToken);
 
         Task<bool> EventAlreadyProcessedAsync(
             Guid AutomationId,
             Guid CorrelationId,
-            CancellationToken CancellationToken);
+            CancellationToken cancellationToken);
     }
 }
