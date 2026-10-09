@@ -25,7 +25,7 @@ public sealed class CreateTojTaskExecutor(
 
     public async Task ExecuteAsync(
         Then then,
-        AutomationActionContext context,
+        ActionContext context,
         CancellationToken cancellationToken)
     {
         if (!context.Event.Payload.TryGetProperty(

@@ -1,4 +1,5 @@
 using AutomationStation.Application.Contracts;
+using AutomationStation.Application.Models;
 using AutomationStation.Core.Automations;
 
 namespace AutomationStation.Application.Abstractions
@@ -6,8 +7,7 @@ namespace AutomationStation.Application.Abstractions
     public interface ICorrelationLoopRepository
     {
         Task<bool> IsBlockedAsync(
-            Automation automation,
-            IntegrationEvent integrationEvent,
+            EvaluationContext context,
             CancellationToken cancellationToken);
 
         //Task CleanupOldEventsAsync(

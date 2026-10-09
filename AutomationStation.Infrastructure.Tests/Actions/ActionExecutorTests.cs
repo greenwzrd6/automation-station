@@ -4,9 +4,8 @@ using AutomationStation.Application.Models;
 using AutomationStation.Core.Automations;
 using AutomationStation.Core.Automations.Systems;
 using AutomationStation.Infrastructure.Actions;
-using System.Text.Json;
 
-namespace AutomationStation.Tests.Actions;
+namespace AutomationStation.Infrastructure.Tests.Actions;
 
 public sealed class ActionExecutorTests
 {
@@ -28,6 +27,7 @@ public sealed class ActionExecutorTests
         var then = new Then(
             Type: "CreatePlacement",
             TargetSystem: TargetSystem.TojSystem,
+            ExecutorId: Guid.NewGuid(),
             Parameters: new Dictionary<string, string>());
 
         var context = CreateContext();
@@ -67,6 +67,7 @@ public sealed class ActionExecutorTests
         var then = new Then(
             Type: "CreatePlacement",
             TargetSystem: TargetSystem.Kanban,
+            ExecutorId: Guid.NewGuid(),
             Parameters: new Dictionary<string, string>());
 
         var context = CreateContext(companyId: 42);
@@ -91,7 +92,7 @@ public sealed class ActionExecutorTests
             rateLimiter.LastKey.TargetSystem);
     }
 
-    private static AutomationActionContext CreateContext(
+    private static ActionContext CreateContext(
         int companyId = 1)
     {
         var integrationEvent = new IntegrationEvent(
@@ -104,9 +105,8 @@ public sealed class ActionExecutorTests
             Actor: default!,
             Payload: default);
 
-        return new AutomationActionContext(
+        return new ActionContext(
             Event: integrationEvent,
-            CorrelationId: Guid.NewGuid(),
             ExecutionId: Guid.NewGuid());
     }
 
@@ -123,7 +123,7 @@ public sealed class ActionExecutorTests
 
         public Task ExecuteAsync(
             Then then,
-            AutomationActionContext context,
+            ActionContext context,
             CancellationToken cancellationToken)
         {
             ExecutionCount++;
