@@ -51,9 +51,9 @@ namespace AutomationStation.Infrastructure.Persistence
             {
                 Id = Guid.NewGuid(),
                 context.AutomationId,
-                context.ActorId,
                 context.CorrelationId,
-                context.CausationEventId
+                context.CausationEventId,
+                ActorId = context.Actor.Id
             };
 
             await connection.OpenAsync(cancellationToken);

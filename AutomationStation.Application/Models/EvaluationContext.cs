@@ -11,6 +11,6 @@ namespace AutomationStation.Application.Models
         public string AutomationName => Automation.Name;
         public Guid CorrelationId => Event.CorrelationId;
         public Guid? CausationEventId => Event.CausationEventId;
-        public string ActorId => Event.Actor.Id;
+        public Actor Actor => Event.Actor;
     }
 }

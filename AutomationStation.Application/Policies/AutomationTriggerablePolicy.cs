@@ -17,7 +17,7 @@ namespace AutomationStation.Application.Policies
                     context.Event.Actor.Type,
                     // Ändra tillbaka när vi faktiskt får toj data ( tock och jolltortyr )
                     //"AutomationExecutor",
-                    "",
+                    "Automation",
                     StringComparison.OrdinalIgnoreCase);
 
             if (triggeredByAutomation &&
