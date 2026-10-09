@@ -170,6 +170,40 @@ public sealed class ActionExecutorTests
 
     }
 
+    [Fact]
+    public async Task ExecuteAsync_CreateTaskToToj_ExecutorIdEmptyGuid_IsBlocked()
+    {
+        // Arrange
+        var handler = new FakeActionHandler(
+            actionType: "CreateTask",
+            targetSystem: TargetSystem.TojSystem);
+        var rateLimiter = new FakeActionRateLimiter();
+        var executor = new ActionExecutor(
+            [handler],
+            rateLimiter,
+            new ActionCatalog());
+        var then = new Then(
+            Type: "CreateTask",
+            TargetSystem: TargetSystem.TojSystem,
+            ExecutorId: Guid.Empty, // Invalid GUID
+            Parameters: new Dictionary<string, string>());
+        var context = CreateContext();
+        // Act
+        var exception =
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                () => executor.ExecuteAsync(
+                    then,
+                    context,
+                    CancellationToken.None));
+        // Assert
+        Assert.Contains(
+            "executor",
+            exception.Message,
+            StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(0, handler.ExecutionCount);
+        Assert.Equal(0, rateLimiter.CallCount);
+    }
+
     private static ActionContext CreateContext(
         int companyId = 1)
     {
