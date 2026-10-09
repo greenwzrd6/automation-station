@@ -23,7 +23,7 @@ namespace AutomationStation.Integration.Tests.Infrastructure
                 database.ConnectionFactory);
 
         [Fact]
-        public async Task IsBlockedAsync_ShouldReturnTrue_WhenLoopDetected()
+        public async Task IsBlockedAsync_ShouldBlockNextExecution_WhenActorReachesAutomationLimit()
         {
             // Arrange
             // The limit currently used in correlationlooprepo
