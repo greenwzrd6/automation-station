@@ -28,6 +28,8 @@ namespace AutomationStation.Integration.Tests.Messaging
         public async Task IsBlockedAsync_ShouldBlockNextExecution_WhenActorReachesAutomationLimit()
         {
             // Arrange
+            var cancellationToken = TestContext.Current.CancellationToken;
+
             // The limit currently used in correlationlooprepo
             const int limit = 10000;
 
@@ -36,7 +38,7 @@ namespace AutomationStation.Integration.Tests.Messaging
 
             // Creates a connection to the testdatabase
             using var connection = _database.ConnectionFactory.CreateConnection();
-            await connection.OpenAsync();
+            await connection.OpenAsync(cancellationToken);
 
             // Act
             try

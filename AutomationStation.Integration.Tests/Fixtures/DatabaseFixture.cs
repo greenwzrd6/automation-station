@@ -16,15 +16,16 @@ namespace AutomationStation.Integration.Tests.Fixtures
         public DbConnectionFactory ConnectionFactory { get; private set; } = null!;
 
         /// <summary>
-        /// Method <c>InitializeAsync</c> runs before the tests to create the database and implements the tables through our flyway migration
+        /// Method <c>InitializeAsync</c> runs before the tests to create the database and implements the tables through Dapper
         /// </summary>
         /// 
-        public async Task InitializeAsync()
+        public async ValueTask InitializeAsync()
         {
-            await _sqlServer.StartAsync();
 
             try
             {
+                await _sqlServer.StartAsync();
+
                 using var connection = new SqlConnection(_sqlServer.GetConnectionString());
                 await connection.OpenAsync();
 
@@ -59,7 +60,7 @@ namespace AutomationStation.Integration.Tests.Fixtures
         /// <summary>
         /// Method <c>DisposeAsync</c> cleans up the database automatically when the tests are done
         /// </summary>
-        public async Task DisposeAsync()
+        public async ValueTask DisposeAsync()
         {
             await _sqlServer.DisposeAsync();
         }
