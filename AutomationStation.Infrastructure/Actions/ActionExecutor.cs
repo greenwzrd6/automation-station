@@ -1,6 +1,7 @@
-﻿using AutomationStation.Core.Automations;
-using AutomationStation.Application.Abstractions;
+﻿using AutomationStation.Application.Abstractions;
 using AutomationStation.Application.Models;
+using AutomationStation.Core.Automations;
+using AutomationStation.Core.Automations.Systems;
 
 namespace AutomationStation.Infrastructure.Actions;
 
@@ -32,6 +33,14 @@ public sealed class ActionExecutor(
                 $"Action '{then.Type}' is not allowed " +
                 $"for target system '{then.TargetSystem}'.");
         }
+
+        if (then.TargetSystem == TargetSystem.TojSystem && 
+            (!then.ExecutorId.HasValue ||then.ExecutorId.Value == Guid.Empty))
+        {
+            throw new InvalidOperationException(
+                "TOJ actions require a valid executor.");
+        }
+
 
         var handlerKey = $"{then.TargetSystem}:{then.Type}";
         if (!_handlers.TryGetValue(
