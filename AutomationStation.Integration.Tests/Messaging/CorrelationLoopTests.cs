@@ -3,11 +3,12 @@ using AutomationStation.Application.Models;
 using AutomationStation.Core.Automations;
 using AutomationStation.Core.Automations.Systems;
 using AutomationStation.Infrastructure.Persistence;
+using AutomationStation.Infrastructure.RateLimiting;
 using AutomationStation.Integration.Tests.Fixtures;
 using Dapper;
 using System.Text.Json;
 
-namespace AutomationStation.Integration.Tests.Infrastructure
+namespace AutomationStation.Integration.Tests.Messaging
 {
 
     /// <summary>
@@ -19,11 +20,12 @@ namespace AutomationStation.Integration.Tests.Infrastructure
     {
         // Initializes the DatabaseFixture and repository
         private readonly DatabaseFixture _database = database;
-        private readonly CorrelationLoopRepository _repository = new(
-                database.ConnectionFactory);
+        private readonly AutomationExecutionLimiter _repository = new(
+                database.ConnectionFactory,
+                new HistoryRepository(database.ConnectionFactory));
 
         [Fact]
-        public async Task IsBlockedAsync_ShouldReturnTrue_WhenLoopDetected()
+        public async Task IsBlockedAsync_ShouldBlockNextExecution_WhenActorReachesAutomationLimit()
         {
             // Arrange
             // The limit currently used in correlationlooprepo
@@ -59,8 +61,7 @@ namespace AutomationStation.Integration.Tests.Infrastructure
                         WHERE Number < @Count
                     )
                     INSERT INTO AutomationHistory
-                        (Id, AutomationId, ActorId, CorrelationId,
-                         CausationEventId, TriggeredAt)
+                        (Id, AutomationId, ActorId, CorrelationId, CausationEventId, TriggeredAt)
                     SELECT
                         NEWID(),
                         @AutomationId,
@@ -78,19 +79,20 @@ namespace AutomationStation.Integration.Tests.Infrastructure
                         Count = limit - 1
                     });
 
+                // Assert
                 // Check if the next execution is blocked (should not be blocked yet)
-                var blockedAtLimit = await _repository.IsBlockedAsync(
+                var recordedAtLimit = await _repository.TryRecordExecutionAsync(
                     CreateContext(automationId, actorId),
                     CancellationToken.None);
 
-                Assert.False(blockedAtLimit);
+                Assert.True(recordedAtLimit);
 
                 // Check if the next execution is blocked (should be blocked now)
-                var blockedOverLimit = await _repository.IsBlockedAsync(
+                var recordedOverLimit = await _repository.TryRecordExecutionAsync(
                     CreateContext(automationId, actorId),
                     CancellationToken.None);
 
-                Assert.True(blockedOverLimit);
+                Assert.False(recordedOverLimit);
 
                 var historyCount = await connection.QuerySingleAsync<int>(
                     """

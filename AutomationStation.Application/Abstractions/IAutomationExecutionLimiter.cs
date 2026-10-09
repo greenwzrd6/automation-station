@@ -1,17 +1,12 @@
 using AutomationStation.Application.Contracts;
 using AutomationStation.Application.Models;
-using AutomationStation.Core.Automations;
 
 namespace AutomationStation.Application.Abstractions
 {
-    public interface ICorrelationLoopRepository
+    public interface IAutomationExecutionLimiter
     {
-        Task<bool> IsBlockedAsync(
+        Task<bool> TryRecordExecutionAsync(
             EvaluationContext context,
             CancellationToken cancellationToken);
-
-        //Task CleanupOldEventsAsync(
-        //    TimeSpan maxAge,
-        //    CancellationToken cancellationToken);
     }
 }
