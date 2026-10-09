@@ -7,7 +7,7 @@ using AutomationStation.Integration.Tests.Fixtures;
 using Dapper;
 using System.Text.Json;
 
-namespace AutomationStation.Integration.Tests.Infrastructure
+namespace AutomationStation.Integration.Tests.Messaging
 {
 
     /// <summary>
