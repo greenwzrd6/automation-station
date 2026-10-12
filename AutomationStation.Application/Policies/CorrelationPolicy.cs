@@ -22,7 +22,7 @@ namespace AutomationStation.Application.Policies
 
             return exists
                 ? AutomationPolicyResult.Block(
-                    "Correlation event already processed.")
+                    "Automation already executed in this correlation.")
                 : AutomationPolicyResult.Allow();
         }
     }
