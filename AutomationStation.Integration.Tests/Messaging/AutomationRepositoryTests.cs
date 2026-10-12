@@ -47,6 +47,7 @@ namespace AutomationStation.Integration.Tests.Messaging
                 var automation = Assert.Single(
                     automations,
                     automation => automation.Id == automationId);
+
                 Assert.Equal(eventType, automation.When.EventType);
                 Assert.True(automation.IsEnabled);
 
