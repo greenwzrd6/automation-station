@@ -116,7 +116,7 @@ public sealed class ActionExecutorTests
             TargetSystem: TargetSystem.Kanban,
             ExecutorId: Guid.NewGuid(),
             Parameters: new Dictionary<string, string>());
-        var context = CreateContext(companyId: 42);
+        var context = CreateContext();
 
         // Act
         for (var i = 0; i < 100; i++)
