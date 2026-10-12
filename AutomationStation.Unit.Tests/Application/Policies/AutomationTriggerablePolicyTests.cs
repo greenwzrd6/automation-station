@@ -26,7 +26,7 @@ public class AutomationTriggerablePolicyTests
     }
 
     [Fact]
-    public async Task Evaluate_AutomationTriggerableFalseWithUserAsActor_IsAllowed()
+    public void Evaluate_AutomationTriggerableFalseWithUserAsActor_IsAllowed()
     {
         // Arrange
         var policy = new AutomationTriggerablePolicy();
@@ -43,7 +43,7 @@ public class AutomationTriggerablePolicyTests
     }
 
     [Fact]
-    public async Task Evaluate_AutomationTriggerableFalseWithAutomationAsActor_IsBlocked()
+    public void Evaluate_AutomationTriggerableFalseWithAutomationAsActor_IsBlocked()
     {
         // Arrange
         var policy = new AutomationTriggerablePolicy();
@@ -64,7 +64,7 @@ public class AutomationTriggerablePolicyTests
     [InlineData("automation")]
     [InlineData("AUTOMATION")]
     [InlineData("aUtOmAtIoN")]
-    public async Task Evaluate_AutomationActorTypeIsCaseInsensitive_IsAllowed(
+    public void Evaluate_AutomationActorTypeIsCaseInsensitive_IsAllowed(
     string actorType)
     {
         // Arrange
