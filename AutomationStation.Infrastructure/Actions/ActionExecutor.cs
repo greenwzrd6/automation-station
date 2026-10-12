@@ -8,7 +8,8 @@ namespace AutomationStation.Infrastructure.Actions;
 public sealed class ActionExecutor(
     IEnumerable<IActionHandler> handlers,
     IActionRateLimiter rateLimiter,
-    IActionCatalog actionCatalog)
+    IActionCatalog actionCatalog,
+    IAutomationExecutorRepository executorRepository)
     : IActionExecutor
 {
     private readonly Dictionary<string, IActionHandler> _handlers =
@@ -17,7 +18,6 @@ public sealed class ActionExecutor(
             StringComparer.OrdinalIgnoreCase);
     private readonly IActionRateLimiter _rateLimiter = rateLimiter;
     private readonly IActionCatalog _actionCatalog = actionCatalog;
-
 
     public async Task ExecuteAsync(
         Then then,
@@ -34,11 +34,38 @@ public sealed class ActionExecutor(
                 $"for target system '{then.TargetSystem}'.");
         }
 
-        if (then.TargetSystem == TargetSystem.TojSystem && 
-            (!then.ExecutorId.HasValue ||then.ExecutorId.Value == Guid.Empty))
+        if (context.Event == null)
         {
             throw new InvalidOperationException(
-                "TOJ actions require a valid executor.");
+                "Event context is required for action execution.");
+        }
+
+        // change to <= in next rendition
+        if (context.Event.CompanyId < 0)
+        {
+            throw new InvalidOperationException(
+                "Invalid company ID.");
+        }
+
+        if (then.TargetSystem == TargetSystem.TojSystem)
+        {
+            if (!then.ExecutorId.HasValue ||
+                then.ExecutorId.Value == Guid.Empty)
+            {
+                throw new InvalidOperationException(
+                    "TOJ actions require a valid executor.");
+            }
+
+            var executorIsEnabled =
+                await executorRepository.IsEnabledAsync(
+                    then.ExecutorId.Value,
+                    cancellationToken);
+
+            if (!executorIsEnabled)
+            {
+                throw new InvalidOperationException(
+                    "The automation executor does not exist or is disabled.");
+            }
         }
 
 

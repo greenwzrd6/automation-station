@@ -30,6 +30,10 @@ builder.Services.AddScoped<
     ProcessedMessageRepository>();
 
 builder.Services.AddScoped<
+    IAutomationExecutorRepository,
+    AutomationExecutorRepository>();
+
+builder.Services.AddScoped<
     IAutomationExecutionLimiter,
     AutomationExecutionLimiter>();
 
@@ -66,7 +70,7 @@ builder.Services.AddScoped<
     CorrelationPolicy>();
 
 builder.Services.AddScoped<
-    IAutomationExecutionPolicy,
+    IAutomationTriggerablePolicy,
     AutomationTriggerablePolicy>();
 
 // Rate limiting
@@ -124,7 +128,7 @@ builder.Services.AddHttpClient<TojClient>(
         client.BaseAddress = new Uri(baseUrl);
 
         client.DefaultRequestHeaders.Add(
-            "X-Automation-Api-Key",
+            "Automation-Api-Key",
             apiKey);
     });
 

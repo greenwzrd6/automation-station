@@ -23,14 +23,14 @@
 	</ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AutomationStation.Application\AutomationStation.Application.csproj" />
-    <ProjectReference Include="..\AutomationStation.Core\AutomationStation.Core.csproj" />
-    <ProjectReference Include="..\AutomationStation.Infrastructure\AutomationStation.Infrastructure.csproj" />
-    <ProjectReference Include="..\AutomationStation.Worker\AutomationStation.Worker.csproj" />
+	<ProjectReference Include="..\AutomationStation.Application\AutomationStation.Application.csproj" />
+	<ProjectReference Include="..\AutomationStation.Core\AutomationStation.Core.csproj" />
+	<ProjectReference Include="..\AutomationStation.Infrastructure\AutomationStation.Infrastructure.csproj" />
+	<ProjectReference Include="..\AutomationStation.Worker\AutomationStation.Worker.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Using Include="Xunit" />
+	<Using Include="Xunit" />
   </ItemGroup>
 
 	<ItemGroup>
@@ -41,6 +41,10 @@
 
 	<ItemGroup>
 		<None Include="..\AutomationStation.Infrastructure\Migrations\V1__create_tables.sql" Link="Database\V1__create_tables.sql" CopyToOutputDirectory="PreserveNewest" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Actions\" />
 	</ItemGroup>
 
 </Project>
