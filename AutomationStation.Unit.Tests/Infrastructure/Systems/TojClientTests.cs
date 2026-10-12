@@ -1,5 +1,6 @@
-﻿using AutomationStation.Infrastructure.Integrations.Toj;
-using System.Net;
+﻿using System.Net;
+
+using AutomationStation.Infrastructure.Integrations.Toj;
 
 namespace AutomationStation.Unit.Tests.Infrastructure.Systems
 {
@@ -23,8 +24,8 @@ namespace AutomationStation.Unit.Tests.Infrastructure.Systems
             // Act
             await tc.CreateTaskInSameRootAsync(
                 sourceTaskId,
-                "",
-                Guid.Empty,
+                "Test Task",
+                Guid.NewGuid(),
                 CancellationToken.None);
 
             // Assert
@@ -52,8 +53,8 @@ namespace AutomationStation.Unit.Tests.Infrastructure.Systems
             // Act
             await tc.UpdateTaskStatusAsync(
                 taskId,
-                0,
-                Guid.Empty,
+                1,
+                Guid.NewGuid(),
                 CancellationToken.None);
 
             // Assert
@@ -82,9 +83,9 @@ namespace AutomationStation.Unit.Tests.Infrastructure.Systems
             // Act
             var exception = await Assert.ThrowsAsync<HttpRequestException>(
                 () => tc.CreateTaskInSameRootAsync(
-                    Guid.Empty,
-                    "",
-                    Guid.Empty,
+                    Guid.NewGuid(),
+                    "Test Task",
+                    Guid.NewGuid(),
                     CancellationToken.None));
 
             // Assert
@@ -110,9 +111,9 @@ namespace AutomationStation.Unit.Tests.Infrastructure.Systems
             // Act
             var exception = await Assert.ThrowsAsync<HttpRequestException>(
                 () => tc.UpdateTaskStatusAsync(
-                    Guid.Empty,
-                    0,
-                    Guid.Empty,
+                    Guid.NewGuid(),
+                    1,
+                    Guid.NewGuid(),
                     CancellationToken.None));
 
             // Assert
@@ -136,8 +137,8 @@ namespace AutomationStation.Unit.Tests.Infrastructure.Systems
 
             // Act
             await tc.CreateTaskInSameRootAsync(
-                Guid.Empty,
-                "",
+                Guid.NewGuid(),
+                "Test Task",
                 executorId,
                 CancellationToken.None);
 
@@ -164,8 +165,8 @@ namespace AutomationStation.Unit.Tests.Infrastructure.Systems
 
             // Act
             await tc.UpdateTaskStatusAsync(
-                Guid.Empty,
-                0,
+                Guid.NewGuid(),
+                1,
                 executorId,
                 CancellationToken.None);
 

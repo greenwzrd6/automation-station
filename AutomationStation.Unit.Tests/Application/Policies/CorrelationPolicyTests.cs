@@ -22,9 +22,9 @@ namespace AutomationStation.Unit.Tests.Application.Policies
         public async Task EvaluateAsync_WhenEventNotProcessed_IsAllowed()
         {
             // Arrange
-            var automationId = Guid.Empty;
-            var correlationId = Guid.Empty;
-            
+            var automationId = Guid.NewGuid();
+            var correlationId = Guid.NewGuid();
+
             var context = CreateContext(automationId, correlationId);
 
             _historyRepositoryMock
@@ -54,8 +54,8 @@ namespace AutomationStation.Unit.Tests.Application.Policies
         public async Task EvaluateAsync_WhenEventAlreadyProcessed_IsBlocked()
         {
             // Arrange
-            var automationId = Guid.Empty;
-            var correlationId = Guid.Empty;
+            var automationId = Guid.NewGuid();
+            var correlationId = Guid.NewGuid();
 
             var context = CreateContext(automationId, correlationId);
 
@@ -217,10 +217,12 @@ namespace AutomationStation.Unit.Tests.Application.Policies
                     context.CorrelationId,
                     cancellationToken))
                 .ReturnsAsync(false);
+
             // Act
             var result = await _cp.EvaluateAsync(
                 context,
                 cancellationToken);
+
             // Assert
             Assert.True(result.Allowed);
             _historyRepositoryMock.Verify(
@@ -236,30 +238,30 @@ namespace AutomationStation.Unit.Tests.Application.Policies
             Guid correlationId)
         {
             var when = new When(
-                "",
+                "Test When",
                 SourceSystem.Kanban,
                 []);
 
             var thens = new[]
             {
             new Then(
-                "",
+                "Test Then",
                 TargetSystem.Kanban,
-                null,
+                Guid.NewGuid(),
                 new Dictionary<string, string>())
             };
 
             var automation = new Automation(
                 automationId,
-                "",
+                "Test Automation",
                 true,
                 true,
                 when,
                 thens);
 
             var actor = new Actor(
-                "", 
-                "");
+                "Test Actor",
+                "Test Actor Type");
 
             var payload = System.Text.Json.JsonDocument
                 .Parse("{}")
@@ -267,12 +269,12 @@ namespace AutomationStation.Unit.Tests.Application.Policies
                 .Clone();
 
             var integrationEvent = new IntegrationEvent(
-                Guid.Empty,
-                "",
+                Guid.NewGuid(),
+                "Test Event",
                 SourceSystem.Kanban,
                 0,
                 correlationId,
-                null,
+                Guid.NewGuid(),
                 actor,
                 payload);
 

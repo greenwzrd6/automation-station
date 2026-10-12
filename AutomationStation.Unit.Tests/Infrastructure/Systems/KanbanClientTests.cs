@@ -26,9 +26,9 @@ namespace AutomationStation.Unit.Tests.Infrastructure.Systems
 
             // Act
             await kc.CreatePlacementAsync(
-                Guid.Empty,
-                Guid.Empty,
-                Guid.Empty,
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                Guid.NewGuid(),
                 context,
                 CancellationToken.None);
 
@@ -60,9 +60,9 @@ namespace AutomationStation.Unit.Tests.Infrastructure.Systems
             // Act
             var exception = await Assert.ThrowsAsync<HttpRequestException>(
                 () => kc.CreatePlacementAsync(
-                    Guid.Empty,
-                    Guid.Empty,
-                    Guid.Empty,
+                    Guid.NewGuid(),
+                    Guid.NewGuid(),
+                    Guid.NewGuid(),
                     context,
                     CancellationToken.None));
 
@@ -87,9 +87,9 @@ namespace AutomationStation.Unit.Tests.Infrastructure.Systems
 
             // Act
             await kc.CreatePlacementAsync(
-                Guid.Empty,
-                Guid.Empty,
-                Guid.Empty,
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                Guid.NewGuid(),
                 context,
                 CancellationToken.None);
 
@@ -123,8 +123,8 @@ namespace AutomationStation.Unit.Tests.Infrastructure.Systems
         private static KanbanRequestContext CreateContext()
         {
             var actor = new Actor(
-                "",
-                "");
+                Guid.NewGuid().ToString(),
+                "Test Actor");
 
             var payload = System.Text.Json.JsonDocument
                 .Parse("{}")
@@ -132,18 +132,18 @@ namespace AutomationStation.Unit.Tests.Infrastructure.Systems
                 .Clone();
 
             var integrationEvent = new IntegrationEvent(
-                Guid.Empty,
-                "",
+                Guid.NewGuid(),
+                Guid.NewGuid().ToString(),
                 SourceSystem.Kanban,
                 0,
-                Guid.Empty,
-                null,
+                Guid.NewGuid(),
+                Guid.NewGuid(),
                 actor,
                 payload);
 
             return new KanbanRequestContext(
                 integrationEvent,
-                Guid.Empty);
+                Guid.NewGuid());
         }
     }
 }
