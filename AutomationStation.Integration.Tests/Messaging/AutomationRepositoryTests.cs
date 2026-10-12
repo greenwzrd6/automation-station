@@ -1,4 +1,6 @@
-﻿using AutomationStation.Infrastructure.Persistence;
+﻿using AutomationStation.Core.Automations;
+using AutomationStation.Core.Automations.Systems;
+using AutomationStation.Infrastructure.Persistence;
 using AutomationStation.Integration.Tests.Fixtures;
 using Dapper;
 using System.Data.Common;
@@ -20,7 +22,7 @@ namespace AutomationStation.Integration.Tests.Messaging
 
             var automationId = Guid.NewGuid();
             var executorId = Guid.NewGuid();
-            var eventType = "TestEventType";
+            var eventType = $"TestEvent-{Guid.NewGuid()}";
 
             using var connection = _database.ConnectionFactory.CreateConnection();
             await connection.OpenAsync(cancellationToken);
@@ -42,6 +44,21 @@ namespace AutomationStation.Integration.Tests.Messaging
                     automation => automation.Id == automationId);
                 Assert.Equal(eventType, automation.When.EventType);
                 Assert.True(automation.IsEnabled);
+
+                var condition = Assert.Single(automation.When.Conditions);
+
+                Assert.Equal("columnId", condition.Field);
+                Assert.Equal(ConditionOperator.Equals, condition.Operator);
+                Assert.Equal("test-column", condition.Value);
+
+                var action = Assert.Single(automation.Thens);
+
+                Assert.Equal("Yes", action.Type);
+                Assert.Equal(TargetSystem.Kanban, action.TargetSystem);
+                Assert.Equal(executorId, action.ExecutorId);
+
+                Assert.Single(action.Parameters);
+                Assert.Equal("test-column", action.Parameters["columnId"]);
             }
             finally
             {
@@ -58,7 +75,7 @@ namespace AutomationStation.Integration.Tests.Messaging
 
             var automationId = Guid.NewGuid();
             var executorId = Guid.NewGuid();
-            var eventType = "TestEventType";
+            var eventType = $"TestEvent-{Guid.NewGuid()}";
 
             using var connection = _database.ConnectionFactory.CreateConnection();
             await connection.OpenAsync(cancellationToken);
@@ -90,18 +107,11 @@ namespace AutomationStation.Integration.Tests.Messaging
             // Arrange
             var cancellationToken = TestContext.Current.CancellationToken;
 
-            try
-            {
-                // Act
-                var automations = await _repository.GetEnabledByEventTypeAsync("hihihihi", cancellationToken);
+            // Act
+            var automations = await _repository.GetEnabledByEventTypeAsync("hihihihi", cancellationToken);
 
-                //Assert
-                Assert.Empty(automations);
-            }
-            finally
-            {
-                // Do nothing
-            }
+            //Assert
+            Assert.Empty(automations);
         }
 
         [Fact]
@@ -116,7 +126,7 @@ namespace AutomationStation.Integration.Tests.Messaging
             var executorId1 = Guid.NewGuid();
             var executorId2 = Guid.NewGuid();
             var executorId3 = Guid.NewGuid();
-            var eventType = "TestEventType";
+            var eventType = $"TestEvent-{Guid.NewGuid()}";
 
             using var connection = _database.ConnectionFactory.CreateConnection();
             await connection.OpenAsync(cancellationToken);
@@ -143,6 +153,8 @@ namespace AutomationStation.Integration.Tests.Messaging
                 var automations = await _repository.GetEnabledByEventTypeAsync(eventType, cancellationToken);
 
                 // Assert
+                Assert.Equal(3, automations.Count);
+
                 var automation1 = Assert.Single(
                     automations,
                     automation => automation.Id == automationId1);
@@ -180,7 +192,7 @@ namespace AutomationStation.Integration.Tests.Messaging
             var executorId1 = Guid.NewGuid();
             var executorId2 = Guid.NewGuid();
             var executorId3 = Guid.NewGuid();
-            var eventType = "TestEventType";
+            var eventType = $"TestEvent-{Guid.NewGuid()}";
 
             using var connection = _database.ConnectionFactory.CreateConnection();
             await connection.OpenAsync(cancellationToken);
@@ -222,7 +234,7 @@ namespace AutomationStation.Integration.Tests.Messaging
             var cancellationToken = TestContext.Current.CancellationToken;
 
             var automationId = Guid.NewGuid();
-            var eventType = "TestEventType";
+            var eventType = $"TestEvent-{Guid.NewGuid()}";
 
             using var connection = _database.ConnectionFactory.CreateConnection();
             await connection.OpenAsync(cancellationToken);
@@ -258,7 +270,7 @@ namespace AutomationStation.Integration.Tests.Messaging
 
             var automationId = Guid.NewGuid();
             var executorId = Guid.NewGuid();
-            var eventType = "TestEventType";
+            var eventType = $"TestEvent-{Guid.NewGuid()}";
 
             using var connection = _database.ConnectionFactory.CreateConnection();
             await connection.OpenAsync(cancellationToken);
@@ -293,7 +305,7 @@ namespace AutomationStation.Integration.Tests.Messaging
 
             var automationId = Guid.NewGuid();
             var executorId = Guid.NewGuid();
-            var eventType = "TestEventType";
+            var eventType = $"TestEvent-{Guid.NewGuid()}";
 
             using var connection = _database.ConnectionFactory.CreateConnection();
             await connection.OpenAsync(cancellationToken);
@@ -328,7 +340,7 @@ namespace AutomationStation.Integration.Tests.Messaging
 
             var automationId = Guid.NewGuid();
             var executorId = Guid.NewGuid();
-            var eventType = "TestEventType";
+            var eventType = $"TestEvent-{Guid.NewGuid()}";
 
             using var connection = _database.ConnectionFactory.CreateConnection();
             await connection.OpenAsync(cancellationToken);
