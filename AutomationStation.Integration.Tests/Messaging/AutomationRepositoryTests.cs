@@ -7,6 +7,11 @@ using System.Data.Common;
 
 namespace AutomationStation.Integration.Tests.Messaging
 {
+
+    /// <summary>
+    /// Class <c>AutomationRepositoryTests</c> is the test class for <c>AutomationRepository</c>
+    /// </summary>
+    /// <param name="database">Primary constructor for <c>DatabaseFixture</c></param>
     [Collection(DatabaseCollection.Name)]
     public sealed class AutomationRepositoryTests(DatabaseFixture database)
     {
