@@ -9,18 +9,17 @@ namespace AutomationStation.Unit.Tests.Application.Policies;
 public class AutomationTriggerablePolicyTests
 {
     [Fact]
-    public async Task Evaluate_AutomationTriggerableTrue_IsAllowed()
+    public void Evaluate_AutomationTriggerableTrue_IsAllowed()
     {
         // Arrange
         var policy = new AutomationTriggerablePolicy();
+
         var context = CreateContext(
             automationTriggerable: true,
             actorType: "Automation");
 
         // Act
-        var result = await policy.EvaluateAsync(
-            context,
-            CancellationToken.None);
+        var result = policy.Evaluate(context);
 
         // Assert
         Assert.True(result.Allowed);
@@ -31,14 +30,13 @@ public class AutomationTriggerablePolicyTests
     {
         // Arrange
         var policy = new AutomationTriggerablePolicy();
+
         var context = CreateContext(
             automationTriggerable: false,
             actorType: "User");
 
         // Act
-        var result = await policy.EvaluateAsync(
-            context,
-            CancellationToken.None);
+        var result = policy.Evaluate(context);
 
         // Assert
         Assert.True(result.Allowed);
@@ -49,17 +47,38 @@ public class AutomationTriggerablePolicyTests
     {
         // Arrange
         var policy = new AutomationTriggerablePolicy();
+
         var context = CreateContext(
             automationTriggerable: false,
             actorType: "Automation");
 
         // Act
-        var result = await policy.EvaluateAsync(
-            context,
-            CancellationToken.None);
+        var result = policy.Evaluate(context);
 
         // Assert
         Assert.False(result.Allowed);
+    }
+
+    [Theory]
+    [InlineData("Automation")]
+    [InlineData("automation")]
+    [InlineData("AUTOMATION")]
+    [InlineData("aUtOmAtIoN")]
+    public async Task Evaluate_AutomationActorTypeIsCaseInsensitive_IsAllowed(
+    string actorType)
+    {
+        // Arrange
+        var policy = new AutomationTriggerablePolicy();
+
+        var context = CreateContext(
+            automationTriggerable: true,
+            actorType: actorType);
+
+        // Act
+        var result = policy.Evaluate(context);
+
+        // Assert
+        Assert.True(result.Allowed);
     }
 
     private static EvaluationContext CreateContext(

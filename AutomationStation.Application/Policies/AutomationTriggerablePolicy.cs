@@ -1,16 +1,13 @@
 ﻿using AutomationStation.Application.Abstractions;
-using AutomationStation.Application.Contracts;
 using AutomationStation.Application.Models;
-using AutomationStation.Core.Automations;
 
 namespace AutomationStation.Application.Policies
 {
     public sealed class AutomationTriggerablePolicy
-        : IAutomationExecutionPolicy
+        : IAutomationTriggerablePolicy
     {
-        public Task<AutomationPolicyResult> EvaluateAsync(
-            EvaluationContext context,
-            CancellationToken cancellationToken)
+        public AutomationPolicyResult Evaluate(
+            EvaluationContext context)
         {
             var triggeredByAutomation =
                 string.Equals(
@@ -23,13 +20,11 @@ namespace AutomationStation.Application.Policies
             if (triggeredByAutomation &&
                 !context.Automation.AutomationTriggerable)
             {
-                return Task.FromResult(
-                    AutomationPolicyResult.Block(
-                        "Automation cannot be triggered by another automation."));
+                return AutomationPolicyResult.Block(
+                    "Automation cannot be triggered by another automation.");
             }
 
-            return Task.FromResult(
-                AutomationPolicyResult.Allow());
+            return AutomationPolicyResult.Allow();
         }
     }
 }

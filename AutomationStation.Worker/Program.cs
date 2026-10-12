@@ -66,7 +66,7 @@ builder.Services.AddScoped<
     CorrelationPolicy>();
 
 builder.Services.AddScoped<
-    IAutomationExecutionPolicy,
+    IAutomationTriggerablePolicy,
     AutomationTriggerablePolicy>();
 
 // Rate limiting
