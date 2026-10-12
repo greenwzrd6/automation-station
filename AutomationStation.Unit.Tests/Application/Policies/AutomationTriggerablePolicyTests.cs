@@ -65,7 +65,7 @@ public class AutomationTriggerablePolicyTests
     [InlineData("AUTOMATION")]
     [InlineData("aUtOmAtIoN")]
     public void Evaluate_AutomationActorTypeIsCaseInsensitive_IsAllowed(
-    string actorType)
+        string actorType)
     {
         // Arrange
         var policy = new AutomationTriggerablePolicy();
