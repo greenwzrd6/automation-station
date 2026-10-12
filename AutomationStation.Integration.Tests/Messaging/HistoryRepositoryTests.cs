@@ -22,7 +22,7 @@ namespace AutomationStation.Integration.Tests.Messaging
             database.ConnectionFactory);
 
         [Fact]
-        public async Task CreateAutomationTimestampAsync_CreatesCorrectAutomationId_WhenUsed()
+        public async Task CreateAutomationTimestampAsync_WhenUsed_CreatesCorrectAutomationId()
         {
             // Arrange
             var cancellationToken = TestContext.Current.CancellationToken;
@@ -74,22 +74,12 @@ namespace AutomationStation.Integration.Tests.Messaging
             finally
             {
                 // Cleanup
-                await connection.ExecuteAsync(
-                    new CommandDefinition(
-                        """
-                        DELETE FROM AutomationHistory
-                        WHERE AutomationId = @AutomationId;
-
-                        DELETE FROM Automations
-                        WHERE Id = @AutomationId;
-                        """,
-                        new { AutomationId = automationId },
-                        cancellationToken: cancellationToken));
+                await Cleanup(connection, automationId);
             }
         }
 
         [Fact]
-        public async Task EventAlreadyProcessedAsync_ReturnsCorrectValue_WhenUsed()
+        public async Task EventAlreadyProcessedAsync_WhenUsed_ReturnsCorrectValue()
         {
             // Arrange
             var cancellationToken = TestContext.Current.CancellationToken;
@@ -130,17 +120,7 @@ namespace AutomationStation.Integration.Tests.Messaging
             finally
             {
                 // Cleanup
-                await connection.ExecuteAsync(
-                    new CommandDefinition(
-                        """
-                        DELETE FROM AutomationHistory
-                        WHERE AutomationId = @AutomationId;
-
-                        DELETE FROM Automations
-                        WHERE Id = @AutomationId;
-                        """,
-                        new { AutomationId = automationId },
-                        cancellationToken: cancellationToken));
+                await Cleanup(connection, automationId);
             }
         }
 
@@ -187,6 +167,26 @@ namespace AutomationStation.Integration.Tests.Messaging
             return new EvaluationContext(
                 automation,
                 integrationEvent);
+        }
+
+        private static async Task Cleanup(
+            DbConnection connection,
+            Guid automationId)
+        {
+            await connection.ExecuteAsync(
+                    new CommandDefinition(
+                        """
+                        DELETE FROM AutomationHistory
+                        WHERE AutomationId = @AutomationId;
+                        
+                        DELETE FROM Automations
+                        WHERE Id = @AutomationId;
+                        """,
+                        new
+                        {
+                            AutomationId = automationId,
+                        },
+                        cancellationToken: CancellationToken.None));
         }
     }
 }

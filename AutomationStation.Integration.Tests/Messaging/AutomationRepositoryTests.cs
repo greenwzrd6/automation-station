@@ -13,7 +13,7 @@ namespace AutomationStation.Integration.Tests.Messaging
             database.ConnectionFactory);
 
         [Fact]
-        public async Task Returns_AutomationsEnabledByEvent_WhenUsingGetEnabledByEventTypeAsync()
+        public async Task GetEnabledByEventTypeAsync_WhenUsed_ShouldReturnAutomationsEnabledByEvent()
         {
             // Arrange
             var cancellationToken = TestContext.Current.CancellationToken;
@@ -47,30 +47,7 @@ namespace AutomationStation.Integration.Tests.Messaging
             finally
             {
                 // Cleanup
-                await connection.ExecuteAsync(
-                    new CommandDefinition(
-                        """
-                        DELETE FROM AutomationActions
-                        WHERE AutomationId = @AutomationId;
-
-                        DELETE FROM AutomationExecutors
-                        WHERE Id = @ExecutorId;
-
-                        DELETE FROM AutomationConditions
-                        WHERE AutomationId = @AutomationId;
-
-                        DELETE FROM AutomationTriggers
-                        WHERE AutomationId = @AutomationId;
-
-                        DELETE FROM Automations
-                        WHERE Id = @AutomationId;
-                        """,
-                        new
-                        {
-                            AutomationId = automationId,
-                            ExecutorId = executorId
-                        },
-                        cancellationToken: CancellationToken.None));
+                await Cleanup(connection, automationId, executorId);
             }
         }
 
@@ -176,6 +153,37 @@ namespace AutomationStation.Integration.Tests.Messaging
                             """
                     },
                     cancellationToken: cancellationToken));
+        }
+
+        private static async Task Cleanup(
+            DbConnection connection,
+            Guid automationId,
+            Guid? executorId = null)
+        {
+            await connection.ExecuteAsync(
+                    new CommandDefinition(
+                        """
+                        DELETE FROM AutomationActions
+                        WHERE AutomationId = @AutomationId;
+
+                        DELETE FROM AutomationExecutors
+                        WHERE Id = @ExecutorId;
+
+                        DELETE FROM AutomationConditions
+                        WHERE AutomationId = @AutomationId;
+
+                        DELETE FROM AutomationTriggers
+                        WHERE AutomationId = @AutomationId;
+
+                        DELETE FROM Automations
+                        WHERE Id = @AutomationId;
+                        """,
+                        new
+                        {
+                            AutomationId = automationId,
+                            ExecutorId = executorId
+                        },
+                        cancellationToken: CancellationToken.None));
         }
     }
 }

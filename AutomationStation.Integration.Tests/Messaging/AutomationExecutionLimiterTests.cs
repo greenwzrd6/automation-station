@@ -2,11 +2,11 @@
 using AutomationStation.Application.Models;
 using AutomationStation.Core.Automations;
 using AutomationStation.Core.Automations.Systems;
-using AutomationStation.Infrastructure.Persistence;
 using AutomationStation.Infrastructure.RateLimiting;
 using AutomationStation.Integration.Tests.Fixtures;
-using System.Text.Json;
 using Dapper;
+using System.Data.Common;
+using System.Text.Json;
 
 namespace AutomationStation.Integration.Tests.Messaging
 {
@@ -24,7 +24,7 @@ namespace AutomationStation.Integration.Tests.Messaging
                 database.ConnectionFactory);
 
         [Fact]
-        public async Task TryRecordExecutionAsync_ShouldRejectNextExecution_WhenCorrelationReachesAutomationLimit()
+        public async Task TryRecordExecutionAsync_WhenCorrelationReachesAutomationLimit_ShouldRejectNextExecution()
         {
             // Arrange
             var cancellationToken = TestContext.Current.CancellationToken;
@@ -120,17 +120,7 @@ namespace AutomationStation.Integration.Tests.Messaging
             finally
             {
                 // Cleanup
-                await connection.ExecuteAsync(
-                    new CommandDefinition(
-                    """
-                    DELETE FROM AutomationHistory
-                    WHERE AutomationId = @AutomationId;
-
-                    DELETE FROM Automations
-                    WHERE Id = @AutomationId;
-                    """,
-                    new { AutomationId = automationId },
-                    cancellationToken: CancellationToken.None));
+                await Cleanup(connection, automationId);
             }
         }
 
@@ -160,6 +150,26 @@ namespace AutomationStation.Integration.Tests.Messaging
             return new EvaluationContext(
                 automation,
                 integrationEvent);
+        }
+
+        private static async Task Cleanup(
+            DbConnection connection,
+            Guid automationId)
+        {
+            await connection.ExecuteAsync(
+                    new CommandDefinition(
+                        """
+                        DELETE FROM AutomationHistory
+                        WHERE AutomationId = @AutomationId;
+                        
+                        DELETE FROM Automations
+                        WHERE Id = @AutomationId;
+                        """,
+                        new
+                        {
+                            AutomationId = automationId,
+                        },
+                        cancellationToken: CancellationToken.None));
         }
     }
 }
