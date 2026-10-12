@@ -10,7 +10,7 @@ namespace AutomationStation.Unit.Tests.Infrastructure.Systems
     public class KanbanClientTests
     {
         [Fact]
-        public async Task CreatePlacement_WithValidEndpoint_SendsPostRequest()
+        public async Task CreatePlacementAsync_WithValidEndpoint_SendsPostRequest()
         {
             // Arrange
             var handler = CreateHandler();
@@ -40,7 +40,7 @@ namespace AutomationStation.Unit.Tests.Infrastructure.Systems
         }
 
         [Fact]
-        public async Task CreatePlacement_WithInvalidEndpoint_ThrowsException()
+        public async Task CreatePlacementAsync_WhenResponseIsUnsuccessful_ThrowsException()
         {
             // Arrange
             var handler = CreateHandler();
@@ -57,26 +57,32 @@ namespace AutomationStation.Unit.Tests.Infrastructure.Systems
 
             var context = CreateContext();
 
-            // Act & Assert
-            await Assert.ThrowsAsync<HttpRequestException>(
+            // Act
+            var exception = await Assert.ThrowsAsync<HttpRequestException>(
                 () => kc.CreatePlacementAsync(
                     Guid.Empty,
                     Guid.Empty,
                     Guid.Empty,
                     context,
                     CancellationToken.None));
+
+            // Assert
+            Assert.Contains("500", exception.Message);
         }
 
         [Fact]
-        public async Task CreatePlacement_WhenCalled_SendsHeaders()
+        public async Task CreatePlacementAsync_WhenCalled_SendsHeaders()
         {
             // Arrange
             var handler = CreateHandler();
+
             using var httpClient = new HttpClient(handler)
             {
                 BaseAddress = new Uri("https://localhost")
             };
+
             var kc = new KanbanClient(httpClient);
+
             var context = CreateContext();
 
             // Act

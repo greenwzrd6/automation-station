@@ -20,12 +20,12 @@ public sealed class TojClient(
             $"api/automation/tasks/{sourceTaskId}");
 
         request.Headers.Add(
-            "Automation-Executor-Id",
+            "Idempotency-Key",
             executorId.ToString());
 
         request.Content = JsonContent.Create(body);
 
-        var response = await httpClient.SendAsync(
+        using var response = await httpClient.SendAsync(
             request,
             cancellationToken);
 
@@ -54,16 +54,18 @@ public sealed class TojClient(
             $"api/automation/tasks/{taskId}/status");
 
         request.Headers.Add(
-            "Automation-Executor-Id",
+            "Idempotency-Key",
             executorId.ToString());
 
         request.Content = JsonContent.Create(body);
 
-        var response = await httpClient.SendAsync(
+        using var response = await httpClient.SendAsync(
             request,
             cancellationToken);
+
         var responseBody = await response.Content.ReadAsStringAsync(
                 cancellationToken);
+
         if (!response.IsSuccessStatusCode)
         {
             throw new HttpRequestException(
