@@ -27,7 +27,7 @@ namespace AutomationStation.Infrastructure.Persistence
                 cancellationToken: cancellationToken);
         }
 
-        internal async Task CreateAutomationTimestampAsync(
+        internal static async Task CreateAutomationTimestampAsync(
             EvaluationContext context,
             DbConnection connection,
             DbTransaction? transaction,

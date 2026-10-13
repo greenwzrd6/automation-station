@@ -9,57 +9,76 @@ namespace AutomationStation.Unit.Tests.Application.Policies;
 public class AutomationTriggerablePolicyTests
 {
     [Fact]
-    public async Task Evaluate_AutomationTriggerableTrue_IsAllowed()
+    public void Evaluate_AutomationTriggerableTrue_IsAllowed()
     {
         // Arrange
         var policy = new AutomationTriggerablePolicy();
+
         var context = CreateContext(
             automationTriggerable: true,
             actorType: "Automation");
 
         // Act
-        var result = await policy.EvaluateAsync(
-            context,
-            CancellationToken.None);
+        var result = policy.Evaluate(context);
 
         // Assert
         Assert.True(result.Allowed);
     }
 
     [Fact]
-    public async Task Evaluate_AutomationTriggerableFalseWithUserAsActor_IsAllowed()
+    public void Evaluate_AutomationTriggerableFalseWithUserAsActor_IsAllowed()
     {
         // Arrange
         var policy = new AutomationTriggerablePolicy();
+
         var context = CreateContext(
             automationTriggerable: false,
             actorType: "User");
 
         // Act
-        var result = await policy.EvaluateAsync(
-            context,
-            CancellationToken.None);
+        var result = policy.Evaluate(context);
 
         // Assert
         Assert.True(result.Allowed);
     }
 
     [Fact]
-    public async Task Evaluate_AutomationTriggerableFalseWithAutomationAsActor_IsBlocked()
+    public void Evaluate_AutomationTriggerableFalseWithAutomationAsActor_IsBlocked()
     {
         // Arrange
         var policy = new AutomationTriggerablePolicy();
+
         var context = CreateContext(
             automationTriggerable: false,
             actorType: "Automation");
 
         // Act
-        var result = await policy.EvaluateAsync(
-            context,
-            CancellationToken.None);
+        var result = policy.Evaluate(context);
 
         // Assert
         Assert.False(result.Allowed);
+    }
+
+    [Theory]
+    [InlineData("Automation")]
+    [InlineData("automation")]
+    [InlineData("AUTOMATION")]
+    [InlineData("aUtOmAtIoN")]
+    public void Evaluate_AutomationActorTypeIsCaseInsensitive_IsAllowed(
+        string actorType)
+    {
+        // Arrange
+        var policy = new AutomationTriggerablePolicy();
+
+        var context = CreateContext(
+            automationTriggerable: true,
+            actorType: actorType);
+
+        // Act
+        var result = policy.Evaluate(context);
+
+        // Assert
+        Assert.True(result.Allowed);
     }
 
     private static EvaluationContext CreateContext(
@@ -67,29 +86,29 @@ public class AutomationTriggerablePolicyTests
             string actorType)
     {
         var when = new When(
-            "TestEvent",
+            "Test When",
             SourceSystem.Kanban,
             []);
 
         var thens = new[]
         {
             new Then(
-                "TestAction",
+                "Test Then",
                 TargetSystem.Kanban,
-                null,
+                Guid.NewGuid(),
                 new Dictionary<string, string>())
             };
 
         var automation = new Automation(
-            Guid.NewGuid(),
-            "TestAutomation",
+            Guid.Empty,
+            "Test Automation",
             true,
             automationTriggerable,
             when,
             thens);
 
         var actor = new Actor(
-            "",
+            Guid.NewGuid().ToString(),
             actorType);
 
         var payload = System.Text.Json.JsonDocument
@@ -99,11 +118,11 @@ public class AutomationTriggerablePolicyTests
 
         var integrationEvent = new IntegrationEvent(
             Guid.NewGuid(),
-            "TestEvent",
+            "Test Event",
             SourceSystem.Kanban,
             0,
             Guid.NewGuid(),
-            null,
+            Guid.NewGuid(),
             actor,
             payload);
 

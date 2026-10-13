@@ -15,7 +15,10 @@ namespace AutomationStation.Unit.Tests.Infrastructure.Actions
             var targetSystem = TargetSystem.Kanban;
 
             // Act
-            var result = _ac.TryGet(actionType, targetSystem, out var entry);
+            var result = _ac.TryGet(
+                actionType, 
+                targetSystem, 
+                out var entry);
 
             // Assert
             Assert.True(result);
@@ -23,18 +26,23 @@ namespace AutomationStation.Unit.Tests.Infrastructure.Actions
             Assert.Equal(targetSystem, entry.TargetSystem);
         }
 
-        [Fact]
-        public void TryGet_ValidActionInvalidTargetSystem_ReturnsFalse()
+        [Theory]
+        [InlineData("CreatePlacement", TargetSystem.TojSystem)]
+        [InlineData("CreateTask", TargetSystem.Kanban)]
+        [InlineData("UpdateTaskStatus", TargetSystem.Kanban)]
+        public void TryGet_ValidActionWrongTargetSystem_ReturnsFalse(
+            string actionType,
+            TargetSystem targetSystem)
         {
-            // Arrange
-            var actionType = "CreatePlacement";
-            var targetSystem = TargetSystem.TojSystem;
-
             // Act
-            var result = _ac.TryGet(actionType, targetSystem, out var entry);
+            var result = _ac.TryGet(
+                actionType,
+                targetSystem,
+                out var entry);
 
             // Assert
             Assert.False(result);
+            Assert.Null(entry);
         }
 
         [Fact]
@@ -45,40 +53,61 @@ namespace AutomationStation.Unit.Tests.Infrastructure.Actions
             var targetSystem = TargetSystem.Kanban;
 
             // Act
-            var result = _ac.TryGet(actionType, targetSystem, out var entry);
+            var result = _ac.TryGet(
+                actionType, 
+                targetSystem, 
+                out var entry);
 
             // Assert
             Assert.False(result);
+            Assert.Null(entry);
         }
 
-        [Fact]
-        public void TryGet_CorrectProperties_ReturnsEntries()
+        [Theory]
+        [InlineData("CreatePlacement", TargetSystem.Kanban, 100, 1)]
+        [InlineData("CreateTask", TargetSystem.TojSystem, 10, 1)]
+        [InlineData("UpdateTaskStatus", TargetSystem.TojSystem, 100, 1)]
+        public void TryGet_ValidEntry_ReturnsCorrectConfiguration(
+            string actionType,
+            TargetSystem targetSystem,
+            int permittedActions,
+            int rateLimitWindow)
         {
-            // Arrange
-            var actionType1 = "CreatePlacement";
-            var actionType2 = "CreateTask";
-            var actionType3 = "UpdateTaskStatus";
-
-            var targetSystem = TargetSystem.Kanban;
-            var targetSystem2 = TargetSystem.TojSystem;
-
             // Act
-            var result1 = _ac.TryGet(actionType1, targetSystem, out var entry);
-            var result2 = _ac.TryGet(actionType2, targetSystem2, out var entry2);
-            var result3 = _ac.TryGet(actionType3, targetSystem2, out var entry3);
+            var result = _ac.TryGet(
+                actionType,
+                targetSystem,
+                out var entry);
 
             // Assert
-            Assert.True(result1);
-            Assert.Equal(100, entry.PermittedActions);
-            Assert.Equal(TimeSpan.FromMinutes(1), entry.RateLimitWindow);
+            Assert.True(result);
+            Assert.Equal(actionType, entry.ActionType);
+            Assert.Equal(targetSystem, entry.TargetSystem);
+            Assert.Equal(permittedActions, entry.PermittedActions);
+            Assert.Equal(TimeSpan.FromMinutes(rateLimitWindow), entry.RateLimitWindow);
+        }
 
-            Assert.True(result2);
-            Assert.Equal(10, entry2.PermittedActions);
-            Assert.Equal(TimeSpan.FromMinutes(1), entry2.RateLimitWindow);
+        [Theory]
+        [InlineData("CreatePlacement")]
+        [InlineData("createplacement")]
+        [InlineData("CREATEPLACEMENT")]
+        [InlineData("cReAtEpLaCeMeNt")]
+        public void TryGet_ActionTypeIsCaseInsensitive_ReturnsEntry(
+            string actionType)
+        {
+            // Arrange
+            var targetSystem = TargetSystem.Kanban;
 
-            Assert.True(result3);
-            Assert.Equal(100, entry3.PermittedActions);
-            Assert.Equal(TimeSpan.FromMinutes(1), entry3.RateLimitWindow);
+            // Act
+            var result = _ac.TryGet(
+                actionType,
+                targetSystem,
+                out var entry);
+
+            // Assert
+            Assert.True(result);
+            Assert.Equal("CreatePlacement", entry.ActionType);
+            Assert.Equal(targetSystem, entry.TargetSystem);
         }
     }
 }
