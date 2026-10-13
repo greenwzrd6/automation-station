@@ -8,6 +8,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove="Actions\**" />
+	  <EmbeddedResource Remove="Actions\**" />
+	  <None Remove="Actions\**" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="coverlet.collector" Version="10.1.0">
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -41,10 +47,6 @@
 
 	<ItemGroup>
 		<None Include="..\AutomationStation.Infrastructure\Migrations\V1__create_tables.sql" Link="Database\V1__create_tables.sql" CopyToOutputDirectory="PreserveNewest" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Actions\" />
 	</ItemGroup>
 
 </Project>

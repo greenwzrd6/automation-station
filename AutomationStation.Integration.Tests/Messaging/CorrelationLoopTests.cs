@@ -2,8 +2,8 @@
 using AutomationStation.Application.Models;
 using AutomationStation.Core.Automations;
 using AutomationStation.Core.Automations.Systems;
+using AutomationStation.Infrastructure.Limiting;
 using AutomationStation.Infrastructure.Persistence;
-using AutomationStation.Infrastructure.RateLimiting;
 using AutomationStation.Integration.Tests.Fixtures;
 using Dapper;
 using System.Text.Json;

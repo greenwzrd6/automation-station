@@ -6,7 +6,7 @@ using AutomationStation.Infrastructure.Actions.Executors;
 using AutomationStation.Infrastructure.Database;
 using AutomationStation.Infrastructure.Integrations.Kanban;
 using AutomationStation.Infrastructure.Persistence;
-using AutomationStation.Infrastructure.RateLimiting;
+using AutomationStation.Infrastructure.Limiting;
 using AutomationStation.Infrastructure.Integrations.Toj;
 using AutomationStation.Worker;
 

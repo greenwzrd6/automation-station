@@ -5,7 +5,7 @@ using AutomationStation.Infrastructure.Database;
 using AutomationStation.Application.Models;
 using AutomationStation.Infrastructure.Persistence;
 
-namespace AutomationStation.Infrastructure.RateLimiting
+namespace AutomationStation.Infrastructure.Limiting
 {
     public sealed class AutomationExecutionLimiter(
         DbConnectionFactory connectionFactory,
