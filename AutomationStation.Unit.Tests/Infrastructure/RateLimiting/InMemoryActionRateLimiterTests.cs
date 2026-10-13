@@ -13,7 +13,6 @@ namespace AutomationStation.Unit.Tests.Infrastructure.RateLimiting
         {
             // Arrange
             var limiter = CreateLimiter();
-
             var key = CreateKey();
 
             // Act
@@ -32,7 +31,6 @@ namespace AutomationStation.Unit.Tests.Infrastructure.RateLimiting
         {
             // Arrange
             var limiter = CreateLimiter();
-
             var key = CreateKey();
 
             await limiter.WaitAsync(
@@ -42,14 +40,14 @@ namespace AutomationStation.Unit.Tests.Infrastructure.RateLimiting
                 CancellationToken.None);
 
             // Act
-            var blockedAction = limiter.WaitAsync(
+            var blockedTask = limiter.WaitAsync(
                 key,
                 permittedActions: 1,
                 window: _window,
                 CancellationToken.None);
 
             // Assert
-            Assert.False(blockedAction.IsCompletedSuccessfully);
+            Assert.False(blockedTask.IsCompletedSuccessfully);
         }
 
         [Fact]
@@ -57,7 +55,6 @@ namespace AutomationStation.Unit.Tests.Infrastructure.RateLimiting
         {
             // Arrange
             var limiter = CreateLimiter();
-
             var key = CreateKey();
 
             await limiter.WaitAsync(
@@ -69,14 +66,71 @@ namespace AutomationStation.Unit.Tests.Infrastructure.RateLimiting
             // Act
             _timeProvider.Advance(_window);
 
-            var action = limiter.WaitAsync(
+            var task = limiter.WaitAsync(
                 key,
                 permittedActions: 1,
                 window: _window,
                 CancellationToken.None);
 
             // Assert
-            Assert.True(action.IsCompletedSuccessfully);
+            Assert.True(task.IsCompletedSuccessfully);
+        }
+
+        [Fact]
+        public async Task WaitAsync_WithDifferentKeys_AreAllowed()
+        {
+            // Arrange
+            var limiter = CreateLimiter();
+            var key1 = CreateKey();
+            var key2 = new ActionRateLimitKey(
+                CompanyId: 1,
+                ActionType: "CreatePlacement",
+                TargetSystem: TargetSystem.Kanban);
+
+            // Act
+            var task1 = limiter.WaitAsync(
+                key1,
+                permittedActions: 1,
+                window: _window,
+                CancellationToken.None);
+
+            var task2 = limiter.WaitAsync(
+                key2,
+                permittedActions: 1,
+                window: _window,
+                CancellationToken.None);
+
+            // Assert
+            Assert.True(task1.IsCompletedSuccessfully);
+            Assert.True(task2.IsCompletedSuccessfully);
+        }
+
+        [Fact]
+        public async Task WaitAsync_WhenCancelled_ThrowsException()
+        {
+            // Arrange
+            var limiter = CreateLimiter();
+            var key = CreateKey();
+
+            using var cts = new CancellationTokenSource();
+
+            await limiter.WaitAsync(
+                key,
+                permittedActions: 1,
+                window: _window,
+                CancellationToken.None);
+
+            // Act
+            var task = limiter.WaitAsync(
+                key,
+                permittedActions: 1,
+                window: _window,
+                cts.Token);
+
+            cts.Cancel();
+
+            // Assert
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await task);
         }
 
         private static readonly TimeSpan _window = TimeSpan.FromMinutes(1);
