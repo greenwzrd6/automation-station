@@ -1,10 +1,10 @@
 ﻿using Microsoft.Extensions.Time.Testing;
 
 using AutomationStation.Application.Abstractions;
-using AutomationStation.Infrastructure.RateLimiting;
+using AutomationStation.Infrastructure.Limiting;
 using AutomationStation.Core.Automations.Systems;
 
-namespace AutomationStation.Unit.Tests.Infrastructure.RateLimiting
+namespace AutomationStation.Unit.Tests.Infrastructure.Limiting
 {
     public sealed class InMemoryActionRateLimiterTests
     {
