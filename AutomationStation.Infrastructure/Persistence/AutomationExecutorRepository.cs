@@ -1,4 +1,5 @@
 ﻿using AutomationStation.Application.Abstractions;
+using AutomationStation.Application.Models;
 using AutomationStation.Infrastructure.Database;
 using Dapper;
 
@@ -8,7 +9,7 @@ public sealed class AutomationExecutorRepository(
     DbConnectionFactory connectionFactory)
     : IAutomationExecutorRepository
 {
-    public async Task<bool> IsEnabledAsync(
+    public async Task<AutomationExecutor?> GetByIdAsync(
         Guid executorId,
         CancellationToken cancellationToken)
     {
@@ -16,21 +17,14 @@ public sealed class AutomationExecutorRepository(
             connectionFactory.CreateConnection();
 
         const string sql = """
-            SELECT CAST(
-                CASE WHEN EXISTS
-                (
-                    SELECT 1
+          
+                    SELECT Id, CompanyId, Enabled
                     FROM AutomationExecutors
                     WHERE Id = @ExecutorId
-                      AND Enabled = 1
-                )
-                THEN 1
-                ELSE 0
-                END
-                AS BIT);
+                      AND Enabled = 1;
             """;
 
-        return await connection.ExecuteScalarAsync<bool>(
+        return await connection.QueryFirstOrDefaultAsync<AutomationExecutor>(
             new CommandDefinition(
                 sql,
                 new { ExecutorId = executorId },
