@@ -39,13 +39,8 @@ public sealed class ActionExecutor(
             throw new InvalidOperationException(
                 "Event context is required for action execution.");
         }
-
-        // change to <= in next rendition
-        if (context.Event.CompanyId < 0)
-        {
-            throw new InvalidOperationException(
-                "Invalid company ID.");
-        }
+        
+        var companyId = context.Event.CompanyId;
 
         if (then.TargetSystem == TargetSystem.TojSystem)
         {
@@ -56,16 +51,23 @@ public sealed class ActionExecutor(
                     "TOJ actions require a valid executor.");
             }
 
-            var executorIsEnabled =
-                await executorRepository.IsEnabledAsync(
-                    then.ExecutorId.Value,
-                    cancellationToken);
+            var executor = await executorRepository.GetByIdAsync(
+                then.ExecutorId.Value,
+                cancellationToken);
 
-            if (!executorIsEnabled)
+            if (executor is null || !executor.Enabled)
             {
                 throw new InvalidOperationException(
                     "The automation executor does not exist or is disabled.");
             }
+
+            if (executor.CompanyId <= 0)
+            {
+                throw new InvalidOperationException(
+                    "Invalid company ID.");
+            }
+
+            companyId = executor.CompanyId;
         }
 
 
@@ -81,7 +83,7 @@ public sealed class ActionExecutor(
 
         await _rateLimiter.WaitAsync(
             new ActionRateLimitKey(
-                CompanyId: context.Event.CompanyId,
+                CompanyId: companyId,
                 ActionType: then.Type,
                 TargetSystem: then.TargetSystem),
                 permittedActions: catalogEntry.PermittedActions,

@@ -218,41 +218,45 @@ public sealed class ActionExecutorTests
         Assert.Equal(0, rateLimiter.CallCount);
     }
 
-    //[Fact]
-    //public async Task ExecuteAsync_CreateTaskToToj_InvalidCompanyId_IsBlocked()
-    //{
-    //    // Arrange
-    //    var handler = new FakeActionHandler(
-    //        actionType: "CreateTask",
-    //        targetSystem: TargetSystem.TojSystem);
-    //    var rateLimiter = new FakeActionRateLimiter();
-    //    var automationExecutorRepository = new FakeAutomationExecutorRepository();
-    //    var executor = new ActionExecutor(
-    //        [handler],
-    //        rateLimiter,
-    //        new ActionCatalog(),
-    //        automationExecutorRepository);
-    //    var then = new Then(
-    //        Type: "CreateTask",
-    //        TargetSystem: TargetSystem.TojSystem,
-    //        ExecutorId: null,
-    //        Parameters: new Dictionary<string, string>());
-    //    var context = CreateContext(companyId: 0);
-    //    // Act
-    //    var exception =
-    //        await Assert.ThrowsAsync<InvalidOperationException>(
-    //            () => executor.ExecuteAsync(
-    //                then,
-    //                context,
-    //                CancellationToken.None));
-    //    // Assert
-    //    Assert.Contains(
-    //        "company",
-    //        exception.Message,
-    //        StringComparison.OrdinalIgnoreCase);
-    //    Assert.Equal(0, handler.ExecutionCount);
-    //    Assert.Equal(0, rateLimiter.CallCount);
-    //}
+    [Fact]
+    public async Task ExecuteAsync_CreateTaskToToj_InvalidCompanyId_IsBlocked()
+    {
+        // Arrange
+        var handler = new FakeActionHandler(
+            actionType: "CreateTask",
+            targetSystem: TargetSystem.TojSystem);
+        var rateLimiter = new FakeActionRateLimiter();
+        var automationExecutorRepository = 
+            new FakeAutomationExecutorRepository
+            {
+                CompanyIdResult = 0
+            };
+        var executor = new ActionExecutor(
+            [handler],
+            rateLimiter,
+            new ActionCatalog(),
+            automationExecutorRepository);
+        var then = new Then(
+            Type: "CreateTask",
+            TargetSystem: TargetSystem.TojSystem,
+            ExecutorId: Guid.NewGuid(),
+            Parameters: new Dictionary<string, string>());
+        var context = CreateContext();
+        // Act
+        var exception =
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                () => executor.ExecuteAsync(
+                    then,
+                    context,
+                    CancellationToken.None));
+        // Assert
+        Assert.Contains(
+            "company",
+            exception.Message,
+            StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(0, handler.ExecutionCount);
+        Assert.Equal(0, rateLimiter.CallCount);
+    }
 
     [Fact]
     public async Task ExecuteAsync_WithDisabledExecutor_IsBlocked()
@@ -407,14 +411,21 @@ public sealed class ActionExecutorTests
 
         public Guid? LastExecutorId { get; private set; }
 
-        public Task<bool> IsEnabledAsync(
+        public int CompanyIdResult { get; set; } = 1;
+
+
+        public Task<AutomationExecutor?> GetByIdAsync(
             Guid executorId,
             CancellationToken cancellationToken)
         {
             CallCount++;
             LastExecutorId = executorId;
 
-            return Task.FromResult(IsEnabledResult);
+            return Task.FromResult<AutomationExecutor?>(
+                new AutomationExecutor(
+                    Id: executorId,
+                    CompanyId: CompanyIdResult,
+                    Enabled: IsEnabledResult));
         }
     }
 }

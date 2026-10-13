@@ -440,19 +440,22 @@ namespace AutomationStation.Integration.Tests.Persistence
             : IAutomationExecutorRepository
         {
             public bool IsEnabledResult { get; set; } = true;
-
+            public int CompanyIdResult { get; set; } = 1;
             public int CallCount { get; private set; }
-
             public Guid? LastExecutorId { get; private set; }
 
-            public Task<bool> IsEnabledAsync(
+            public Task<AutomationExecutor?> GetByIdAsync(
                 Guid executorId,
                 CancellationToken cancellationToken)
             {
                 CallCount++;
                 LastExecutorId = executorId;
 
-                return Task.FromResult(IsEnabledResult);
+                return Task.FromResult<AutomationExecutor?>(
+                    new AutomationExecutor(
+                        Id: executorId,
+                        CompanyId: CompanyIdResult,
+                        Enabled: IsEnabledResult));
             }
         }
     }
