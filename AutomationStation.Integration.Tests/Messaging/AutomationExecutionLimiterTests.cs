@@ -2,7 +2,7 @@
 using AutomationStation.Application.Models;
 using AutomationStation.Core.Automations;
 using AutomationStation.Core.Automations.Systems;
-using AutomationStation.Infrastructure.RateLimiting;
+using AutomationStation.Infrastructure.Limiting;
 using AutomationStation.Integration.Tests.Fixtures;
 using Dapper;
 using System.Data.Common;
