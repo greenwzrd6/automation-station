@@ -1,5 +1,11 @@
 ﻿namespace AutomationStation.Core.Automations
 {
+    /// <summary>
+    /// Record <c>Condition</c> represents a condition used inside of a <see cref="When"/>.
+    /// </summary>
+    /// <param name="Field">The event field to check, such as columnId.</param>
+    /// <param name="Operator">The type of comparison to perform. See <see cref="ConditionOperator"/>.</param>
+    /// <param name="Value">The expected value to compare against.</param>
     public sealed record Condition(
         string Field,
         ConditionOperator Operator,
