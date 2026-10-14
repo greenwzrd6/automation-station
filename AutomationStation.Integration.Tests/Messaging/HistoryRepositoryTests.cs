@@ -15,11 +15,22 @@ namespace AutomationStation.Integration.Tests.Messaging
     /// </summary>
     /// <param name="database">Primary constructor for <c>DatabaseFixture</c></param>
     [Collection(DatabaseCollection.Name)]
-    public sealed class HistoryRepositoryTests(DatabaseFixture database)
+    public sealed class HistoryRepositoryTests(DatabaseFixture database) : IAsyncLifetime
     {
         private readonly DatabaseFixture _database = database;
         private readonly HistoryRepository _repository = new(
             database.ConnectionFactory);
+
+        public async ValueTask InitializeAsync()
+        {
+            await _database.ResetAsync();
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            GC.SuppressFinalize(this);
+            return ValueTask.CompletedTask;
+        }
 
         [Fact]
         public async Task CreateAutomationTimestampAsync_WhenUsed_CreatesCorrectAutomationHistory()
@@ -35,47 +46,39 @@ namespace AutomationStation.Integration.Tests.Messaging
             using var connection = _database.ConnectionFactory.CreateConnection();
             await connection.OpenAsync(cancellationToken);
 
-            try
-            {
-                // Fake automation
-                await InsertAutomationAsync(connection, automationId, cancellationToken);
+            // Fake automation
+            await InsertAutomationAsync(connection, automationId, cancellationToken);
 
-                var beforeInsert = await connection.QuerySingleAsync<DateTime>(
-                    new CommandDefinition(
-                        "SELECT SYSUTCDATETIME();",
-                        cancellationToken: cancellationToken));
+            var beforeInsert = await connection.QuerySingleAsync<DateTime>(
+                new CommandDefinition(
+                    "SELECT SYSUTCDATETIME();",
+                    cancellationToken: cancellationToken));
 
-                // Act
-                // Insert into history
-                await _repository.CreateAutomationTimestampAsync(
-                    context,
-                    cancellationToken);
+            // Act
+            // Insert into history
+            await _repository.CreateAutomationTimestampAsync(
+                context,
+                cancellationToken);
 
-                // Assert
-                var afterInsert = await connection.QuerySingleAsync<DateTime>(
-                    new CommandDefinition(
-                        "SELECT SYSUTCDATETIME();",
-                        cancellationToken: cancellationToken));
+            // Assert
+            var afterInsert = await connection.QuerySingleAsync<DateTime>(
+                new CommandDefinition(
+                    "SELECT SYSUTCDATETIME();",
+                    cancellationToken: cancellationToken));
 
-                var automationRow = await GetAutomationHistoryWithAutomationIdAsync(connection, automationId, cancellationToken);
+            var automationRow = await GetAutomationHistoryWithAutomationIdAsync(connection, automationId, cancellationToken);
 
-                Assert.Equal(automationId, automationRow.AutomationId);
+            Assert.Equal(automationId, automationRow.AutomationId);
 
-                Assert.Equal(correlationId, automationRow.CorrelationId);
+            Assert.Equal(correlationId, automationRow.CorrelationId);
 
-                Assert.Equal("-1", automationRow.ActorId);
+            Assert.Equal("-1", automationRow.ActorId);
 
-                Assert.NotEqual(Guid.Empty, automationRow.Id);
+            Assert.NotEqual(Guid.Empty, automationRow.Id);
 
-                Assert.Null(automationRow.CausationEventId);
+            Assert.Null(automationRow.CausationEventId);
 
-                Assert.InRange(automationRow.TriggeredAt, beforeInsert.AddSeconds(-1), afterInsert.AddSeconds(1));
-            }
-            finally
-            {
-                // Cleanup
-                await Cleanup(connection, automationId);
-            }
+            Assert.InRange(automationRow.TriggeredAt, beforeInsert.AddSeconds(-1), afterInsert.AddSeconds(1));
         }
 
         [Fact]
@@ -93,27 +96,19 @@ namespace AutomationStation.Integration.Tests.Messaging
             using var connection = _database.ConnectionFactory.CreateConnection();
             await connection.OpenAsync(cancellationToken);
 
-            try
-            {
-                // Fake automation
-                await InsertAutomationAsync(connection, automationId, cancellationToken);
+            // Fake automation
+            await InsertAutomationAsync(connection, automationId, cancellationToken);
 
-                // Act
-                // Insert into history
-                await _repository.CreateAutomationTimestampAsync(
-                    context,
-                    cancellationToken);
+            // Act
+            // Insert into history
+            await _repository.CreateAutomationTimestampAsync(
+                context,
+                cancellationToken);
 
-                // Assert
-                var automationRow = await GetAutomationHistoryWithAutomationIdAsync(connection, automationId, cancellationToken);
+            // Assert
+            var automationRow = await GetAutomationHistoryWithAutomationIdAsync(connection, automationId, cancellationToken);
 
-                Assert.Equal(causationEventId, automationRow.CausationEventId);
-            }
-            finally
-            {
-                // Cleanup
-                await Cleanup(connection, automationId);
-            }
+            Assert.Equal(causationEventId, automationRow.CausationEventId);
         }
 
         [Fact]
@@ -130,30 +125,22 @@ namespace AutomationStation.Integration.Tests.Messaging
             using var connection = _database.ConnectionFactory.CreateConnection();
             await connection.OpenAsync(cancellationToken);
 
-            try
-            {
-                // Fake automation
-                await InsertAutomationAsync(connection, automationId, cancellationToken);
+            // Fake automation
+            await InsertAutomationAsync(connection, automationId, cancellationToken);
 
-                // Insert into history
-                await _repository.CreateAutomationTimestampAsync(
-                    context,
-                    cancellationToken);
+            // Insert into history
+            await _repository.CreateAutomationTimestampAsync(
+                context,
+                cancellationToken);
 
-                // Act
-                var resultAfterInsert = await _repository.EventAlreadyProcessedAsync(
-                    automationId,
-                    CorrelationId: Guid.NewGuid(),
-                    cancellationToken);
+            // Act
+            var resultAfterInsert = await _repository.EventAlreadyProcessedAsync(
+                automationId,
+                CorrelationId: Guid.NewGuid(),
+                cancellationToken);
 
-                // Assert
-                Assert.False(resultAfterInsert);
-            }
-            finally
-            {
-                // Cleanup
-                await Cleanup(connection, automationId);
-            }
+            // Assert
+            Assert.False(resultAfterInsert);
         }
 
         [Fact]
@@ -170,30 +157,22 @@ namespace AutomationStation.Integration.Tests.Messaging
             using var connection = _database.ConnectionFactory.CreateConnection();
             await connection.OpenAsync(cancellationToken);
 
-            try
-            {
-                // Fake automation
-                await InsertAutomationAsync(connection, automationId, cancellationToken);
+            // Fake automation
+            await InsertAutomationAsync(connection, automationId, cancellationToken);
 
-                // Insert into history
-                await _repository.CreateAutomationTimestampAsync(
-                    context,
-                    cancellationToken);
+            // Insert into history
+            await _repository.CreateAutomationTimestampAsync(
+                context,
+                cancellationToken);
 
-                // Act
-                var resultAfterInsert = await _repository.EventAlreadyProcessedAsync(
-                    AutomationId: Guid.NewGuid(),
-                    correlationId,
-                    cancellationToken);
+            // Act
+            var resultAfterInsert = await _repository.EventAlreadyProcessedAsync(
+                AutomationId: Guid.NewGuid(),
+                correlationId,
+                cancellationToken);
 
-                //Assert
-                Assert.False(resultAfterInsert);
-            }
-            finally
-            {
-                // Cleanup
-                await Cleanup(connection, automationId);
-            }
+            //Assert
+            Assert.False(resultAfterInsert);
         }
 
         [Fact]
@@ -210,40 +189,32 @@ namespace AutomationStation.Integration.Tests.Messaging
             using var connection = _database.ConnectionFactory.CreateConnection();
             await connection.OpenAsync(cancellationToken);
 
-            try
-            {
-                // Fake automation
-                await InsertAutomationAsync(connection, automationId, cancellationToken);
+            // Fake automation
+            await InsertAutomationAsync(connection, automationId, cancellationToken);
 
-                // Act
-                var resultBeforeInsert = await _repository.EventAlreadyProcessedAsync(
-                    automationId,
-                    correlationId,
-                    cancellationToken);
-                
-                //Assert
-                Assert.False(resultBeforeInsert);
+            // Act
+            var resultBeforeInsert = await _repository.EventAlreadyProcessedAsync(
+                automationId,
+                correlationId,
+                cancellationToken);
 
-                // Arrange
-                // Insert into history
-                await _repository.CreateAutomationTimestampAsync(
-                    context,
-                    cancellationToken);
+            //Assert
+            Assert.False(resultBeforeInsert);
 
-                // Act
-                var resultAfterInsert = await _repository.EventAlreadyProcessedAsync(
-                    automationId,
-                    correlationId,
-                    cancellationToken);
+            // Arrange
+            // Insert into history
+            await _repository.CreateAutomationTimestampAsync(
+                context,
+                cancellationToken);
 
-                //Assert
-                Assert.True(resultAfterInsert);
-            }
-            finally
-            {
-                // Cleanup
-                await Cleanup(connection, automationId);
-            }
+            // Act
+            var resultAfterInsert = await _repository.EventAlreadyProcessedAsync(
+                automationId,
+                correlationId,
+                cancellationToken);
+
+            //Assert
+            Assert.True(resultAfterInsert);
         }
 
         private sealed record HistoryRow(
@@ -317,27 +288,5 @@ namespace AutomationStation.Integration.Tests.Messaging
                 automation,
                 integrationEvent);
         }
-
-        private static async Task Cleanup(
-            DbConnection connection,
-            Guid automationId)
-        {
-            await connection.ExecuteAsync(
-                    new CommandDefinition(
-                        """
-                        DELETE FROM AutomationHistory
-                        WHERE AutomationId = @AutomationId;
-                        
-                        DELETE FROM Automations
-                        WHERE Id = @AutomationId;
-                        """,
-                        new
-                        {
-                            AutomationId = automationId,
-                        },
-                        cancellationToken: CancellationToken.None));
-        }
-
-
     }
 }

@@ -13,11 +13,22 @@ namespace AutomationStation.Integration.Tests.Messaging
     /// </summary>
     /// <param name="database">Primary constructor for <c>DatabaseFixture</c></param>
     [Collection(DatabaseCollection.Name)]
-    public sealed class AutomationRepositoryTests(DatabaseFixture database)
+    public sealed class AutomationRepositoryTests(DatabaseFixture database) : IAsyncLifetime
     {
         private readonly DatabaseFixture _database = database;
         private readonly AutomationRepository _repository = new(
             database.ConnectionFactory);
+
+        public async ValueTask InitializeAsync()
+        {
+            await _database.ResetAsync();
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            GC.SuppressFinalize(this);
+            return ValueTask.CompletedTask;
+        }
 
         [Fact]
         public async Task GetEnabledByEventTypeAsync_WhenUsed_ShouldReturnAutomationsEnabledByEvent()
@@ -32,45 +43,37 @@ namespace AutomationStation.Integration.Tests.Messaging
             using var connection = _database.ConnectionFactory.CreateConnection();
             await connection.OpenAsync(cancellationToken);
 
-            try
-            {
-                // Fake insertions
-                await InsertAutomationAsync(connection, automationId, enabled: true, cancellationToken);
-                await InsertAutomationTriggerAsync(connection, automationId, eventType, cancellationToken);
-                await InsertAutomationConditionAsync(connection, automationId, cancellationToken);
-                await InsertAutomationActionAsync(connection, automationId, executorId, actionType: "Yes", executionOrder: 0, cancellationToken);
+            // Fake insertions
+            await InsertAutomationAsync(connection, automationId, enabled: true, cancellationToken);
+            await InsertAutomationTriggerAsync(connection, automationId, eventType, cancellationToken);
+            await InsertAutomationConditionAsync(connection, automationId, cancellationToken);
+            await InsertAutomationActionAsync(connection, automationId, executorId, actionType: "Yes", executionOrder: 0, cancellationToken);
 
-                // Act
-                var automations = await _repository.GetEnabledByEventTypeAsync(eventType, cancellationToken);
+            // Act
+            var automations = await _repository.GetEnabledByEventTypeAsync(eventType, cancellationToken);
 
-                // Assert
-                var automation = Assert.Single(
-                    automations,
-                    automation => automation.Id == automationId);
+            // Assert
+            var automation = Assert.Single(
+                automations,
+                automation => automation.Id == automationId);
 
-                Assert.Equal(eventType, automation.When.EventType);
-                Assert.True(automation.IsEnabled);
+            Assert.Equal(eventType, automation.When.EventType);
+            Assert.True(automation.IsEnabled);
 
-                var condition = Assert.Single(automation.When.Conditions);
+            var condition = Assert.Single(automation.When.Conditions);
 
-                Assert.Equal("columnId", condition.Field);
-                Assert.Equal(ConditionOperator.Equals, condition.Operator);
-                Assert.Equal("test-column", condition.Value);
+            Assert.Equal("columnId", condition.Field);
+            Assert.Equal(ConditionOperator.Equals, condition.Operator);
+            Assert.Equal("test-column", condition.Value);
 
-                var action = Assert.Single(automation.Thens);
+            var action = Assert.Single(automation.Thens);
 
-                Assert.Equal("Yes", action.Type);
-                Assert.Equal(TargetSystem.Kanban, action.TargetSystem);
-                Assert.Equal(executorId, action.ExecutorId);
+            Assert.Equal("Yes", action.Type);
+            Assert.Equal(TargetSystem.Kanban, action.TargetSystem);
+            Assert.Equal(executorId, action.ExecutorId);
 
-                Assert.Single(action.Parameters);
-                Assert.Equal("test-column", action.Parameters["columnId"]);
-            }
-            finally
-            {
-                // Cleanup
-                await Cleanup(connection, automationId, executorId);
-            }
+            Assert.Single(action.Parameters);
+            Assert.Equal("test-column", action.Parameters["columnId"]);
         }
 
         [Fact]
@@ -86,25 +89,17 @@ namespace AutomationStation.Integration.Tests.Messaging
             using var connection = _database.ConnectionFactory.CreateConnection();
             await connection.OpenAsync(cancellationToken);
 
-            try
-            {
-                // Fake insertions
-                await InsertAutomationAsync(connection, automationId, enabled: true, cancellationToken);
-                await InsertAutomationTriggerAsync(connection, automationId, eventType, cancellationToken);
-                await InsertAutomationConditionAsync(connection, automationId, cancellationToken);
-                await InsertAutomationActionAsync(connection, automationId, executorId, actionType: "Yes", executionOrder: 0, cancellationToken);
+            // Fake insertions
+            await InsertAutomationAsync(connection, automationId, enabled: true, cancellationToken);
+            await InsertAutomationTriggerAsync(connection, automationId, eventType, cancellationToken);
+            await InsertAutomationConditionAsync(connection, automationId, cancellationToken);
+            await InsertAutomationActionAsync(connection, automationId, executorId, actionType: "Yes", executionOrder: 0, cancellationToken);
 
-                // Act
-                var automations = await _repository.GetEnabledByEventTypeAsync("TestEsnentRype", cancellationToken);
+            // Act
+            var automations = await _repository.GetEnabledByEventTypeAsync("TestEsnentRype", cancellationToken);
 
-                // Assert
-                Assert.DoesNotContain(automations, automation => automation.Id == automationId);
-            }
-            finally
-            {
-                // Cleanup
-                await Cleanup(connection, automationId, executorId);
-            }
+            // Assert
+            Assert.DoesNotContain(automations, automation => automation.Id == automationId);
         }
 
         [Fact]
@@ -137,55 +132,45 @@ namespace AutomationStation.Integration.Tests.Messaging
             using var connection = _database.ConnectionFactory.CreateConnection();
             await connection.OpenAsync(cancellationToken);
 
-            try
-            {
-                // Fake insertions
-                await InsertAutomationAsync(connection, automationId1, enabled: true, cancellationToken);
-                await InsertAutomationTriggerAsync(connection, automationId1, eventType, cancellationToken);
-                await InsertAutomationConditionAsync(connection, automationId1, cancellationToken);
-                await InsertAutomationActionAsync(connection, automationId1, executorId1, actionType: "Yes", executionOrder: 0, cancellationToken);
+            // Fake insertions
+            await InsertAutomationAsync(connection, automationId1, enabled: true, cancellationToken);
+            await InsertAutomationTriggerAsync(connection, automationId1, eventType, cancellationToken);
+            await InsertAutomationConditionAsync(connection, automationId1, cancellationToken);
+            await InsertAutomationActionAsync(connection, automationId1, executorId1, actionType: "Yes", executionOrder: 0, cancellationToken);
 
-                await InsertAutomationAsync(connection, automationId2, enabled: true, cancellationToken);
-                await InsertAutomationTriggerAsync(connection, automationId2, eventType, cancellationToken);
-                await InsertAutomationConditionAsync(connection, automationId2, cancellationToken);
-                await InsertAutomationActionAsync(connection, automationId2, executorId2, actionType: "Yes", executionOrder: 0, cancellationToken);
+            await InsertAutomationAsync(connection, automationId2, enabled: true, cancellationToken);
+            await InsertAutomationTriggerAsync(connection, automationId2, eventType, cancellationToken);
+            await InsertAutomationConditionAsync(connection, automationId2, cancellationToken);
+            await InsertAutomationActionAsync(connection, automationId2, executorId2, actionType: "Yes", executionOrder: 0, cancellationToken);
 
-                await InsertAutomationAsync(connection, automationId3, enabled: true, cancellationToken);
-                await InsertAutomationTriggerAsync(connection, automationId3, eventType, cancellationToken);
-                await InsertAutomationConditionAsync(connection, automationId3, cancellationToken);
-                await InsertAutomationActionAsync(connection, automationId3, executorId3, actionType: "Yes", executionOrder: 0, cancellationToken);
+            await InsertAutomationAsync(connection, automationId3, enabled: true, cancellationToken);
+            await InsertAutomationTriggerAsync(connection, automationId3, eventType, cancellationToken);
+            await InsertAutomationConditionAsync(connection, automationId3, cancellationToken);
+            await InsertAutomationActionAsync(connection, automationId3, executorId3, actionType: "Yes", executionOrder: 0, cancellationToken);
 
-                // Act
-                var automations = await _repository.GetEnabledByEventTypeAsync(eventType, cancellationToken);
+            // Act
+            var automations = await _repository.GetEnabledByEventTypeAsync(eventType, cancellationToken);
 
-                // Assert
-                Assert.Equal(3, automations.Count);
+            // Assert
+            Assert.Equal(3, automations.Count);
 
-                var automation1 = Assert.Single(
-                    automations,
-                    automation => automation.Id == automationId1);
-                Assert.Equal(eventType, automation1.When.EventType);
-                Assert.True(automation1.IsEnabled);
+            var automation1 = Assert.Single(
+                automations,
+                automation => automation.Id == automationId1);
+            Assert.Equal(eventType, automation1.When.EventType);
+            Assert.True(automation1.IsEnabled);
 
-                var automation2 = Assert.Single(
-                    automations,
-                    automation => automation.Id == automationId2);
-                Assert.Equal(eventType, automation2.When.EventType);
-                Assert.True(automation2.IsEnabled);
+            var automation2 = Assert.Single(
+                automations,
+                automation => automation.Id == automationId2);
+            Assert.Equal(eventType, automation2.When.EventType);
+            Assert.True(automation2.IsEnabled);
 
-                var automation3 = Assert.Single(
-                    automations,
-                    automation => automation.Id == automationId3);
-                Assert.Equal(eventType, automation3.When.EventType);
-                Assert.True(automation3.IsEnabled);
-            }
-            finally
-            {
-                // Cleanup
-                await Cleanup(connection, automationId1, executorId1);
-                await Cleanup(connection, automationId2, executorId2);
-                await Cleanup(connection, automationId3, executorId3);
-            }
+            var automation3 = Assert.Single(
+                automations,
+                automation => automation.Id == automationId3);
+            Assert.Equal(eventType, automation3.When.EventType);
+            Assert.True(automation3.IsEnabled);
         }
 
         [Fact]
@@ -203,34 +188,24 @@ namespace AutomationStation.Integration.Tests.Messaging
             using var connection = _database.ConnectionFactory.CreateConnection();
             await connection.OpenAsync(cancellationToken);
 
-            try
-            {
-                // Fake insertions
-                await InsertAutomationAsync(connection, automationId, enabled: true, cancellationToken);
-                await InsertAutomationTriggerAsync(connection, automationId, eventType, cancellationToken);
-                await InsertAutomationConditionAsync(connection, automationId, cancellationToken);
-                await InsertAutomationActionAsync(connection, automationId, executorId1, actionType: "ThirdAction", executionOrder: 3, cancellationToken);
-                await InsertAutomationActionAsync(connection, automationId, executorId2, actionType: "FirstAction", executionOrder: 1, cancellationToken);
-                await InsertAutomationActionAsync(connection, automationId, executorId3, actionType: "SecondAction", executionOrder: 2, cancellationToken);
+            // Fake insertions
+            await InsertAutomationAsync(connection, automationId, enabled: true, cancellationToken);
+            await InsertAutomationTriggerAsync(connection, automationId, eventType, cancellationToken);
+            await InsertAutomationConditionAsync(connection, automationId, cancellationToken);
+            await InsertAutomationActionAsync(connection, automationId, executorId1, actionType: "ThirdAction", executionOrder: 3, cancellationToken);
+            await InsertAutomationActionAsync(connection, automationId, executorId2, actionType: "FirstAction", executionOrder: 1, cancellationToken);
+            await InsertAutomationActionAsync(connection, automationId, executorId3, actionType: "SecondAction", executionOrder: 2, cancellationToken);
 
-                // Act
-                var automations = await _repository.GetEnabledByEventTypeAsync(eventType, cancellationToken);
+            // Act
+            var automations = await _repository.GetEnabledByEventTypeAsync(eventType, cancellationToken);
 
-                // Assert
-                var automation = Assert.Single(
-                    automations,
-                    automation => automation.Id == automationId);
-                Assert.Equal(
-                    ["FirstAction", "SecondAction", "ThirdAction"],
-                    automation.Thens.Select(action => action.Type));
-            }
-            finally
-            {
-                // Cleanup
-                await Cleanup(connection, automationId, executorId1);
-                await Cleanup(connection, automationId, executorId2);
-                await Cleanup(connection, automationId, executorId3);
-            }
+            // Assert
+            var automation = Assert.Single(
+                automations,
+                automation => automation.Id == automationId);
+            Assert.Equal(
+                ["FirstAction", "SecondAction", "ThirdAction"],
+                automation.Thens.Select(action => action.Type));
         }
 
         [Fact]
@@ -245,27 +220,19 @@ namespace AutomationStation.Integration.Tests.Messaging
             using var connection = _database.ConnectionFactory.CreateConnection();
             await connection.OpenAsync(cancellationToken);
 
-            try
-            {
-                // Fake insertions
-                await InsertAutomationAsync(connection, automationId, enabled: true, cancellationToken);
-                await InsertAutomationTriggerAsync(connection, automationId, eventType, cancellationToken);
+            // Fake insertions
+            await InsertAutomationAsync(connection, automationId, enabled: true, cancellationToken);
+            await InsertAutomationTriggerAsync(connection, automationId, eventType, cancellationToken);
 
-                // Act
-                var automations = await _repository.GetEnabledByEventTypeAsync(eventType, cancellationToken);
+            // Act
+            var automations = await _repository.GetEnabledByEventTypeAsync(eventType, cancellationToken);
 
-                // Assert
-                var automation = Assert.Single(
-                    automations,
-                    automation => automation.Id == automationId);
-                Assert.Empty(automation.When.Conditions);
-                Assert.Empty(automation.Thens);
-            }
-            finally
-            {
-                // Cleanup
-                await Cleanup(connection, automationId);
-            }
+            // Assert
+            var automation = Assert.Single(
+                automations,
+                automation => automation.Id == automationId);
+            Assert.Empty(automation.When.Conditions);
+            Assert.Empty(automation.Thens);
         }
 
         [Fact]
@@ -281,26 +248,17 @@ namespace AutomationStation.Integration.Tests.Messaging
             using var connection = _database.ConnectionFactory.CreateConnection();
             await connection.OpenAsync(cancellationToken);
 
-            try
-            {
-                // Fake insertions
-                await InsertAutomationAsync(connection, automationId, enabled: true, cancellationToken);
-                await InsertAutomationTriggerAsync(connection, automationId, eventType, cancellationToken);
-                await InsertAutomationConditionAsync(connection, automationId, cancellationToken, configurationJson: "");
-                await InsertAutomationActionAsync(connection, automationId, executorId, actionType: "Yes", executionOrder: 0, cancellationToken);
+            // Fake insertions
+            await InsertAutomationAsync(connection, automationId, enabled: true, cancellationToken);
+            await InsertAutomationTriggerAsync(connection, automationId, eventType, cancellationToken);
+            await InsertAutomationConditionAsync(connection, automationId, cancellationToken, configurationJson: "");
+            await InsertAutomationActionAsync(connection, automationId, executorId, actionType: "Yes", executionOrder: 0, cancellationToken);
 
-                // Act and Assert
-                var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-                    () => _repository.GetEnabledByEventTypeAsync(eventType, cancellationToken));
+            // Act and Assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => _repository.GetEnabledByEventTypeAsync(eventType, cancellationToken));
 
-                Assert.Equal("Condition configuration is missing.", exception.Message);
-
-            }
-            finally
-            {
-                // Cleanup
-                await Cleanup(connection, automationId, executorId);
-            }
+            Assert.Equal("Condition configuration is missing.", exception.Message);
         }
 
         [Fact]
@@ -316,26 +274,17 @@ namespace AutomationStation.Integration.Tests.Messaging
             using var connection = _database.ConnectionFactory.CreateConnection();
             await connection.OpenAsync(cancellationToken);
 
-            try
-            {
-                // Fake insertions
-                await InsertAutomationAsync(connection, automationId, enabled: true, cancellationToken);
-                await InsertAutomationTriggerAsync(connection, automationId, eventType, cancellationToken);
-                await InsertAutomationConditionAsync(connection, automationId, cancellationToken);
-                await InsertAutomationActionAsync(connection, automationId, executorId, actionType: "Yes", executionOrder: 0, cancellationToken, targetSystem: null);
+            // Fake insertions
+            await InsertAutomationAsync(connection, automationId, enabled: true, cancellationToken);
+            await InsertAutomationTriggerAsync(connection, automationId, eventType, cancellationToken);
+            await InsertAutomationConditionAsync(connection, automationId, cancellationToken);
+            await InsertAutomationActionAsync(connection, automationId, executorId, actionType: "Yes", executionOrder: 0, cancellationToken, targetSystem: null);
 
-                // Act and Assert
-                var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-                    () => _repository.GetEnabledByEventTypeAsync(eventType, cancellationToken));
+            // Act and Assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => _repository.GetEnabledByEventTypeAsync(eventType, cancellationToken));
 
-                Assert.Equal($"Action 'Yes' in automation '{automationId}' has no TargetSystem.", exception.Message);
-
-            }
-            finally
-            {
-                // Cleanup
-                await Cleanup(connection, automationId, executorId);
-            }
+            Assert.Equal($"Action 'Yes' in automation '{automationId}' has no TargetSystem.", exception.Message);
         }
 
         [Fact]
@@ -351,25 +300,17 @@ namespace AutomationStation.Integration.Tests.Messaging
             using var connection = _database.ConnectionFactory.CreateConnection();
             await connection.OpenAsync(cancellationToken);
 
-            try
-            {
-                // Fake insertions
-                await InsertAutomationAsync(connection, automationId, enabled: false, cancellationToken);
-                await InsertAutomationTriggerAsync(connection, automationId, eventType, cancellationToken);
-                await InsertAutomationConditionAsync(connection, automationId, cancellationToken);
-                await InsertAutomationActionAsync(connection, automationId, executorId, actionType: "Yes", executionOrder: 0, cancellationToken);
+            // Fake insertions
+            await InsertAutomationAsync(connection, automationId, enabled: false, cancellationToken);
+            await InsertAutomationTriggerAsync(connection, automationId, eventType, cancellationToken);
+            await InsertAutomationConditionAsync(connection, automationId, cancellationToken);
+            await InsertAutomationActionAsync(connection, automationId, executorId, actionType: "Yes", executionOrder: 0, cancellationToken);
 
-                // Act
-                var automations = await _repository.GetEnabledByEventTypeAsync(eventType, cancellationToken);
+            // Act
+            var automations = await _repository.GetEnabledByEventTypeAsync(eventType, cancellationToken);
 
-                // Assert
-                Assert.DoesNotContain(automations, automation => automation.Id == automationId);
-            }
-            finally
-            {
-                // Cleanup
-                await Cleanup(connection, automationId, executorId);
-            }
+            // Assert
+            Assert.DoesNotContain(automations, automation => automation.Id == automationId);
         }
 
         private static async Task InsertAutomationAsync(
@@ -494,37 +435,6 @@ namespace AutomationStation.Integration.Tests.Messaging
                             """
                     },
                     cancellationToken: cancellationToken));
-        }
-
-        private static async Task Cleanup(
-            DbConnection connection,
-            Guid automationId,
-            Guid? executorId = null)
-        {
-            await connection.ExecuteAsync(
-                    new CommandDefinition(
-                        """
-                        DELETE FROM AutomationActions
-                        WHERE AutomationId = @AutomationId;
-
-                        DELETE FROM AutomationExecutors
-                        WHERE Id = @ExecutorId;
-
-                        DELETE FROM AutomationConditions
-                        WHERE AutomationId = @AutomationId;
-
-                        DELETE FROM AutomationTriggers
-                        WHERE AutomationId = @AutomationId;
-
-                        DELETE FROM Automations
-                        WHERE Id = @AutomationId;
-                        """,
-                        new
-                        {
-                            AutomationId = automationId,
-                            ExecutorId = executorId
-                        },
-                        cancellationToken: CancellationToken.None));
         }
     }
 }

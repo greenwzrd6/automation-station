@@ -17,12 +17,23 @@ namespace AutomationStation.Integration.Tests.Messaging
     /// </summary>
     /// <param name="database">Primary constructor for <c>DatabaseFixture</c></param>
     [Collection(DatabaseCollection.Name)]
-    public sealed class AutomationExecutionLimiterTests(DatabaseFixture database)
+    public sealed class AutomationExecutionLimiterTests(DatabaseFixture database) : IAsyncLifetime
     {
         // Initializes the DatabaseFixture and repository
         private readonly DatabaseFixture _database = database;
         private readonly AutomationExecutionLimiter _repository = new(
                 database.ConnectionFactory);
+
+        public async ValueTask InitializeAsync()
+        {
+            await _database.ResetAsync();
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            GC.SuppressFinalize(this);
+            return ValueTask.CompletedTask;
+        }
 
         [Fact]
         public async Task TryRecordExecutionAsync_WhenCorrelationReachesAutomationLimit_ShouldRejectNextExecution()
@@ -40,52 +51,44 @@ namespace AutomationStation.Integration.Tests.Messaging
             using var connection = _database.ConnectionFactory.CreateConnection();
             await connection.OpenAsync(cancellationToken);
 
-            try
-            {
-                await InsertAutomationAsync(
-                    connection,
-                    automationId,
-                    cancellationToken);
+            await InsertAutomationAsync(
+                connection,
+                automationId,
+                cancellationToken);
 
-                // Seed limit - 1 executions inside the time window.
-                await InsertAutomationHistory(
-                    connection,
-                    automationId,
-                    correlationId,
-                    (limit - 1),
-                    cancellationToken);
+            // Seed limit - 1 executions inside the time window.
+            await InsertAutomationHistory(
+                connection,
+                automationId,
+                correlationId,
+                (limit - 1),
+                cancellationToken);
 
-                // Act
-                // Check if the next execution is blocked (should not be blocked yet)
-                var recordedAtLimit = await _repository.TryRecordExecutionAsync(
-                    CreateContext(automationId, correlationId),
-                    cancellationToken);
+            // Act
+            // Check if the next execution is blocked (should not be blocked yet)
+            var recordedAtLimit = await _repository.TryRecordExecutionAsync(
+                CreateContext(automationId, correlationId),
+                cancellationToken);
 
-                // Assert
-                Assert.True(recordedAtLimit);
+            // Assert
+            Assert.True(recordedAtLimit);
 
-                //Act
-                // Check if the next execution is blocked (should be blocked now)
-                var recordedOverLimit = await _repository.TryRecordExecutionAsync(
-                    CreateContext(automationId, correlationId),
-                    cancellationToken);
+            //Act
+            // Check if the next execution is blocked (should be blocked now)
+            var recordedOverLimit = await _repository.TryRecordExecutionAsync(
+                CreateContext(automationId, correlationId),
+                cancellationToken);
 
-                // Assert
-                Assert.False(recordedOverLimit);
+            // Assert
+            Assert.False(recordedOverLimit);
 
-                var historyCount = await CountHistoryRows(
-                    connection,
-                    automationId,
-                    correlationId,
-                    cancellationToken);
+            var historyCount = await CountHistoryRows(
+                connection,
+                automationId,
+                correlationId,
+                cancellationToken);
 
-                Assert.Equal(limit, historyCount);
-            }
-            finally
-            {
-                // Cleanup
-                await Cleanup(connection, automationId);
-            }
+            Assert.Equal(limit, historyCount);
         }
 
         [Fact]
@@ -100,34 +103,26 @@ namespace AutomationStation.Integration.Tests.Messaging
             using var connection = _database.ConnectionFactory.CreateConnection();
             await connection.OpenAsync(cancellationToken);
 
-            try
-            {
-                await InsertAutomationAsync(
-                    connection,
-                    automationId,
-                    cancellationToken);
+            await InsertAutomationAsync(
+                connection,
+                automationId,
+                cancellationToken);
 
-                // Act
-                var recorded = await _repository.TryRecordExecutionAsync(
-                    CreateContext(automationId, correlationId),
-                    cancellationToken);
+            // Act
+            var recorded = await _repository.TryRecordExecutionAsync(
+                CreateContext(automationId, correlationId),
+                cancellationToken);
 
-                // Assert
-                Assert.True(recorded);
+            // Assert
+            Assert.True(recorded);
 
-                var historyCount = await CountHistoryRows(
-                    connection,
-                    automationId,
-                    correlationId,
-                    cancellationToken);
+            var historyCount = await CountHistoryRows(
+                connection,
+                automationId,
+                correlationId,
+                cancellationToken);
 
-                Assert.Equal(1, historyCount);
-            }
-            finally
-            {
-                // Cleanup
-                await Cleanup(connection, automationId);
-            }
+            Assert.Equal(1, historyCount);
         }
 
         [Fact]
@@ -147,42 +142,34 @@ namespace AutomationStation.Integration.Tests.Messaging
             using var connection = _database.ConnectionFactory.CreateConnection();
             await connection.OpenAsync(cancellationToken);
 
-            try
-            {
-                await InsertAutomationAsync(
-                    connection,
-                    automationId,
-                    cancellationToken);
+            await InsertAutomationAsync(
+                connection,
+                automationId,
+                cancellationToken);
 
-                await InsertAutomationHistory(
-                    connection,
-                    automationId,
-                    correlationId1,
-                    limit,
-                    cancellationToken);
+            await InsertAutomationHistory(
+                connection,
+                automationId,
+                correlationId1,
+                limit,
+                cancellationToken);
 
-                // Act
-                var recordedOverLimit = await _repository.TryRecordExecutionAsync(
-                    CreateContext(automationId, correlationId2),
-                    cancellationToken);
+            // Act
+            var recordedOverLimit = await _repository.TryRecordExecutionAsync(
+                CreateContext(automationId, correlationId2),
+                cancellationToken);
 
-                // Assert: Should be allowed to insert with new correlationId
-                Assert.True(recordedOverLimit);
+            // Assert: Should be allowed to insert with new correlationId
+            Assert.True(recordedOverLimit);
 
-                // Assert: Should be one history row in automationhistory with the new correlationid
-                var historyCount = await CountHistoryRows(
-                    connection,
-                    automationId,
-                    correlationId2,
-                    cancellationToken);
+            // Assert: Should be one history row in automationhistory with the new correlationid
+            var historyCount = await CountHistoryRows(
+                connection,
+                automationId,
+                correlationId2,
+                cancellationToken);
 
-                Assert.Equal(1, historyCount);
-            }
-            finally
-            {
-                // Cleanup
-                await Cleanup(connection, automationId);
-            }
+            Assert.Equal(1, historyCount);
         }
 
         [Fact]
@@ -202,48 +189,39 @@ namespace AutomationStation.Integration.Tests.Messaging
             using var connection = _database.ConnectionFactory.CreateConnection();
             await connection.OpenAsync(cancellationToken);
 
-            try
-            {
-                await InsertAutomationAsync(
-                    connection,
-                    automationId1,
-                    cancellationToken);
+            await InsertAutomationAsync(
+                connection,
+                automationId1,
+                cancellationToken);
 
-                await InsertAutomationAsync(
-                    connection,
-                    automationId2,
-                    cancellationToken);
+            await InsertAutomationAsync(
+                connection,
+                automationId2,
+                cancellationToken);
 
-                await InsertAutomationHistory(
-                    connection,
-                    automationId1,
-                    correlationId,
-                    limit,
-                    cancellationToken);
+            await InsertAutomationHistory(
+                connection,
+                automationId1,
+                correlationId,
+                limit,
+                cancellationToken);
 
-                // Act      
-                var recordedOverLimit = await _repository.TryRecordExecutionAsync(
-                    CreateContext(automationId2, correlationId),
-                    cancellationToken);
+            // Act      
+            var recordedOverLimit = await _repository.TryRecordExecutionAsync(
+                CreateContext(automationId2, correlationId),
+                cancellationToken);
 
-                // Assert: Should be allowed to insert with new Automation
-                Assert.True(recordedOverLimit);
+            // Assert: Should be allowed to insert with new Automation
+            Assert.True(recordedOverLimit);
 
-                // Assert: Should be one history row in automationhistory with the new correlationid
-                var historyCount = await CountHistoryRows(
-                    connection,
-                    automationId2,
-                    correlationId,
-                    cancellationToken);
+            // Assert: Should be one history row in automationhistory with the new correlationid
+            var historyCount = await CountHistoryRows(
+                connection,
+                automationId2,
+                correlationId,
+                cancellationToken);
 
-                Assert.Equal(1, historyCount);
-            }
-            finally
-            {
-                // Cleanup
-                await Cleanup(connection, automationId1);
-                await Cleanup(connection, automationId2);
-            }
+            Assert.Equal(1, historyCount);
         }
 
         [Fact]
@@ -262,43 +240,35 @@ namespace AutomationStation.Integration.Tests.Messaging
             using var connection = _database.ConnectionFactory.CreateConnection();
             await connection.OpenAsync(cancellationToken);
 
-            try
-            {
-                await InsertAutomationAsync(
-                    connection,
-                    automationId,
-                    cancellationToken);
+            await InsertAutomationAsync(
+                connection,
+                automationId,
+                cancellationToken);
 
-                // Inserts four minutes old history
-                await InsertAutomationHistory(
-                    connection,
-                    automationId,
-                    correlationId,
-                    limit,
-                    cancellationToken,
-                    minutesAgo: 4);
+            // Inserts four minutes old history
+            await InsertAutomationHistory(
+                connection,
+                automationId,
+                correlationId,
+                limit,
+                cancellationToken,
+                minutesAgo: 4);
 
-                // Act  
-                var recordedOverLimit = await _repository.TryRecordExecutionAsync(
-                    CreateContext(automationId, correlationId),
-                    cancellationToken);
+            // Act  
+            var recordedOverLimit = await _repository.TryRecordExecutionAsync(
+                CreateContext(automationId, correlationId),
+                cancellationToken);
 
-                // Assert
-                Assert.True(recordedOverLimit);
+            // Assert
+            Assert.True(recordedOverLimit);
 
-                var historyCount = await CountHistoryRows(
-                    connection,
-                    automationId,
-                    correlationId,
-                    cancellationToken);
+            var historyCount = await CountHistoryRows(
+                connection,
+                automationId,
+                correlationId,
+                cancellationToken);
 
-                Assert.Equal(limit + 1, historyCount);
-            }
-            finally
-            {
-                // Cleanup
-                await Cleanup(connection, automationId);
-            }
+            Assert.Equal(limit + 1, historyCount);
         }
 
         [Fact]
@@ -317,50 +287,42 @@ namespace AutomationStation.Integration.Tests.Messaging
             using var connection = _database.ConnectionFactory.CreateConnection();
             await connection.OpenAsync(cancellationToken);
 
-            try
-            {
-                await InsertAutomationAsync(
-                    connection,
-                    automationId,
-                    cancellationToken);
+            await InsertAutomationAsync(
+                connection,
+                automationId,
+                cancellationToken);
 
-                // Seed limit - 1 executions inside the time window.
-                await InsertAutomationHistory(
-                    connection,
-                    automationId,
-                    correlationId,
-                    (limit - 1),
-                    cancellationToken);
+            // Seed limit - 1 executions inside the time window.
+            await InsertAutomationHistory(
+                connection,
+                automationId,
+                correlationId,
+                (limit - 1),
+                cancellationToken);
 
-                // Act
-                var firstAttempt = _repository.TryRecordExecutionAsync(
-                    CreateContext(automationId, correlationId),
-                    cancellationToken);
+            // Act
+            var firstAttempt = _repository.TryRecordExecutionAsync(
+                CreateContext(automationId, correlationId),
+                cancellationToken);
 
-                var secondAttempt = _repository.TryRecordExecutionAsync(
-                    CreateContext(automationId, correlationId),
-                    cancellationToken);
+            var secondAttempt = _repository.TryRecordExecutionAsync(
+                CreateContext(automationId, correlationId),
+                cancellationToken);
 
-                // run both at the same time
-                var results = await Task.WhenAll(firstAttempt, secondAttempt);
+            // run both at the same time
+            var results = await Task.WhenAll(firstAttempt, secondAttempt);
 
-                // Assert
-                Assert.Single(results, recorded => recorded);
-                Assert.Single(results, recorded => !recorded);
+            // Assert
+            Assert.Single(results, recorded => recorded);
+            Assert.Single(results, recorded => !recorded);
 
-                var historyCount = await CountHistoryRows(
-                    connection,
-                    automationId,
-                    correlationId,
-                    cancellationToken);
+            var historyCount = await CountHistoryRows(
+                connection,
+                automationId,
+                correlationId,
+                cancellationToken);
 
-                Assert.Equal(limit, historyCount);
-            }
-            finally
-            {
-                // Cleanup
-                await Cleanup(connection, automationId);
-            }
+            Assert.Equal(limit, historyCount);
         }
 
         private static async Task InsertAutomationAsync(
@@ -472,26 +434,6 @@ namespace AutomationStation.Integration.Tests.Messaging
             return new EvaluationContext(
                 automation,
                 integrationEvent);
-        }
-
-        private static async Task Cleanup(
-            DbConnection connection,
-            Guid automationId)
-        {
-            await connection.ExecuteAsync(
-                    new CommandDefinition(
-                        """
-                        DELETE FROM AutomationHistory
-                        WHERE AutomationId = @AutomationId;
-                        
-                        DELETE FROM Automations
-                        WHERE Id = @AutomationId;
-                        """,
-                        new
-                        {
-                            AutomationId = automationId,
-                        },
-                        cancellationToken: CancellationToken.None));
         }
     }
 }
