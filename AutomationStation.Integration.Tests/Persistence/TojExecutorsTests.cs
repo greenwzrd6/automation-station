@@ -6,9 +6,20 @@ using Microsoft.Data.SqlClient;
 namespace AutomationStation.Integration.Tests.Persistence
 {
     [Collection(DatabaseCollection.Name)]
-    public class TojExecutorsTests(DatabaseFixture database)
+    public class TojExecutorsTests(DatabaseFixture database) : IAsyncLifetime
     {
         private readonly DatabaseFixture _database = database;
+
+        public async ValueTask InitializeAsync()
+        {
+            await _database.ResetAsync();
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            GC.SuppressFinalize(this);
+            return ValueTask.CompletedTask;
+        }
 
         [Fact]
         public async Task InsertAction_WithMissingExecutorId_IsRejectedByForeignKey()

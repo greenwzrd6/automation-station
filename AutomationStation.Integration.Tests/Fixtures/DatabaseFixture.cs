@@ -1,6 +1,7 @@
 ﻿using AutomationStation.Infrastructure.Database;
 using Dapper;
 using Microsoft.Data.SqlClient;
+using Respawn;
 using Testcontainers.MsSql;
 
 namespace AutomationStation.Integration.Tests.Fixtures
@@ -15,6 +16,8 @@ namespace AutomationStation.Integration.Tests.Fixtures
             .Build();
         public DbConnectionFactory ConnectionFactory { get; private set; } = null!;
 
+        private Respawner _respawner = null!;
+
         /// <summary>
         /// Method <c>InitializeAsync</c> runs before the tests to create the database and implements the tables through Dapper
         /// </summary>
@@ -26,7 +29,7 @@ namespace AutomationStation.Integration.Tests.Fixtures
             {
                 await _sqlServer.StartAsync();
 
-                using var connection = new SqlConnection(_sqlServer.GetConnectionString());
+                await using var connection = new SqlConnection(_sqlServer.GetConnectionString());
                 await connection.OpenAsync();
 
                 await connection.ExecuteAsync(
@@ -40,7 +43,7 @@ namespace AutomationStation.Integration.Tests.Fixtures
 
                 ConnectionFactory = new DbConnectionFactory(connectionString.ConnectionString);
 
-                using var databaseConnection = ConnectionFactory.CreateConnection();
+                await using var databaseConnection = ConnectionFactory.CreateConnection();
 
                 await databaseConnection.OpenAsync();
 
@@ -49,12 +52,28 @@ namespace AutomationStation.Integration.Tests.Fixtures
                 var schemaSql = await File.ReadAllTextAsync(schemaPath);
 
                 await databaseConnection.ExecuteAsync(schemaSql);
+
+                _respawner = await Respawner.CreateAsync(
+                    databaseConnection,
+                    new RespawnerOptions
+                    {
+                        DbAdapter = DbAdapter.SqlServer,
+                        SchemasToInclude = ["dbo"]
+                    });
             }
             catch
             {
                 await _sqlServer.DisposeAsync();
                 throw;
             }
+        }
+
+        public async Task ResetAsync()
+        {
+            await using var connection = ConnectionFactory.CreateConnection();
+            await connection.OpenAsync();
+
+            await _respawner.ResetAsync(connection);
         }
 
         /// <summary>
