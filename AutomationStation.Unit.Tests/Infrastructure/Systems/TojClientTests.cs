@@ -145,7 +145,7 @@ namespace AutomationStation.Unit.Tests.Infrastructure.Systems
             // Assert
             Assert.Equal(
                 executorId.ToString(),
-                handler.Request.Headers.GetValues("Idempotency-Key").Single());
+                handler.Request.Headers.GetValues("Automation-Executor-Id").Single());
         }
 
         [Fact]
@@ -173,7 +173,7 @@ namespace AutomationStation.Unit.Tests.Infrastructure.Systems
             // Assert
             Assert.Equal(
                 executorId.ToString(),
-                handler.Request.Headers.GetValues("Idempotency-Key").Single());
+                handler.Request.Headers.GetValues("Automation-Executor-Id").Single());
         }
 
         private static TestHttpMessageHandler CreateHandler()
