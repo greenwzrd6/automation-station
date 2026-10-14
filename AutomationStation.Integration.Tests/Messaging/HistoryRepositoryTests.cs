@@ -22,7 +22,7 @@ namespace AutomationStation.Integration.Tests.Messaging
             database.ConnectionFactory);
 
         [Fact]
-        public async Task CreateAutomationTimestampAsync_WhenUsed_CreatesCorrectAutomationId()
+        public async Task CreateAutomationTimestampAsync_WhenUsed_CreatesCorrectAutomationHistory()
         {
             // Arrange
             var cancellationToken = TestContext.Current.CancellationToken;
@@ -35,7 +35,101 @@ namespace AutomationStation.Integration.Tests.Messaging
             using var connection = _database.ConnectionFactory.CreateConnection();
             await connection.OpenAsync(cancellationToken);
 
-            // Act
+            try
+            {
+                // Fake automation
+                await InsertAutomationAsync(connection, automationId, cancellationToken);
+
+                var beforeInsert = await connection.QuerySingleAsync<DateTime>(
+                    new CommandDefinition(
+                        "SELECT SYSUTCDATETIME();",
+                        cancellationToken: cancellationToken));
+
+                // Act
+                // Insert into history
+                await _repository.CreateAutomationTimestampAsync(
+                    context,
+                    cancellationToken);
+
+                // Assert
+                var afterInsert = await connection.QuerySingleAsync<DateTime>(
+                    new CommandDefinition(
+                        "SELECT SYSUTCDATETIME();",
+                        cancellationToken: cancellationToken));
+
+                var automationRow = await GetAutomationHistoryWithAutomationIdAsync(connection, automationId, cancellationToken);
+
+                Assert.Equal(automationId, automationRow.AutomationId);
+
+                Assert.Equal(correlationId, automationRow.CorrelationId);
+
+                Assert.Equal("-1", automationRow.ActorId);
+
+                Assert.NotEqual(Guid.Empty, automationRow.Id);
+
+                Assert.Null(automationRow.CausationEventId);
+
+                Assert.InRange(automationRow.TriggeredAt, beforeInsert.AddSeconds(-1), afterInsert.AddSeconds(1));
+            }
+            finally
+            {
+                // Cleanup
+                await Cleanup(connection, automationId);
+            }
+        }
+
+        [Fact]
+        public async Task CreateAutomationTimestampAsync_WhenProvidingCausationEventId_SavesCorrectCausationEventId()
+        {
+            // Arrange
+            var cancellationToken = TestContext.Current.CancellationToken;
+
+            var automationId = Guid.NewGuid();
+            var correlationId = Guid.NewGuid();
+            var causationEventId = Guid.NewGuid();
+
+            var context = CreateContext(automationId, correlationId, causationEventId);
+
+            using var connection = _database.ConnectionFactory.CreateConnection();
+            await connection.OpenAsync(cancellationToken);
+
+            try
+            {
+                // Fake automation
+                await InsertAutomationAsync(connection, automationId, cancellationToken);
+
+                // Act
+                // Insert into history
+                await _repository.CreateAutomationTimestampAsync(
+                    context,
+                    cancellationToken);
+
+                // Assert
+                var automationRow = await GetAutomationHistoryWithAutomationIdAsync(connection, automationId, cancellationToken);
+
+                Assert.Equal(causationEventId, automationRow.CausationEventId);
+            }
+            finally
+            {
+                // Cleanup
+                await Cleanup(connection, automationId);
+            }
+        }
+
+        [Fact]
+        public async Task EventAlreadyProcessedAsync_WhenCorrelationIdDiffers_ShouldReturnFalse()
+        {
+            // Arrange
+            var cancellationToken = TestContext.Current.CancellationToken;
+
+            var automationId = Guid.NewGuid();
+            var correlationId = Guid.NewGuid();
+
+            var context = CreateContext(automationId, correlationId);
+
+            using var connection = _database.ConnectionFactory.CreateConnection();
+            await connection.OpenAsync(cancellationToken);
+
             try
             {
                 // Fake automation
@@ -46,30 +140,54 @@ namespace AutomationStation.Integration.Tests.Messaging
                     context,
                     cancellationToken);
 
+                // Act
+                var resultAfterInsert = await _repository.EventAlreadyProcessedAsync(
+                    automationId,
+                    CorrelationId: Guid.NewGuid(),
+                    cancellationToken);
+
                 // Assert
-                var returnedAutomationId = await connection.QuerySingleAsync<Guid>(
-                    new CommandDefinition(
-                        """
-                        SELECT AutomationId 
-                        FROM AutomationHistory
-                        WHERE AutomationId = @AutomationId;
-                        """,
-                        new { AutomationId = automationId },
-                        cancellationToken: cancellationToken));
+                Assert.False(resultAfterInsert);
+            }
+            finally
+            {
+                // Cleanup
+                await Cleanup(connection, automationId);
+            }
+        }
 
-                Assert.Equal(automationId, returnedAutomationId);
+        [Fact]
+        public async Task EventAlreadyProcessedAsync_WhenAutomationIdDiffers_ShouldReturnFalse()
+        {
+            // Arrange
+            var cancellationToken = TestContext.Current.CancellationToken;
 
-                var returnedCorrelationId = await connection.QuerySingleAsync<Guid>(
-                    new CommandDefinition(
-                        """
-                        SELECT CorrelationId 
-                        FROM AutomationHistory
-                        WHERE CorrelationId = @CorrelationId;
-                        """,
-                        new { CorrelationId = correlationId },
-                        cancellationToken: cancellationToken));
+            var automationId = Guid.NewGuid();
+            var correlationId = Guid.NewGuid();
 
-                Assert.Equal(correlationId, returnedCorrelationId);
+            var context = CreateContext(automationId, correlationId);
+
+            using var connection = _database.ConnectionFactory.CreateConnection();
+            await connection.OpenAsync(cancellationToken);
+
+            try
+            {
+                // Fake automation
+                await InsertAutomationAsync(connection, automationId, cancellationToken);
+
+                // Insert into history
+                await _repository.CreateAutomationTimestampAsync(
+                    context,
+                    cancellationToken);
+
+                // Act
+                var resultAfterInsert = await _repository.EventAlreadyProcessedAsync(
+                    AutomationId: Guid.NewGuid(),
+                    correlationId,
+                    cancellationToken);
+
+                //Assert
+                Assert.False(resultAfterInsert);
             }
             finally
             {
@@ -92,29 +210,33 @@ namespace AutomationStation.Integration.Tests.Messaging
             using var connection = _database.ConnectionFactory.CreateConnection();
             await connection.OpenAsync(cancellationToken);
 
-            // Act/Assert
             try
             {
                 // Fake automation
                 await InsertAutomationAsync(connection, automationId, cancellationToken);
 
+                // Act
                 var resultBeforeInsert = await _repository.EventAlreadyProcessedAsync(
                     automationId,
                     correlationId,
                     cancellationToken);
-
+                
+                //Assert
                 Assert.False(resultBeforeInsert);
 
+                // Arrange
                 // Insert into history
                 await _repository.CreateAutomationTimestampAsync(
                     context,
                     cancellationToken);
 
+                // Act
                 var resultAfterInsert = await _repository.EventAlreadyProcessedAsync(
                     automationId,
                     correlationId,
                     cancellationToken);
 
+                //Assert
                 Assert.True(resultAfterInsert);
             }
             finally
@@ -122,6 +244,30 @@ namespace AutomationStation.Integration.Tests.Messaging
                 // Cleanup
                 await Cleanup(connection, automationId);
             }
+        }
+
+        private sealed record HistoryRow(
+            Guid Id,
+            Guid AutomationId,
+            string ActorId,
+            Guid CorrelationId,
+            Guid? CausationEventId,
+            DateTime TriggeredAt);
+
+        private static async Task<HistoryRow> GetAutomationHistoryWithAutomationIdAsync(
+            DbConnection connection,
+            Guid automationId,
+            CancellationToken cancellationToken)
+        {
+            return await connection.QuerySingleAsync<HistoryRow>(
+                    new CommandDefinition(
+                        """
+                        SELECT Id, AutomationId, ActorId, CorrelationId, CausationEventId, TriggeredAt
+                        FROM AutomationHistory
+                        WHERE AutomationId = @AutomationId;
+                        """,
+                        new { AutomationId = automationId },
+                        cancellationToken: cancellationToken));
         }
 
         private static async Task InsertAutomationAsync(
@@ -141,7 +287,10 @@ namespace AutomationStation.Integration.Tests.Messaging
                     cancellationToken: cancellationToken));
         }
 
-        private static EvaluationContext CreateContext(Guid automationId, Guid correlationId)
+        private static EvaluationContext CreateContext(
+            Guid automationId,
+            Guid correlationId,
+            Guid? causationEventId = null)
         {
             var automation = new Automation(
                 id: automationId,
@@ -160,7 +309,7 @@ namespace AutomationStation.Integration.Tests.Messaging
                 Source: SourceSystem.Kanban,
                 CompanyId: 1,
                 CorrelationId: correlationId,
-                CausationEventId: null,
+                CausationEventId: causationEventId,
                 Actor: new Actor("-1", "User"),
                 Payload: JsonSerializer.SerializeToElement(new { }));
 
@@ -188,5 +337,7 @@ namespace AutomationStation.Integration.Tests.Messaging
                         },
                         cancellationToken: CancellationToken.None));
         }
+
+
     }
 }
