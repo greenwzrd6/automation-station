@@ -374,6 +374,7 @@ public sealed class ActionExecutorTests
             rateLimiter.LastKey.TargetSystem);
     }
 
+    // Helper method to create a test ActionContext with a sample IntegrationEvent.
     private static ActionContext CreateContext(int companyId = 1)
     {
         var integrationEvent = new IntegrationEvent(

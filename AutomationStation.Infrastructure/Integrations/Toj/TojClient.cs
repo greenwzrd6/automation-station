@@ -20,7 +20,7 @@ public sealed class TojClient(
             $"api/automation/tasks/{sourceTaskId}");
 
         request.Headers.Add(
-            "Idempotency-Key",
+            "Automation-Executor-Id",
             executorId.ToString());
 
         request.Content = JsonContent.Create(body);
@@ -54,7 +54,7 @@ public sealed class TojClient(
             $"api/automation/tasks/{taskId}/status");
 
         request.Headers.Add(
-            "Idempotency-Key",
+            "Automation-Executor-Id",
             executorId.ToString());
 
         request.Content = JsonContent.Create(body);
