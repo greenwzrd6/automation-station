@@ -12,9 +12,20 @@ using Microsoft.Data.SqlClient;
 namespace AutomationStation.Integration.Tests.Persistence
 {
     [Collection(DatabaseCollection.Name)]
-    public class TojExecutorsTests(DatabaseFixture database)
+    public class TojExecutorsTests(DatabaseFixture database) : IAsyncLifetime
     {
         private readonly DatabaseFixture _database = database;
+
+        public async ValueTask InitializeAsync()
+        {
+            await _database.ResetAsync();
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            GC.SuppressFinalize(this);
+            return ValueTask.CompletedTask;
+        }
 
         [Fact]
         public async Task InsertAction_WithMissingExecutorId_IsRejectedByForeignKey()
@@ -27,7 +38,7 @@ namespace AutomationStation.Integration.Tests.Persistence
             using var connection = _database.ConnectionFactory.CreateConnection();
             await connection.OpenAsync(cancellationToken);
 
-            using var transaction = connection.BeginTransaction();
+            using var transaction = await connection.BeginTransactionAsync(cancellationToken);
 
             await connection.ExecuteAsync(
                 """
@@ -69,7 +80,7 @@ namespace AutomationStation.Integration.Tests.Persistence
             using var connection = _database.ConnectionFactory.CreateConnection();
             await connection.OpenAsync(cancellationToken);
 
-            using var transaction = connection.BeginTransaction();
+            using var transaction = await connection.BeginTransactionAsync(cancellationToken);
 
             await connection.ExecuteAsync(
                 new CommandDefinition(
@@ -115,7 +126,7 @@ namespace AutomationStation.Integration.Tests.Persistence
                 transaction: transaction,
                 cancellationToken: cancellationToken));
 
-            transaction.Commit();
+            await transaction.CommitAsync(cancellationToken);
         }
 
         [Fact]
@@ -125,7 +136,7 @@ namespace AutomationStation.Integration.Tests.Persistence
             var executorId = Guid.NewGuid();
             using var connection = _database.ConnectionFactory.CreateConnection();
             await connection.OpenAsync(cancellationToken);
-            using var transaction = connection.BeginTransaction();
+            using var transaction = await connection.BeginTransactionAsync(cancellationToken);
             await connection.ExecuteAsync(
                 new CommandDefinition(
                     """
@@ -169,7 +180,7 @@ namespace AutomationStation.Integration.Tests.Persistence
             var executorId = Guid.NewGuid();
             using var connection = _database.ConnectionFactory.CreateConnection();
             await connection.OpenAsync(cancellationToken);
-            using var transaction = connection.BeginTransaction();
+            using var transaction = await connection.BeginTransactionAsync(cancellationToken);
             await connection.ExecuteAsync(
                 new CommandDefinition(
                     """
@@ -186,7 +197,7 @@ namespace AutomationStation.Integration.Tests.Persistence
                     },
                     transaction: transaction,
                     cancellationToken: cancellationToken));
-            transaction.Commit();
+            await transaction.CommitAsync(cancellationToken);
         }
 
         [Fact]
@@ -196,7 +207,7 @@ namespace AutomationStation.Integration.Tests.Persistence
             var executorId = Guid.NewGuid();
             using var connection = _database.ConnectionFactory.CreateConnection();
             await connection.OpenAsync(cancellationToken);
-            using var transaction = connection.BeginTransaction();
+            using var transaction = await connection.BeginTransactionAsync(cancellationToken);
             var exception = await Assert.ThrowsAsync<SqlException>(() =>
                 connection.ExecuteAsync(
                     new CommandDefinition(
@@ -219,7 +230,7 @@ namespace AutomationStation.Integration.Tests.Persistence
             var executorId = Guid.NewGuid();
             using var connection = _database.ConnectionFactory.CreateConnection();
             await connection.OpenAsync(cancellationToken);
-            using var transaction = connection.BeginTransaction();
+            using var transaction = await connection.BeginTransactionAsync(cancellationToken);
             var exception = await Assert.ThrowsAsync<SqlException>(() =>
                 connection.ExecuteAsync(
                     new CommandDefinition(
@@ -329,7 +340,7 @@ namespace AutomationStation.Integration.Tests.Persistence
                 ExecutorId: executorId,
                 Parameters: new Dictionary<string, string>());
 
-            
+
             var context = CreateContext();
 
             // Act
