@@ -61,6 +61,7 @@ public sealed class ActionExecutorTests
             targetSystem: TargetSystem.Kanban);
 
         var rateLimiter = new FakeActionRateLimiter();
+
         var automationExecutorRepository = new FakeAutomationExecutorRepository();
 
         var executor = new ActionExecutor(
@@ -104,18 +105,23 @@ public sealed class ActionExecutorTests
         var handler = new FakeActionHandler(
             actionType: "CreatePlacement",
             targetSystem: TargetSystem.Kanban);
+
         var rateLimiter = new FakeActionRateLimiter();
+
         var automationExecutorRepository = new FakeAutomationExecutorRepository();
+
         var executor = new ActionExecutor(
             [handler],
             rateLimiter,
             new ActionCatalog(),
             automationExecutorRepository);
+
         var then = new Then(
             Type: "CreatePlacement",
             TargetSystem: TargetSystem.Kanban,
             ExecutorId: Guid.NewGuid(),
             Parameters: new Dictionary<string, string>());
+
         var context = CreateContext();
 
         // Act
@@ -149,18 +155,23 @@ public sealed class ActionExecutorTests
         var handler = new FakeActionHandler(
             actionType: "CreateTask",
             targetSystem: TargetSystem.TojSystem);
+
         var rateLimiter = new FakeActionRateLimiter();
+
         var automationExecutorRepository = new FakeAutomationExecutorRepository();
+
         var executor = new ActionExecutor(
             [handler],
             rateLimiter,
             new ActionCatalog(),
             automationExecutorRepository);
+
         var then = new Then(
             Type: "CreateTask",
             TargetSystem: TargetSystem.TojSystem,
             ExecutorId: null,
             Parameters: new Dictionary<string, string>());
+
         var context = CreateContext();
 
         // Act
@@ -189,19 +200,25 @@ public sealed class ActionExecutorTests
         var handler = new FakeActionHandler(
             actionType: "CreateTask",
             targetSystem: TargetSystem.TojSystem);
+
         var rateLimiter = new FakeActionRateLimiter();
+
         var automationExecutorRepository = new FakeAutomationExecutorRepository();
+
         var executor = new ActionExecutor(
             [handler],
             rateLimiter,
             new ActionCatalog(),
             automationExecutorRepository);
+
         var then = new Then(
             Type: "CreateTask",
             TargetSystem: TargetSystem.TojSystem,
             ExecutorId: Guid.Empty, // Invalid GUID
             Parameters: new Dictionary<string, string>());
+
         var context = CreateContext();
+
         // Act
         var exception =
             await Assert.ThrowsAsync<InvalidOperationException>(
@@ -214,6 +231,7 @@ public sealed class ActionExecutorTests
             "executor",
             exception.Message,
             StringComparison.OrdinalIgnoreCase);
+
         Assert.Equal(0, handler.ExecutionCount);
         Assert.Equal(0, rateLimiter.CallCount);
     }
@@ -225,19 +243,29 @@ public sealed class ActionExecutorTests
         var handler = new FakeActionHandler(
             actionType: "CreateTask",
             targetSystem: TargetSystem.TojSystem);
+
         var rateLimiter = new FakeActionRateLimiter();
-        var automationExecutorRepository = new FakeAutomationExecutorRepository();
+
+        var automationExecutorRepository = 
+            new FakeAutomationExecutorRepository
+            {
+                CompanyIdResult = 0
+            };
+
         var executor = new ActionExecutor(
             [handler],
             rateLimiter,
             new ActionCatalog(),
             automationExecutorRepository);
+
         var then = new Then(
             Type: "CreateTask",
             TargetSystem: TargetSystem.TojSystem,
-            ExecutorId: null,
+            ExecutorId: Guid.NewGuid(),
             Parameters: new Dictionary<string, string>());
-        var context = CreateContext(companyId: 0);
+
+        var context = CreateContext();
+
         // Act
         var exception =
             await Assert.ThrowsAsync<InvalidOperationException>(
@@ -250,6 +278,7 @@ public sealed class ActionExecutorTests
             "company",
             exception.Message,
             StringComparison.OrdinalIgnoreCase);
+
         Assert.Equal(0, handler.ExecutionCount);
         Assert.Equal(0, rateLimiter.CallCount);
     }
@@ -261,22 +290,28 @@ public sealed class ActionExecutorTests
         var handler = new FakeActionHandler(
             actionType: "CreateTask",
             targetSystem: TargetSystem.TojSystem);
+
         var rateLimiter = new FakeActionRateLimiter();
+
         var automationExecutorRepository = new FakeAutomationExecutorRepository
         {
             IsEnabledResult = false // Simulate disabled executor
         };
+
         var executor = new ActionExecutor(
             [handler],
             rateLimiter,
             new ActionCatalog(),
             automationExecutorRepository);
+
         var then = new Then(
             Type: "CreateTask",
             TargetSystem: TargetSystem.TojSystem,
             ExecutorId: Guid.NewGuid(),
             Parameters: new Dictionary<string, string>());
+
         var context = CreateContext();
+
         // Act
         var exception =
             await Assert.ThrowsAsync<InvalidOperationException>(
@@ -289,6 +324,7 @@ public sealed class ActionExecutorTests
             "disabled",
             exception.Message,
             StringComparison.OrdinalIgnoreCase);
+
         Assert.Equal(0, handler.ExecutionCount);
         Assert.Equal(0, rateLimiter.CallCount);
     }
@@ -300,24 +336,31 @@ public sealed class ActionExecutorTests
         var handler = new FakeActionHandler(
             actionType: "CreatePlacement",
             targetSystem: TargetSystem.Kanban);
+
         var rateLimiter = new FakeActionRateLimiter();
+
         var automationExecutorRepository = new FakeAutomationExecutorRepository();
+
         var executor = new ActionExecutor(
             [handler],
             rateLimiter,
             new ActionCatalog(),
             automationExecutorRepository);
+
         var then = new Then(
             Type: "CreatePlacement",
             TargetSystem: TargetSystem.Kanban,
             ExecutorId: null, // No executor specified
             Parameters: new Dictionary<string, string>());
+
         var context = CreateContext();
+
         // Act
         await executor.ExecuteAsync(
             then,
             context,
             CancellationToken.None);
+
         // Assert
         Assert.Equal(1, handler.ExecutionCount);
         Assert.Equal(1, rateLimiter.CallCount);
@@ -331,9 +374,7 @@ public sealed class ActionExecutorTests
             rateLimiter.LastKey.TargetSystem);
     }
 
-    // Helper method to create an ActionContext with a specified companyId.
-    private static ActionContext CreateContext(
-        int companyId = 1)
+    private static ActionContext CreateContext(int companyId = 1)
     {
         var integrationEvent = new IntegrationEvent(
             EventId: Guid.NewGuid(),
@@ -390,8 +431,7 @@ public sealed class ActionExecutorTests
 
             if (CallCount > permittedActions)
             {
-                throw new InvalidOperationException(
-                    "Rate limit exceeded.");
+                throw new InvalidOperationException("Rate limit exceeded.");
             }
 
             return Task.CompletedTask;
@@ -407,14 +447,20 @@ public sealed class ActionExecutorTests
 
         public Guid? LastExecutorId { get; private set; }
 
-        public Task<bool> IsEnabledAsync(
+        public int CompanyIdResult { get; set; } = 1;
+
+        public Task<AutomationExecutor?> GetByIdAsync(
             Guid executorId,
             CancellationToken cancellationToken)
         {
             CallCount++;
             LastExecutorId = executorId;
 
-            return Task.FromResult(IsEnabledResult);
+            return Task.FromResult<AutomationExecutor?>(
+                new AutomationExecutor(
+                    Id: executorId,
+                    CompanyId: CompanyIdResult,
+                    Enabled: IsEnabledResult));
         }
     }
 }

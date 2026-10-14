@@ -10,7 +10,7 @@ namespace AutomationStation.Unit.Tests.Infrastructure.Systems
     public class KanbanClientTests
     {
         [Fact]
-        public async Task CreatePlacement_WithValidEndpoint_SendsPostRequest()
+        public async Task CreatePlacementAsync_WithValidEndpoint_SendsPostRequest()
         {
             // Arrange
             var handler = CreateHandler();
@@ -26,9 +26,9 @@ namespace AutomationStation.Unit.Tests.Infrastructure.Systems
 
             // Act
             await kc.CreatePlacementAsync(
-                Guid.Empty,
-                Guid.Empty,
-                Guid.Empty,
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                Guid.NewGuid(),
                 context,
                 CancellationToken.None);
 
@@ -40,7 +40,7 @@ namespace AutomationStation.Unit.Tests.Infrastructure.Systems
         }
 
         [Fact]
-        public async Task CreatePlacement_WithInvalidEndpoint_ThrowsException()
+        public async Task CreatePlacementAsync_WhenResponseIsUnsuccessful_ThrowsException()
         {
             // Arrange
             var handler = CreateHandler();
@@ -57,33 +57,39 @@ namespace AutomationStation.Unit.Tests.Infrastructure.Systems
 
             var context = CreateContext();
 
-            // Act & Assert
-            await Assert.ThrowsAsync<HttpRequestException>(
+            // Act
+            var exception = await Assert.ThrowsAsync<HttpRequestException>(
                 () => kc.CreatePlacementAsync(
-                    Guid.Empty,
-                    Guid.Empty,
-                    Guid.Empty,
+                    Guid.NewGuid(),
+                    Guid.NewGuid(),
+                    Guid.NewGuid(),
                     context,
                     CancellationToken.None));
+
+            // Assert
+            Assert.Contains("500", exception.Message);
         }
 
         [Fact]
-        public async Task CreatePlacement_WhenCalled_SendsHeaders()
+        public async Task CreatePlacementAsync_WhenCalled_SendsHeaders()
         {
             // Arrange
             var handler = CreateHandler();
+
             using var httpClient = new HttpClient(handler)
             {
                 BaseAddress = new Uri("https://localhost")
             };
+
             var kc = new KanbanClient(httpClient);
+
             var context = CreateContext();
 
             // Act
             await kc.CreatePlacementAsync(
-                Guid.Empty,
-                Guid.Empty,
-                Guid.Empty,
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                Guid.NewGuid(),
                 context,
                 CancellationToken.None);
 
@@ -117,8 +123,8 @@ namespace AutomationStation.Unit.Tests.Infrastructure.Systems
         private static KanbanRequestContext CreateContext()
         {
             var actor = new Actor(
-                "",
-                "");
+                Guid.NewGuid().ToString(),
+                "Test Actor");
 
             var payload = System.Text.Json.JsonDocument
                 .Parse("{}")
@@ -126,18 +132,18 @@ namespace AutomationStation.Unit.Tests.Infrastructure.Systems
                 .Clone();
 
             var integrationEvent = new IntegrationEvent(
-                Guid.Empty,
-                "",
+                Guid.NewGuid(),
+                Guid.NewGuid().ToString(),
                 SourceSystem.Kanban,
                 0,
-                Guid.Empty,
-                null,
+                Guid.NewGuid(),
+                Guid.NewGuid(),
                 actor,
                 payload);
 
             return new KanbanRequestContext(
                 integrationEvent,
-                Guid.Empty);
+                Guid.NewGuid());
         }
     }
 }

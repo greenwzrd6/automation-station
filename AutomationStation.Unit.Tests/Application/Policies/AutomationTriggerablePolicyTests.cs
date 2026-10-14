@@ -86,29 +86,29 @@ public class AutomationTriggerablePolicyTests
             string actorType)
     {
         var when = new When(
-            "",
+            "Test When",
             SourceSystem.Kanban,
             []);
 
         var thens = new[]
         {
             new Then(
-                "",
+                "Test Then",
                 TargetSystem.Kanban,
-                null,
+                Guid.NewGuid(),
                 new Dictionary<string, string>())
             };
 
         var automation = new Automation(
             Guid.Empty,
-            "",
+            "Test Automation",
             true,
             automationTriggerable,
             when,
             thens);
 
         var actor = new Actor(
-            "",
+            Guid.NewGuid().ToString(),
             actorType);
 
         var payload = System.Text.Json.JsonDocument
@@ -117,12 +117,12 @@ public class AutomationTriggerablePolicyTests
             .Clone();
 
         var integrationEvent = new IntegrationEvent(
-            Guid.Empty,
-            "",
+            Guid.NewGuid(),
+            "Test Event",
             SourceSystem.Kanban,
             0,
-            Guid.Empty,
-            null,
+            Guid.NewGuid(),
+            Guid.NewGuid(),
             actor,
             payload);
 

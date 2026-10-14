@@ -1,7 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using AutomationStation.Application.Abstractions;
 
-namespace AutomationStation.Infrastructure.RateLimiting
+namespace AutomationStation.Infrastructure.Limiting
 {
     public sealed class InMemoryActionRateLimiter(
         TimeProvider timeProvider) : IActionRateLimiter
