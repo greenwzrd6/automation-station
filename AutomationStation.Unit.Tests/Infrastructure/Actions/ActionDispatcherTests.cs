@@ -7,7 +7,7 @@ using AutomationStation.Infrastructure.Actions;
 
 namespace AutomationStation.Unit.Tests.Infrastructure.Actions;
 
-public sealed class ActionExecutorTests
+public sealed class ActionDispatcherTests
 {
     [Fact]
     public async Task ExecuteAsync_CreatePlacementToTojSystem_IsBlocked()
