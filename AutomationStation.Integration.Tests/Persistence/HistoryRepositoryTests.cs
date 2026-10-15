@@ -9,7 +9,7 @@ using Dapper;
 using System.Data.Common;
 using System.Text.Json;
 
-namespace AutomationStation.Integration.Tests.Messaging
+namespace AutomationStation.Integration.Tests.Persistence
 {
     /// <summary>
     /// Class <c>HistoryRepositoryTests</c> is the test class for <c>HistoryRepository</c>
@@ -61,7 +61,7 @@ namespace AutomationStation.Integration.Tests.Messaging
             // Assert
             var afterInsert = await TimestampAsync(connection, cancellationToken);
 
-            var automationRow = await GetAutomationHistoryWithAutomationIdAsync(connection, automationId, cancellationToken);
+            var automationRow = await GetAutomationHistoryAsync(connection, automationId, cancellationToken);
 
             Assert.Equal(automationId, automationRow.AutomationId);
 
@@ -101,7 +101,7 @@ namespace AutomationStation.Integration.Tests.Messaging
                 cancellationToken);
 
             // Assert
-            var automationRow = await GetAutomationHistoryWithAutomationIdAsync(connection, automationId, cancellationToken);
+            var automationRow = await GetAutomationHistoryAsync(connection, automationId, cancellationToken);
 
             Assert.Equal(causationEventId, automationRow.CausationEventId);
         }
@@ -220,20 +220,20 @@ namespace AutomationStation.Integration.Tests.Messaging
             Guid? CausationEventId,
             DateTime TriggeredAt);
 
-        private static async Task<HistoryRow> GetAutomationHistoryWithAutomationIdAsync(
+        private static async Task<HistoryRow> GetAutomationHistoryAsync(
             DbConnection connection,
             Guid automationId,
             CancellationToken cancellationToken)
         {
             return await connection.QuerySingleAsync<HistoryRow>(
-                    new CommandDefinition(
-                        """
-                        SELECT Id, AutomationId, ActorId, CorrelationId, CausationEventId, TriggeredAt
-                        FROM AutomationHistory
-                        WHERE AutomationId = @AutomationId;
-                        """,
-                        new { AutomationId = automationId },
-                        cancellationToken: cancellationToken));
+                new CommandDefinition(
+                    """
+                    SELECT Id, AutomationId, ActorId, CorrelationId, CausationEventId, TriggeredAt
+                    FROM AutomationHistory
+                    WHERE AutomationId = @AutomationId;
+                    """,
+                    new { AutomationId = automationId },
+                    cancellationToken: cancellationToken));
         }
 
         private static async Task<DateTime> TimestampAsync(
