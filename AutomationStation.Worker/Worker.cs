@@ -1,5 +1,5 @@
-using AutomationStation.Application.Abstractions;
 using AutomationStation.Application.Contracts;
+using AutomationStation.Infrastructure.Messaging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
@@ -108,57 +108,26 @@ public sealed class Worker(
                     });
 
                 logger.LogInformation("""
-                    Received RabbitMQ message: 
-                    {Message}
-                    """,
+            Received RabbitMQ message: 
+            {Message}
+            """,
                     formattedJson);
 
                 using var scope =
                     _scopeFactory.CreateScope();
 
-                var processedMessages =
-                    scope.ServiceProvider
-                        .GetRequiredService<
-                            IProcessedMessageRepository>();
+                var handler = scope.ServiceProvider
+                    .GetRequiredService<EventMessageHandler>();
 
-                if (await processedMessages.HasProcessedAsync(
-                        integrationEvent.EventId,
-                        stoppingToken))
-                {
-                    _logger.LogInformation(
-                        "Ignoring duplicate message '{EventId}'",
-                        integrationEvent.EventId);
-
-                    await channel.BasicAckAsync(
-                        args.DeliveryTag,
-                        multiple: false,
-                        cancellationToken:
-                            stoppingToken);
-
-                    return;
-                }
-
-                var processor =
-                    scope.ServiceProvider
-                        .GetRequiredService<
-                            IAutomationProcessor>();
-
-                await processor.ProcessAsync(
+                await handler.HandleAsync(
                     integrationEvent,
-                    stoppingToken);
-
-                await processedMessages.MarkProcessedAsync(
-                    integrationEvent.EventId,
                     stoppingToken);
 
                 await channel.BasicAckAsync(
                     args.DeliveryTag,
                     multiple: false,
-                    cancellationToken: stoppingToken);
-
-                _logger.LogInformation(
-                    "Successfully processed event '{EventType}'",
-                    integrationEvent.EventType);
+                    cancellationToken:
+                        stoppingToken);
             }
             catch (OperationCanceledException)
                 when (stoppingToken.IsCancellationRequested)

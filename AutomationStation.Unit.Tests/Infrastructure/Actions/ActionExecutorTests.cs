@@ -1,8 +1,8 @@
 ﻿using AutomationStation.Application.Abstractions;
 using AutomationStation.Application.Contracts;
 using AutomationStation.Application.Models;
-using AutomationStation.Core.Automations;
 using AutomationStation.Core.Automations.Systems;
+using AutomationStation.Core.Automations.Thens;
 using AutomationStation.Infrastructure.Actions;
 
 namespace AutomationStation.Unit.Tests.Infrastructure.Actions;

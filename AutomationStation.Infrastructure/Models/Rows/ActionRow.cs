@@ -1,6 +1,6 @@
 ﻿using AutomationStation.Core.Automations.Systems;
 
-namespace AutomationStation.Infrastructure.Persistence.Models
+namespace AutomationStation.Infrastructure.Models.Rows
 {
     public sealed record ActionRow
     {

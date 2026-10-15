@@ -1,4 +1,7 @@
-﻿namespace AutomationStation.Core.Automations
+﻿using AutomationStation.Core.Automations.Thens;
+using AutomationStation.Core.Automations.Whens;
+
+namespace AutomationStation.Core.Automations
 {
 
     /// <summary>
@@ -8,7 +11,7 @@
     /// <param name="name">The name of the automation.</param>
     /// <param name="isEnabled">Whether the automation is enabled or not.</param>
     /// <param name="automationTriggerable">Whether events caused by other automations are allowed to trigger this automation.</param>
-    /// <param name="when">The trigger and conditions defined by <see cref="Automations.When"/>.</param>
+    /// <param name="when">The trigger and conditions defined by <see cref="Whens.When"/>.</param>
     /// <param name="thens">The action(s) to execute, represented by <see cref="Then"/> records.</param>
     public sealed class Automation(
         Guid id,

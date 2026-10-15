@@ -5,7 +5,9 @@ using System.Text.Json.Serialization;
 using AutomationStation.Core.Automations;
 using AutomationStation.Application.Abstractions;
 using AutomationStation.Infrastructure.Database;
-using AutomationStation.Infrastructure.Persistence.Models;
+using AutomationStation.Infrastructure.Models.Rows;
+using AutomationStation.Core.Automations.Whens;
+using AutomationStation.Core.Automations.Thens;
 
 namespace AutomationStation.Infrastructure.Persistence
 {
@@ -171,8 +173,9 @@ namespace AutomationStation.Infrastructure.Persistence
                     automation.Enabled,
                     automation.AutomationTriggerable,
                     new When(
-                        automationTrigger.EventType,
-                        automationTrigger.SourceSystem,
+                        new Trigger(
+                            automationTrigger.EventType,
+                            automationTrigger.SourceSystem),
                         automationConditions),
                     automationActions);
             });

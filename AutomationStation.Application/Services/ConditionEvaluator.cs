@@ -1,6 +1,6 @@
 ﻿using AutomationStation.Application.Abstractions;
 using AutomationStation.Application.Contracts;
-using AutomationStation.Core.Automations;
+using AutomationStation.Core.Automations.Whens;
 
 namespace AutomationStation.Application.Services
 {

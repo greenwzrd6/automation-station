@@ -1,4 +1,4 @@
-﻿namespace AutomationStation.Core.Automations
+﻿namespace AutomationStation.Core.Automations.Whens
 {
     /// <summary>
     /// Enum <c>ConditionOperator</c> defines the comparisons used in a <see cref="Condition"/> operator.
