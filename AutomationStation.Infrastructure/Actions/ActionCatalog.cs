@@ -2,51 +2,55 @@
 using AutomationStation.Application.Models;
 using AutomationStation.Core.Automations.Systems;
 
-namespace AutomationStation.Infrastructure.Actions;
-
-public sealed class ActionCatalog : IActionCatalog
+namespace AutomationStation.Infrastructure.Actions
 {
-    private readonly IReadOnlyCollection<ActionCatalogEntry> _entries =
-    [
-        new ActionCatalogEntry(
-            ActionType: "CreatePlacement",
-            TargetSystem: TargetSystem.Kanban,
-            PermittedActions: 100,
-            RateLimitWindow: TimeSpan.FromMinutes(1)),
-
-         new ActionCatalogEntry(
-             ActionType: "CreateTask",
-             TargetSystem: TargetSystem.TojSystem,
-             PermittedActions: 10,
-             RateLimitWindow: TimeSpan.FromMinutes(1)),
-
-        new ActionCatalogEntry(
-            ActionType: "UpdateTaskStatus",
-            TargetSystem: TargetSystem.TojSystem,
-            PermittedActions: 100,
-            RateLimitWindow: TimeSpan.FromMinutes(1))
-    ];
-
-    public bool TryGet(
-        string actionType,
-        TargetSystem targetSystem,
-        out ActionCatalogEntry entry)
+    /// <summary>
+    /// Class <c>ActionCatalog</c> represents all currently available actions.
+    /// </summary>
+    public sealed class ActionCatalog : IActionCatalog
     {
-        var matchingEntry = _entries.SingleOrDefault(
-            candidate =>
-                candidate.TargetSystem == targetSystem &&
-                string.Equals(
-                    candidate.ActionType,
-                    actionType,
-                    StringComparison.OrdinalIgnoreCase));
+        private readonly IReadOnlyCollection<ActionCatalogEntry> _entries =
+        [
+            new ActionCatalogEntry(
+                ActionType: "CreatePlacement",
+                TargetSystem: TargetSystem.Kanban,
+                PermittedActions: 100,
+                RateLimitWindow: TimeSpan.FromMinutes(1)),
 
-        if (matchingEntry is null)
+             new ActionCatalogEntry(
+                 ActionType: "CreateTask",
+                 TargetSystem: TargetSystem.TojSystem,
+                 PermittedActions: 10,
+                 RateLimitWindow: TimeSpan.FromMinutes(1)),
+
+            new ActionCatalogEntry(
+                ActionType: "UpdateTaskStatus",
+                TargetSystem: TargetSystem.TojSystem,
+                PermittedActions: 100,
+                RateLimitWindow: TimeSpan.FromMinutes(1))
+        ];
+
+        public bool TryGet(
+            string actionType,
+            TargetSystem targetSystem,
+            out ActionCatalogEntry entry)
         {
-            entry = null!;
-            return false;
-        }
+            var matchingEntry = _entries.SingleOrDefault(
+                candidate =>
+                    candidate.TargetSystem == targetSystem &&
+                    string.Equals(
+                        candidate.ActionType,
+                        actionType,
+                        StringComparison.OrdinalIgnoreCase));
 
-        entry = matchingEntry;
-        return true;
+            if (matchingEntry is null)
+            {
+                entry = null!;
+                return false;
+            }
+
+            entry = matchingEntry;
+            return true;
+        }
     }
 }
