@@ -6,6 +6,11 @@ using AutomationStation.Infrastructure.Integrations.Kanban;
 
 namespace AutomationStation.Infrastructure.Actions.Executors
 {
+    /// <summary>
+    /// Class <c>CreatePlacementExecutor</c> is responsible for executing the "CreatePlacement" action.
+    /// </summary>
+    /// <param name="kanbanClient">The system client for interacting with the Kanban system.</param>
+    /// <param name="valueResolver">The resolver for extracting values from the event.</param>
     public sealed class CreatePlacementExecutor(
         KanbanClient kanbanClient,
         IEventValueResolver valueResolver)

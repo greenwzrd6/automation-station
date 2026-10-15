@@ -1,7 +1,7 @@
 ﻿namespace AutomationStation.Core.Automations.Systems
 {
     /// <summary>
-    /// Enum <c>TargetSystem</c> identifies the supported where automation actions can execute.
+    /// Enum <c>TargetSystem</c> identifies the supported systems where automation actions can be executed.
     /// </summary>
     public enum TargetSystem
     {

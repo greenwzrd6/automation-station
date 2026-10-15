@@ -2,64 +2,105 @@
 using AutomationStation.Application.Models;
 using AutomationStation.Core.Automations;
 using AutomationStation.Core.Automations.Systems;
-using AutomationStation.Infrastructure.Integrations.Toj;
 
-namespace AutomationStation.Infrastructure.Actions.Executors;
-
-public sealed class CreateTojTaskExecutor(
-    TojClient tojClient)
-    : IActionHandler
+namespace AutomationStation.Infrastructure.Actions.Executors
 {
-    public string ActionType => "CreateTask";
-
-    public TargetSystem TargetSystem =>
-        TargetSystem.TojSystem;
-
-    public bool CanHandle(string actionType)
+    /// <summary>
+    /// Class <c>ActionExecutor</c> is responsible for executing the "CreateTojTask" action.
+    /// </summary>
+    /// <param name="handlers"></param>
+    /// <param name="rateLimiter"></param>
+    /// <param name="actionCatalog"></param>
+    /// <param name="executorRepository"></param>
+    public sealed class ActionExecutor(
+    IEnumerable<IActionHandler> handlers,
+    IActionRateLimiter rateLimiter,
+    IActionCatalog actionCatalog,
+    IAutomationExecutorRepository executorRepository)
+    : IActionExecutor
     {
-        return string.Equals(
-            ActionType,
-            actionType,
-            StringComparison.OrdinalIgnoreCase);
-    }
+        private readonly Dictionary<string, IActionHandler> _handlers =
+            handlers.ToDictionary(
+                handler => $"{handler.TargetSystem}:{handler.ActionType}",
+                StringComparer.OrdinalIgnoreCase);
+        private readonly IActionRateLimiter _rateLimiter = rateLimiter;
+        private readonly IActionCatalog _actionCatalog = actionCatalog;
 
-    public async Task ExecuteAsync(
-        Then then,
-        ActionContext context,
-        CancellationToken cancellationToken)
-    {
-        if (!context.Event.Payload.TryGetProperty(
-                "entityId",
-                out var entityIdElement) ||
-            !Guid.TryParse(
-                entityIdElement.GetString(),
-                out var sourceTaskId))
+        public async Task ExecuteAsync(
+            Then then,
+            ActionContext context,
+            CancellationToken cancellationToken)
         {
-            throw new ArgumentException(
-                "The triggering event must contain " +
-                "a valid entityId.");
+            if (!_actionCatalog.TryGet(
+                then.Type,
+                then.TargetSystem,
+                out var catalogEntry))
+            {
+                throw new NotSupportedException(
+                    $"Action '{then.Type}' is not allowed " +
+                    $"for target system '{then.TargetSystem}'.");
+            }
+
+            if (context.Event == null)
+            {
+                throw new InvalidOperationException(
+                    "Event context is required for action execution.");
+            }
+
+            var companyId = context.Event.CompanyId;
+
+            if (then.TargetSystem == TargetSystem.TojSystem)
+            {
+                if (!then.ExecutorId.HasValue ||
+                    then.ExecutorId.Value == Guid.Empty)
+                {
+                    throw new InvalidOperationException(
+                        "TOJ actions require a valid executor.");
+                }
+
+                var executor = await executorRepository.GetByIdAsync(
+                    then.ExecutorId.Value,
+                    cancellationToken);
+
+                if (executor is null || !executor.Enabled)
+                {
+                    throw new InvalidOperationException(
+                        "The automation executor does not exist or is disabled.");
+                }
+
+                if (executor.CompanyId <= 0)
+                {
+                    throw new InvalidOperationException(
+                        "Invalid company ID.");
+                }
+
+                companyId = executor.CompanyId;
+            }
+
+
+            var handlerKey = $"{then.TargetSystem}:{then.Type}";
+            if (!_handlers.TryGetValue(
+                    handlerKey,
+                    out var handler))
+            {
+                throw new NotSupportedException(
+                    $"Unsupported action type '{then.Type}' " +
+                    $"for target system '{then.TargetSystem}'.");
+            }
+
+            await _rateLimiter.WaitAsync(
+                new ActionRateLimitKey(
+                    CompanyId: companyId,
+                    ActionType: then.Type,
+                    TargetSystem: then.TargetSystem),
+                    permittedActions: catalogEntry.PermittedActions,
+                    window: catalogEntry.RateLimitWindow,
+                    cancellationToken);
+
+            await handler.ExecuteAsync(
+                then,
+                context,
+                cancellationToken);
         }
-
-        if (!then.Parameters.TryGetValue(
-                "title",
-                out var title) ||
-            string.IsNullOrWhiteSpace(title))
-        {
-            throw new ArgumentException(
-                "The CreateTask action requires a title.");
-        }
-
-        if (!then.ExecutorId.HasValue)
-        {
-            throw new InvalidOperationException("The action requires an executor.");
-        }
-
-        Guid executorId = then.ExecutorId.Value;
-
-        await tojClient.CreateTaskInSameRootAsync(
-            sourceTaskId,
-            title,
-            executorId,
-            cancellationToken);
     }
 }
