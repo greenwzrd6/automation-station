@@ -5,9 +5,10 @@ using AutomationStation.Infrastructure.Actions;
 using AutomationStation.Infrastructure.Actions.Executors;
 using AutomationStation.Infrastructure.Database;
 using AutomationStation.Infrastructure.Integrations.Kanban;
-using AutomationStation.Infrastructure.Persistence;
-using AutomationStation.Infrastructure.Limiting;
 using AutomationStation.Infrastructure.Integrations.Toj;
+using AutomationStation.Infrastructure.Limiting;
+using AutomationStation.Infrastructure.Messaging;
+using AutomationStation.Infrastructure.Persistence;
 using AutomationStation.Worker;
 
 var builder = Host.CreateApplicationBuilder(args);
@@ -81,6 +82,9 @@ builder.Services.AddSingleton<
     IActionRateLimiter,
     InMemoryActionRateLimiter>();
 
+// Messaging
+builder.Services.AddScoped<EventMessageHandler>();
+
 // Actions
 builder.Services.AddScoped<
     IActionDispatcher,
@@ -108,6 +112,7 @@ builder.Services.AddHttpClient<KanbanClient>(
 
         client.BaseAddress = new Uri(baseUrl);
     });
+
 builder.Services.AddHttpClient<TojClient>(
     (serviceProvider, client) =>
     {
