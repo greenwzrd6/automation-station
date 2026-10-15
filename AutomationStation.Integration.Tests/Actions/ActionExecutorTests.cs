@@ -23,7 +23,7 @@ namespace AutomationStation.Integration.Tests.Actions
             var handler = new FakeActionHandler(
                 actionType: "CreateTask",
                 targetSystem: TargetSystem.TojSystem);
-            var executor = new ActionExecutor(
+            var executor = new ActionDispatcher(
                 handlers: [handler],
                 rateLimiter: new FakeActionRateLimiter(),
                 actionCatalog: new ActionCatalog(),
@@ -77,7 +77,7 @@ namespace AutomationStation.Integration.Tests.Actions
             var handler = new FakeActionHandler(
                 actionType: "CreateTask",
                 targetSystem: TargetSystem.TojSystem);
-            var executor = new ActionExecutor(
+            var executor = new ActionDispatcher(
                 handlers: [handler],
                 rateLimiter: new FakeActionRateLimiter(),
                 actionCatalog: new ActionCatalog(),
@@ -128,7 +128,7 @@ namespace AutomationStation.Integration.Tests.Actions
             var handler = new FakeActionHandler(
                 actionType: "CreateTask",
                 targetSystem: TargetSystem.TojSystem);
-            var executor = new ActionExecutor(
+            var executor = new ActionDispatcher(
                 handlers: [handler],
                 rateLimiter: new FakeActionRateLimiter(),
                 actionCatalog: new ActionCatalog(),

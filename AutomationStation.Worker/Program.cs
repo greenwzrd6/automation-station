@@ -83,8 +83,8 @@ builder.Services.AddSingleton<
 
 // Actions
 builder.Services.AddScoped<
-    IActionExecutor,
-    ActionExecutor>();
+    IActionDispatcher,
+    ActionDispatcher>();
 
 builder.Services.AddScoped<
     IActionHandler,

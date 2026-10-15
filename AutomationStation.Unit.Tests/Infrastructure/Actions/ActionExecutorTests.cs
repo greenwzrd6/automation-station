@@ -21,7 +21,7 @@ public sealed class ActionExecutorTests
 
         var automationExecutorRepository = new FakeAutomationExecutorRepository();
 
-        var executor = new ActionExecutor(
+        var executor = new ActionDispatcher(
             [handler],
             rateLimiter,
             new ActionCatalog(),
@@ -64,7 +64,7 @@ public sealed class ActionExecutorTests
 
         var automationExecutorRepository = new FakeAutomationExecutorRepository();
 
-        var executor = new ActionExecutor(
+        var executor = new ActionDispatcher(
             [handler],
             rateLimiter,
             new ActionCatalog(),
@@ -110,7 +110,7 @@ public sealed class ActionExecutorTests
 
         var automationExecutorRepository = new FakeAutomationExecutorRepository();
 
-        var executor = new ActionExecutor(
+        var executor = new ActionDispatcher(
             [handler],
             rateLimiter,
             new ActionCatalog(),
@@ -160,7 +160,7 @@ public sealed class ActionExecutorTests
 
         var automationExecutorRepository = new FakeAutomationExecutorRepository();
 
-        var executor = new ActionExecutor(
+        var executor = new ActionDispatcher(
             [handler],
             rateLimiter,
             new ActionCatalog(),
@@ -205,7 +205,7 @@ public sealed class ActionExecutorTests
 
         var automationExecutorRepository = new FakeAutomationExecutorRepository();
 
-        var executor = new ActionExecutor(
+        var executor = new ActionDispatcher(
             [handler],
             rateLimiter,
             new ActionCatalog(),
@@ -252,7 +252,7 @@ public sealed class ActionExecutorTests
                 CompanyIdResult = 0
             };
 
-        var executor = new ActionExecutor(
+        var executor = new ActionDispatcher(
             [handler],
             rateLimiter,
             new ActionCatalog(),
@@ -298,7 +298,7 @@ public sealed class ActionExecutorTests
             IsEnabledResult = false // Simulate disabled executor
         };
 
-        var executor = new ActionExecutor(
+        var executor = new ActionDispatcher(
             [handler],
             rateLimiter,
             new ActionCatalog(),
@@ -341,7 +341,7 @@ public sealed class ActionExecutorTests
 
         var automationExecutorRepository = new FakeAutomationExecutorRepository();
 
-        var executor = new ActionExecutor(
+        var executor = new ActionDispatcher(
             [handler],
             rateLimiter,
             new ActionCatalog(),
