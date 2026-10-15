@@ -1,9 +1,9 @@
 ﻿using AutomationStation.Core.Automations.Systems;
 
-namespace AutomationStation.Core.Automations
+namespace AutomationStation.Core.Automations.Thens
 {
     /// <summary>
-    /// Record <c>Then</c> represents the structure of what should happen when a <see cref="When"/> is met. 
+    /// Record <c>Then</c> represents the structure of what should happen when a <see cref="Whens.When"/> is met. 
     /// </summary>
     /// <param name="Type">The action to perform in the target system, such as CreatePlacement.</param>
     /// <param name="TargetSystem">The system where the action should happen. See <see cref="Systems.TargetSystem"/>.</param>

@@ -2,6 +2,7 @@
 using AutomationStation.Application.Models;
 using AutomationStation.Core.Automations;
 using AutomationStation.Core.Automations.Systems;
+using AutomationStation.Core.Automations.Whens;
 using AutomationStation.Infrastructure.Persistence;
 using AutomationStation.Integration.Tests.Fixtures;
 using Dapper;
@@ -272,9 +273,8 @@ namespace AutomationStation.Integration.Tests.Messaging
                 name: "Test Automation",
                 isEnabled: true,
                 automationTriggerable: true,
-                when: new When(
-                    EventType: "PlacementCreated",
-                    EventSource: SourceSystem.Kanban,
+                when: new When(new Trigger(EventType: "PlacementCreated",
+                    SourceSystem: SourceSystem.Kanban),
                     Conditions: []),
                 thens: []);
 

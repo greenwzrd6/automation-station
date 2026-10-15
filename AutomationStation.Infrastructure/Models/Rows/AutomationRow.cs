@@ -1,4 +1,4 @@
-﻿namespace AutomationStation.Infrastructure.Persistence.Models
+﻿namespace AutomationStation.Infrastructure.Models.Rows
 {
     internal sealed record AutomationRow(
         Guid Id,

@@ -1,5 +1,5 @@
-﻿using AutomationStation.Core.Automations;
-using AutomationStation.Core.Automations.Systems;
+﻿using AutomationStation.Core.Automations.Systems;
+using AutomationStation.Core.Automations.Whens;
 using AutomationStation.Infrastructure.Persistence;
 using AutomationStation.Integration.Tests.Fixtures;
 using Dapper;
@@ -57,7 +57,7 @@ namespace AutomationStation.Integration.Tests.Messaging
                 automations,
                 automation => automation.Id == automationId);
 
-            Assert.Equal(eventType, automation.When.EventType);
+            Assert.Equal(eventType, automation.When.Trigger.EventType);
             Assert.True(automation.IsEnabled);
 
             var condition = Assert.Single(automation.When.Conditions);
@@ -157,19 +157,19 @@ namespace AutomationStation.Integration.Tests.Messaging
             var automation1 = Assert.Single(
                 automations,
                 automation => automation.Id == automationId1);
-            Assert.Equal(eventType, automation1.When.EventType);
+            Assert.Equal(eventType, automation1.When.Trigger.EventType);
             Assert.True(automation1.IsEnabled);
 
             var automation2 = Assert.Single(
                 automations,
                 automation => automation.Id == automationId2);
-            Assert.Equal(eventType, automation2.When.EventType);
+            Assert.Equal(eventType, automation2.When.Trigger.EventType);
             Assert.True(automation2.IsEnabled);
 
             var automation3 = Assert.Single(
                 automations,
                 automation => automation.Id == automationId3);
-            Assert.Equal(eventType, automation3.When.EventType);
+            Assert.Equal(eventType, automation3.When.Trigger.EventType);
             Assert.True(automation3.IsEnabled);
         }
 
