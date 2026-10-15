@@ -6,6 +6,12 @@ using AutomationStation.Infrastructure.Integrations.Toj;
 
 namespace AutomationStation.Infrastructure.Actions.Executors
 {
+    /// <summary>
+    /// Handles UpdateTaskStatus actions by validating inputs and invoking TojClient to update a TOJ task's status.
+    /// </summary>
+    /// <remarks>Validates that the triggering event contains a valid entityId, that then.Parameters contains
+    /// a valid statusId, and that then.ExecutorId has a value before calling TojClient.UpdateTaskStatusAsync.</remarks>
+    /// <param name="tojClient">Client used to send task status updates to the TOJ system.</param>
     public sealed class UpdateTojTaskStatusExecutor(
         TojClient tojClient)
     : IActionHandler
