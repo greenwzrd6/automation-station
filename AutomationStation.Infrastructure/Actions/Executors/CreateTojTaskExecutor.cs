@@ -6,6 +6,13 @@ using AutomationStation.Infrastructure.Integrations.Toj;
 
 namespace AutomationStation.Infrastructure.Actions.Executors;
 
+/// <summary>
+/// Handles CreateTask actions by creating a corresponding task in the Toj system using the provided TojClient.
+/// </summary>
+/// <remarks>Requires the triggering event to contain a valid entityId, a non-empty title parameter, and a
+/// specified executor. Throws ArgumentException if entityId is missing or the title is empty; throws
+/// InvalidOperationException if ExecutorId is not set.</remarks>
+/// <param name="tojClient">Client for interacting with the Toj system to create tasks.</param>
 public sealed class CreateTojTaskExecutor(
     TojClient tojClient)
     : IActionHandler
