@@ -5,7 +5,7 @@ using AutomationStation.Integration.Tests.Fixtures;
 using Dapper;
 using System.Data.Common;
 
-namespace AutomationStation.Integration.Tests.Messaging
+namespace AutomationStation.Integration.Tests.Persistence
 {
 
     /// <summary>

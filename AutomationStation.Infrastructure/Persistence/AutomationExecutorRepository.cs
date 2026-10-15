@@ -16,12 +16,16 @@ public sealed class AutomationExecutorRepository(
     DbConnectionFactory connectionFactory)
     : IAutomationExecutorRepository
 {
+    private readonly DbConnectionFactory _connectionFactory = connectionFactory;
+
     public async Task<AutomationExecutor?> GetByIdAsync(
         Guid executorId,
         CancellationToken cancellationToken)
     {
         await using var connection =
-            connectionFactory.CreateConnection();
+                _connectionFactory.CreateConnection();
+
+        await connection.OpenAsync(cancellationToken);
 
         const string sql = """
           
