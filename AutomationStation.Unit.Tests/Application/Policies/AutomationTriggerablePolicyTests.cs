@@ -3,6 +3,8 @@ using AutomationStation.Application.Models;
 using AutomationStation.Application.Policies;
 using AutomationStation.Core.Automations;
 using AutomationStation.Core.Automations.Systems;
+using AutomationStation.Core.Automations.Thens;
+using AutomationStation.Core.Automations.Whens;
 
 namespace AutomationStation.Unit.Tests.Application.Policies;
 

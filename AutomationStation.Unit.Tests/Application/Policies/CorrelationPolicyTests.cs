@@ -6,6 +6,8 @@ using AutomationStation.Application.Models;
 using AutomationStation.Application.Policies;
 using AutomationStation.Core.Automations;
 using AutomationStation.Core.Automations.Systems;
+using AutomationStation.Core.Automations.Whens;
+using AutomationStation.Core.Automations.Thens;
 
 namespace AutomationStation.Unit.Tests.Application.Policies
 {
@@ -237,9 +239,8 @@ namespace AutomationStation.Unit.Tests.Application.Policies
             Guid automationId,
             Guid correlationId)
         {
-            var when = new When(
-                "Test When",
-                SourceSystem.Kanban,
+            var when = new When(new Trigger("Test When",
+                SourceSystem.Kanban),
                 []);
 
             var thens = new[]
