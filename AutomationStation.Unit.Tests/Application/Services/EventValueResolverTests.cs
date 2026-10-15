@@ -20,7 +20,7 @@ namespace AutomationStation.Unit.Tests.Application.Services
                 correlationId: Guid.NewGuid());
 
             // Act
-            var result = _resolver.TryGetValue(integrationEvent, null, out var value);
+            var result = _resolver.TryGetValue(integrationEvent, null!, out var value);
 
             // Assert
             Assert.False(result);
