@@ -86,8 +86,9 @@ public class AutomationTriggerablePolicyTests
             string actorType)
     {
         var when = new When(
-            "Test When",
-            SourceSystem.Kanban,
+            new Trigger(
+                "Test When",
+                SourceSystem.Kanban),
             []);
 
         var thens = new[]

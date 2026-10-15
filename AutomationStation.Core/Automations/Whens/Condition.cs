@@ -1,4 +1,4 @@
-﻿namespace AutomationStation.Core.Automations
+﻿namespace AutomationStation.Core.Automations.Whens
 {
     /// <summary>
     /// Record <c>Condition</c> represents a condition used inside of a <see cref="When"/>.

@@ -1,6 +1,6 @@
 ﻿using AutomationStation.Core.Automations.Systems;
 
-namespace AutomationStation.Core.Automations
+namespace AutomationStation.Core.Automations.Whens
 {
 
     /// <summary>
@@ -10,7 +10,6 @@ namespace AutomationStation.Core.Automations
     /// <param name="EventSource">The system the event came from <see cref="SourceSystem"/>.</param>
     /// <param name="Conditions">The conditions that must be met for the automation to execute. See <see cref="Condition"/>.</param>
     public sealed record When(
-        string EventType,
-        SourceSystem EventSource,
+        Trigger Trigger,
         IReadOnlyCollection<Condition> Conditions);
 }

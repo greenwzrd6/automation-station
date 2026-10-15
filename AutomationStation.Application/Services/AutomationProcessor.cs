@@ -1,7 +1,7 @@
 ﻿using AutomationStation.Application.Abstractions;
 using AutomationStation.Application.Contracts;
 using AutomationStation.Application.Models;
-using AutomationStation.Core.Automations;
+using AutomationStation.Core.Automations.Whens;
 using Microsoft.Extensions.Logging;
 
 namespace AutomationStation.Application.Services
@@ -93,14 +93,14 @@ namespace AutomationStation.Application.Services
             IntegrationEvent integrationEvent)
         {
             if (!string.Equals(
-                    when.EventType,
+                    when.Trigger.EventType,
                     integrationEvent.EventType,
                     StringComparison.OrdinalIgnoreCase))
             {
                 return false;
             }
 
-            if (when.EventSource != integrationEvent.Source)
+            if (when.Trigger.SourceSystem != integrationEvent.Source)
             {
                 return false;
             }

@@ -1,5 +1,5 @@
 ﻿using AutomationStation.Application.Models;
-using AutomationStation.Core.Automations;
+using AutomationStation.Core.Automations.Thens;
 
 namespace AutomationStation.Application.Abstractions
 {

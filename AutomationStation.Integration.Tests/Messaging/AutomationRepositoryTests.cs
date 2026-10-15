@@ -1,5 +1,4 @@
-﻿using AutomationStation.Core.Automations;
-using AutomationStation.Core.Automations.Systems;
+﻿using AutomationStation.Core.Automations.Systems;
 using AutomationStation.Infrastructure.Persistence;
 using AutomationStation.Integration.Tests.Fixtures;
 using Dapper;
