@@ -10,7 +10,7 @@ namespace AutomationStation.Application.Services
         IAutomationRepository automationRepository,
         IConditionEvaluator conditionEvaluator,
         IAutomationExecutionGuard executionGuard,
-        IActionExecutor actionExecutor,
+        IActionDispatcher actionExecutor,
         IAutomationExecutionRepository automationExecutionRepository,
         IAutomationExecutionLimiter correlationLoopRepository,
         ILogger<AutomationProcessor> logger)
@@ -19,7 +19,7 @@ namespace AutomationStation.Application.Services
         private readonly IAutomationRepository _automationRepository = automationRepository;
         private readonly IConditionEvaluator _conditionEvaluator = conditionEvaluator;
         private readonly IAutomationExecutionGuard _executionGuard = executionGuard;
-        private readonly IActionExecutor _actionExecutor = actionExecutor;
+        private readonly IActionDispatcher _actionExecutor = actionExecutor;
         private readonly IAutomationExecutionRepository _automationExecutionRepository = automationExecutionRepository;
         private readonly IAutomationExecutionLimiter _correlationLoopRepository = correlationLoopRepository;
         private readonly ILogger<AutomationProcessor> _logger = logger;

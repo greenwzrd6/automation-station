@@ -3,7 +3,7 @@ using AutomationStation.Core.Automations;
 
 namespace AutomationStation.Application.Abstractions
 {
-    public interface IActionExecutor
+    public interface IActionDispatcher
     {
         Task ExecuteAsync(
             Then then,
