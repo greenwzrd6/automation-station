@@ -1,6 +1,4 @@
-﻿using AutomationStation.Application.Contracts;
-using AutomationStation.Application.Models;
-using AutomationStation.Core.Automations;
+﻿using AutomationStation.Application.Models;
 
 namespace AutomationStation.Application.Abstractions
 {
