@@ -4,12 +4,6 @@ using Microsoft.Extensions.Logging;
 
 namespace AutomationStation.Infrastructure.Messaging
 {
-    public enum MessageOutcome
-    {
-        Processed,
-        Duplicate
-    }
-
     public sealed class EventMessageHandler(
         IProcessedMessageRepository messageRepository,
         IAutomationProcessor automationProcessor,
