@@ -24,7 +24,7 @@ namespace AutomationStation.Infrastructure.Persistence
                 CASE WHEN EXISTS (
                     SELECT 1
                     FROM ProcessedMessages
-                    WHERE MessageId = @MessageId
+                    WHERE Id = @Id
                 )
                 THEN 1
                 ELSE 0
@@ -32,18 +32,16 @@ namespace AutomationStation.Infrastructure.Persistence
             AS BIT);
             """;
 
-            await connection.OpenAsync(
-                cancellationToken);
+            await connection.OpenAsync(cancellationToken);
 
             return await connection.QuerySingleAsync<bool>(
                 new CommandDefinition(
                     sql,
                     new
                     {
-                        MessageId = messageId
+                        Id = messageId
                     },
-                    cancellationToken:
-                        cancellationToken));
+                    cancellationToken: cancellationToken));
         }
 
         public async Task MarkProcessedAsync(
@@ -55,9 +53,9 @@ namespace AutomationStation.Infrastructure.Persistence
 
             const string sql = """
             INSERT INTO ProcessedMessages
-                (MessageId, ProcessedAt)
+                (Id, ProcessedAt)
             VALUES
-                (@MessageId, @ProcessedAt);
+                (@Id, SYSUTCDATETIME());
             """;
 
             await connection.OpenAsync(
@@ -66,13 +64,8 @@ namespace AutomationStation.Infrastructure.Persistence
             await connection.ExecuteAsync(
                 new CommandDefinition(
                     sql,
-                    new
-                    {
-                        MessageId = messageId,
-                        ProcessedAt = DateTime.UtcNow
-                    },
-                    cancellationToken:
-                        cancellationToken));
+                    new { Id = messageId },
+                    cancellationToken: cancellationToken));
         }
     }
 }
