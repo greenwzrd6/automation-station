@@ -49,10 +49,7 @@ namespace AutomationStation.Integration.Tests.Messaging
             // Fake automation
             await InsertAutomationAsync(connection, automationId, cancellationToken);
 
-            var beforeInsert = await connection.QuerySingleAsync<DateTime>(
-                new CommandDefinition(
-                    "SELECT SYSUTCDATETIME();",
-                    cancellationToken: cancellationToken));
+            var beforeInsert = await TimestampAsync(connection, cancellationToken);
 
             // Act
             // Insert into history
@@ -61,10 +58,7 @@ namespace AutomationStation.Integration.Tests.Messaging
                 cancellationToken);
 
             // Assert
-            var afterInsert = await connection.QuerySingleAsync<DateTime>(
-                new CommandDefinition(
-                    "SELECT SYSUTCDATETIME();",
-                    cancellationToken: cancellationToken));
+            var afterInsert = await TimestampAsync(connection, cancellationToken);
 
             var automationRow = await GetAutomationHistoryWithAutomationIdAsync(connection, automationId, cancellationToken);
 
@@ -239,6 +233,16 @@ namespace AutomationStation.Integration.Tests.Messaging
                         """,
                         new { AutomationId = automationId },
                         cancellationToken: cancellationToken));
+        }
+
+        private static async Task<DateTime> TimestampAsync(
+            DbConnection connection,
+            CancellationToken cancellationToken)
+        {
+            return await connection.QuerySingleAsync<DateTime>(
+                new CommandDefinition(
+                    "SELECT SYSUTCDATETIME();",
+                    cancellationToken: cancellationToken));
         }
 
         private static async Task InsertAutomationAsync(
