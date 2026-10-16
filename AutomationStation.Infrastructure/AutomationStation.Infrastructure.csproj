@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Messaging\**" />
+    <EmbeddedResource Remove="Messaging\**" />
+    <None Remove="Messaging\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Dapper" Version="2.1.89" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="7.1.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.13" />
@@ -17,10 +23,6 @@
   <ItemGroup>
     <ProjectReference Include="..\AutomationStation.Application\AutomationStation.Application.csproj" />
     <ProjectReference Include="..\AutomationStation.Core\AutomationStation.Core.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Messaging\" />
   </ItemGroup>
 
 </Project>
