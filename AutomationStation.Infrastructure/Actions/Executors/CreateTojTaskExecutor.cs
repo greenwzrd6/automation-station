@@ -22,14 +22,6 @@ public sealed class CreateTojTaskExecutor(
     public TargetSystem TargetSystem =>
         TargetSystem.TojSystem;
 
-    public bool CanHandle(string actionType)
-    {
-        return string.Equals(
-            ActionType,
-            actionType,
-            StringComparison.OrdinalIgnoreCase);
-    }
-
     public async Task ExecuteAsync(
         Then then,
         ActionContext context,

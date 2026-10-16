@@ -19,4 +19,8 @@
     <ProjectReference Include="..\AutomationStation.Core\AutomationStation.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Messaging\" />
+  </ItemGroup>
+
 </Project>
