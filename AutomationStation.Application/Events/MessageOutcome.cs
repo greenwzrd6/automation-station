@@ -1,4 +1,4 @@
-﻿namespace AutomationStation.Infrastructure.Messaging
+﻿namespace AutomationStation.Application.Events
 {
     public enum MessageOutcome
     {
