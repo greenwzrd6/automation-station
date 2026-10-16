@@ -3,9 +3,9 @@ using AutomationStation.Application.Abstractions;
 using AutomationStation.Application.Contracts;
 using AutomationStation.Application.Models;
 using AutomationStation.Core.Automations.Systems;
-using AutomationStation.Infrastructure.Messaging;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
+using AutomationStation.Application.Events;
 
 namespace AutomationStation.Unit.Tests.Infrastructure.Messaging
 {

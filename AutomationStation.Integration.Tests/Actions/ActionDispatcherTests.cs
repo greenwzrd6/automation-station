@@ -11,7 +11,7 @@ using Dapper;
 namespace AutomationStation.Integration.Tests.Actions
 {
     [Collection(DatabaseCollection.Name)]
-    public class ActionExecutorTests(DatabaseFixture database)
+    public class ActionDispatcherTests(DatabaseFixture database)
     {
         private readonly DatabaseFixture _database = database;
 

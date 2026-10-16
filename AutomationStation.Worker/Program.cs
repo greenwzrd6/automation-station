@@ -1,4 +1,5 @@
 using AutomationStation.Application.Abstractions;
+using AutomationStation.Application.Events;
 using AutomationStation.Application.Policies;
 using AutomationStation.Application.Services;
 using AutomationStation.Infrastructure.Actions;
@@ -7,7 +8,6 @@ using AutomationStation.Infrastructure.Database;
 using AutomationStation.Infrastructure.Integrations.Kanban;
 using AutomationStation.Infrastructure.Integrations.Toj;
 using AutomationStation.Infrastructure.Limiting;
-using AutomationStation.Infrastructure.Messaging;
 using AutomationStation.Infrastructure.Persistence;
 using AutomationStation.Worker;
 
