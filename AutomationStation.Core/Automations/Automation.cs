@@ -3,7 +3,6 @@ using AutomationStation.Core.Automations.Whens;
 
 namespace AutomationStation.Core.Automations
 {
-
     /// <summary>
     /// Class <c>Automation</c> is the domainclass that represents the structure of an automation.
     /// </summary>

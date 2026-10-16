@@ -4,11 +4,10 @@ namespace AutomationStation.Core.Automations.Whens
 {
 
     /// <summary>
-    /// Record <c>When</c> represents when something should happen inside an automation.
+    /// Record <c>When</c> represents what causes an automation to happen.
     /// </summary>
-    /// <param name="EventType">The event that triggers the <c>When</c>, e.g. "PlacementCreated".</param>
-    /// <param name="EventSource">The system the event came from <see cref="SourceSystem"/>.</param>
-    /// <param name="Conditions">The conditions that must be met for the automation to execute. See <see cref="Condition"/>.</param>
+    /// <param name="Trigger">What triggers the <c>When</c>, see <see cref="Trigger"/>.</param>
+    /// <param name="Conditions">The condition(s) that must be met for an automation to execute, see <see cref="Condition"/>.</param>
     public sealed record When(
         Trigger Trigger,
         IReadOnlyCollection<Condition> Conditions);
