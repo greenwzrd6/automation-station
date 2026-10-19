@@ -20,7 +20,7 @@ VALUES
 (
     @ReleasedAutomationId,
     N'Set TOJ task to Completed when placed in Released',
-    1,
+    0,
     1
 );
 
@@ -97,7 +97,7 @@ VALUES
 (
     @TodoAutomationId,
     N'Set TOJ task to Active when placed in Todo',
-    1,
+    0,
     1
 );
 
