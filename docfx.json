@@ -1,0 +1,49 @@
+{
+  "$schema": "https://raw.githubusercontent.com/dotnet/docfx/main/schemas/docfx.schema.json",
+  "metadata": [
+    {
+      "src": [
+		{ "src": ".", 
+	      "files": [
+		  "AutomationStation.Core/AutomationStation.Core.csproj",
+		  "AutomationStation.Application/AutomationStation.Application.csproj",
+		  "AutomationStation.Infrastructure/AutomationStation.Infrastructure.csproj",
+		  "AutomationStation.Worker/AutomationStation.Worker.csproj"
+		  ] 
+		}
+	  ],
+      "dest": "api"
+    }
+  ],
+  "build": {
+    "content": [
+      {
+        "files": [
+          "**/*.{md,yml}"
+        ],
+        "exclude": [
+          "_site/**",
+		  "docker-compose*.yml"
+        ]
+      }
+    ],
+    "resource": [
+      {
+        "files": [
+          "images/**"
+        ]
+      }
+    ],
+    "output": "_site",
+    "template": [
+      "default",
+      "modern"
+    ],
+    "globalMetadata": {
+      "_appName": "AutomationStation",
+      "_appTitle": "AutomationStation Docs",
+      "_enableSearch": true,
+      "pdf": true
+    }
+  }
+}
