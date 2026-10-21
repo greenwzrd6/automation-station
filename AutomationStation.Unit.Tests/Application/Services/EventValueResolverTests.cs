@@ -1,8 +1,9 @@
-﻿using AutomationStation.Application.Contracts;
+﻿using System.Text.Json;
+
+using AutomationStation.Application.Contracts;
 using AutomationStation.Application.Models;
 using AutomationStation.Application.Services;
 using AutomationStation.Core.Automations.Systems;
-using System.Text.Json;
 
 namespace AutomationStation.Unit.Tests.Application.Services
 {

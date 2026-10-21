@@ -1,16 +1,25 @@
 ﻿using Dapper;
+
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-using AutomationStation.Core.Automations;
 using AutomationStation.Application.Abstractions;
+using AutomationStation.Core.Automations;
+using AutomationStation.Core.Automations.Thens;
+using AutomationStation.Core.Automations.Whens;
 using AutomationStation.Infrastructure.Database;
 using AutomationStation.Infrastructure.Models.Rows;
-using AutomationStation.Core.Automations.Whens;
-using AutomationStation.Core.Automations.Thens;
 
 namespace AutomationStation.Infrastructure.Persistence
 {
+    /// <summary>
+    /// Loads full automation aggregates from the database, including their triggers, conditions, and actions.
+    /// </summary>
+    /// <remarks>Automations are stored relationally (Automations, AutomationTriggers, AutomationConditions,
+    /// AutomationActions) while condition configuration and action parameters are persisted as JSON. Condition JSON is
+    /// deserialized with web naming conventions and string enums; action parameters are read as a string dictionary.
+    /// Actions are returned ordered by their execution order.</remarks>
+    /// <param name="connectionFactory">Factory that provides connections to the automation database.</param>
     public sealed class AutomationRepository(
         DbConnectionFactory connectionFactory)
         : IAutomationRepository
@@ -26,6 +35,22 @@ namespace AutomationStation.Infrastructure.Persistence
                 }
             };
 
+        /// <summary>
+        /// Loads every enabled automation that has a trigger for the given event type, with its full trigger,
+        /// condition, and action configuration.
+        /// </summary>
+        /// <remarks>A single round-trip returns four result sets (automations, triggers, conditions, actions) that are
+        /// stitched together in memory into <see cref="Automation"/> aggregates. Only automations with
+        /// <c>Enabled = 1</c> and at least one trigger on <paramref name="eventType"/> are returned. Condition rows
+        /// whose configuration JSON is missing or invalid cause an <see cref="InvalidOperationException"/> rather than
+        /// silently dropping the condition.</remarks>
+        /// <param name="eventType">The event type to match against automation triggers, compared exactly as stored
+        /// (case-sensitive).</param>
+        /// <param name="cancellationToken">A token used to cancel the database calls.</param>
+        /// <returns>A task that completes with the matching automation aggregates, each with exactly one trigger, its
+        /// conditions, and its actions ordered by execution order.</returns>
+        /// <exception cref="InvalidOperationException">An enabled automation has no trigger (or more than one), an
+        /// action has no target system, or a condition's configuration JSON is missing or cannot be deserialized.</exception>
         public async Task<IReadOnlyCollection<Automation>> GetEnabledByEventTypeAsync(
             string eventType,
             CancellationToken cancellationToken)
@@ -183,6 +208,7 @@ namespace AutomationStation.Infrastructure.Persistence
             return [.. automations];
         }
 
+        // Deserializes a condition row's configuration JSON; throws when the JSON is missing or invalid.
         private static Condition DeserializeCondition(
             ConditionRow row)
         {

@@ -11,6 +11,15 @@ namespace AutomationStation.Application.Abstractions
     /// implementation-defined.</remarks>
     public interface IEventValueResolver
     {
+        /// <summary>
+        /// Attempts to resolve a named field of the given integration event to a string.
+        /// </summary>
+        /// <param name="integrationEvent">The event to read; implementations must not modify it.</param>
+        /// <param name="field">Name or dot-separated path of the field to resolve, for example "eventType",
+        /// "actor.id" or "payload.columnId". Whitespace-only names must yield false.</param>
+        /// <param name="value">When the method returns true, the resolved value; otherwise null.</param>
+        /// <returns>true when the field was present and <paramref name="value"/> was assigned; false when the
+        /// field is absent or cannot be read, in which case <paramref name="value"/> is set to null.</returns>
         bool TryGetValue(
             IntegrationEvent integrationEvent,
             string field,

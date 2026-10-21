@@ -1,4 +1,8 @@
-﻿using AutomationStation.Application.Abstractions;
+﻿using Moq;
+
+using Microsoft.Extensions.Logging;
+
+using AutomationStation.Application.Abstractions;
 using AutomationStation.Application.Contracts;
 using AutomationStation.Application.Models;
 using AutomationStation.Application.Services;
@@ -6,8 +10,6 @@ using AutomationStation.Core.Automations;
 using AutomationStation.Core.Automations.Systems;
 using AutomationStation.Core.Automations.Thens;
 using AutomationStation.Core.Automations.Whens;
-using Microsoft.Extensions.Logging;
-using Moq;
 
 namespace AutomationStation.Unit.Tests.Application.Services
 {

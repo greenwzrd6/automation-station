@@ -1,18 +1,19 @@
-﻿using AutomationStation.Application.Contracts;
+﻿using Dapper;
+
+using System.Data.Common;
+using System.Text.Json;
+
+using AutomationStation.Application.Contracts;
 using AutomationStation.Application.Models;
+using Actor = AutomationStation.Application.Models.Actor;
 using AutomationStation.Core.Automations;
 using AutomationStation.Core.Automations.Systems;
 using AutomationStation.Core.Automations.Whens;
 using AutomationStation.Infrastructure.Limiting;
 using AutomationStation.Integration.Tests.Fixtures;
-using Dapper;
-using System.Data.Common;
-using System.Text.Json;
-using Actor = AutomationStation.Application.Models.Actor;
 
 namespace AutomationStation.Integration.Tests.Messaging
 {
-
     /// <summary>
     /// Class <c>AutomationExecutionLimiterTests</c> is the test class for <c>AutomationExecutionLimiter</c>
     /// </summary>

@@ -1,7 +1,9 @@
-﻿using AutomationStation.Core.Automations.Systems;
-using AutomationStation.Integration.Tests.Fixtures;
-using Dapper;
+﻿using Dapper;
+
 using Microsoft.Data.SqlClient;
+
+using AutomationStation.Core.Automations.Systems;
+using AutomationStation.Integration.Tests.Fixtures;
 
 namespace AutomationStation.Integration.Tests.Persistence
 {

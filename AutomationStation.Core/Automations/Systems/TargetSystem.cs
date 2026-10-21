@@ -1,4 +1,4 @@
-﻿namespace AutomationStation.Core.Automations.Systems
+namespace AutomationStation.Core.Automations.Systems
 {
     /// <summary>
     /// Enum <c>TargetSystem</c> specifies the supported systems where an automation actions can be executed.
@@ -6,6 +6,7 @@
     public enum TargetSystem
     {
         Kanban,
+
         TojSystem,
     }
 }

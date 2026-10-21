@@ -2,7 +2,6 @@
 
 namespace AutomationStation.Core.Automations.Whens
 {
-
     /// <summary>
     /// Record <c>When</c> represents what causes an automation to happen.
     /// </summary>

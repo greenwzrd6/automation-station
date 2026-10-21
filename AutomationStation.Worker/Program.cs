@@ -129,7 +129,6 @@ builder.Services.AddHttpClient<TojClient>(
             ?? throw new InvalidOperationException(
                 "Toj:ApiKey is missing.");
 
-
         client.BaseAddress = new Uri(baseUrl);
 
         client.DefaultRequestHeaders.Add(

@@ -1,4 +1,4 @@
-﻿using AutomationStation.Application.Abstractions;
+using AutomationStation.Application.Abstractions;
 using AutomationStation.Application.Models;
 using AutomationStation.Core.Automations.Systems;
 using AutomationStation.Core.Automations.Thens;
@@ -23,6 +23,22 @@ namespace AutomationStation.Infrastructure.Actions.Executors
 
         public TargetSystem TargetSystem => TargetSystem.Kanban;
 
+        /// <summary>
+        /// Creates a placement in the Kanban system for the entity referenced by the triggering event.
+        /// </summary>
+        /// <remarks>The entity id is read from the event payload (<c>payload.entityId</c>), while the board
+        /// and column to place it in come from the action's parameters. The event's correlation, causation, and
+        /// actor metadata are forwarded to the Kanban request so the created placement can be traced back to
+        /// this automation run.</remarks>
+        /// <param name="then">The configured action; its parameters must contain the <c>boardId</c> and
+        /// <c>columnId</c> GUIDs identifying where the entity is placed.</param>
+        /// <param name="context">The action context providing the triggering event and the execution id.</param>
+        /// <param name="cancellationToken">A token used to cancel the Kanban request while it is in flight.</param>
+        /// <returns>A task that completes when the placement has been created in the Kanban system.</returns>
+        /// <exception cref="InvalidOperationException">The event payload lacks a <c>payload.entityId</c> value,
+        /// or the value is not a valid GUID.</exception>
+        /// <exception cref="FormatException">A <c>boardId</c> or <c>columnId</c> parameter is not a valid
+        /// GUID.</exception>
         public async Task ExecuteAsync(
             Then then,
             ActionContext context,

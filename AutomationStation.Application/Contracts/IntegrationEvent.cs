@@ -1,13 +1,19 @@
-﻿using AutomationStation.Application.Models;
-using AutomationStation.Core.Automations.Systems;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
+
+using AutomationStation.Application.Models;
+using AutomationStation.Core.Automations.Systems;
 
 namespace AutomationStation.Application.Contracts
 {
     /// <summary>
-    /// Record<c>IntegrationEvent</c> represents the data 
+    /// Record <c>IntegrationEvent</c> represents an event published by a source system and consumed by the automation
+    /// worker.
     /// </summary>
+    /// <remarks>Serialized to camelCase JSON (see the <see cref="JsonPropertyNameAttribute"/> on each parameter) and
+    /// carried over RabbitMQ, so the same record round-trips between the publishing system and this worker. The event,
+    /// correlation and causation identifiers together with the actor make the chain of events that led to an automation
+    /// execution traceable; the payload holds the event-specific data and is not interpreted by the envelope itself.</remarks>
     /// <param name="EventId">The Id of the event, generated anew for each event.</param>
     /// <param name="EventType">The type of event, e.g. "PlacementCreated".</param>
     /// <param name="Source">The system the event originates from, see <see cref="SourceSystem"/>.</param>

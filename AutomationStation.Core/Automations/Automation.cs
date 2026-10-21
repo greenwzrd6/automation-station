@@ -1,4 +1,4 @@
-﻿using AutomationStation.Core.Automations.Thens;
+using AutomationStation.Core.Automations.Thens;
 using AutomationStation.Core.Automations.Whens;
 
 namespace AutomationStation.Core.Automations
@@ -27,11 +27,17 @@ namespace AutomationStation.Core.Automations
         public When When { get; } = when;
         public IReadOnlyCollection<Then> Thens { get; } = thens.ToList().AsReadOnly();
 
+        /// <summary>
+        /// Enables the automation so that matching events will trigger it.
+        /// </summary>
         public void Enable()
         {
             IsEnabled = true;
         }
 
+        /// <summary>
+        /// Disables the automation so that it is no longer triggered by events.
+        /// </summary>
         public void Disable()
         {
             IsEnabled = false;

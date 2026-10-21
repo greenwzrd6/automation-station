@@ -1,4 +1,6 @@
-﻿using AutomationStation.Application.Abstractions;
+﻿using Dapper;
+
+using AutomationStation.Application.Abstractions;
 using AutomationStation.Application.Contracts;
 using AutomationStation.Application.Models;
 using AutomationStation.Core.Automations.Systems;
@@ -6,12 +8,11 @@ using AutomationStation.Core.Automations.Thens;
 using AutomationStation.Infrastructure.Actions;
 using AutomationStation.Infrastructure.Persistence;
 using AutomationStation.Integration.Tests.Fixtures;
-using Dapper;
 
 namespace AutomationStation.Integration.Tests.Actions
 {
     [Collection(DatabaseCollection.Name)]
-    public class ActionDispatcherTests(DatabaseFixture database)
+    public sealed class ActionDispatcherTests(DatabaseFixture database)
     {
         private readonly DatabaseFixture _database = database;
 

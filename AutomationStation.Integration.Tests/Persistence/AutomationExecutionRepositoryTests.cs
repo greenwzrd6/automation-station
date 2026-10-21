@@ -1,7 +1,9 @@
-﻿using AutomationStation.Infrastructure.Persistence;
-using AutomationStation.Integration.Tests.Fixtures;
-using Dapper;
+﻿using Dapper;
+
 using System.Data.Common;
+
+using AutomationStation.Infrastructure.Persistence;
+using AutomationStation.Integration.Tests.Fixtures;
 
 namespace AutomationStation.Integration.Tests.Persistence
 {

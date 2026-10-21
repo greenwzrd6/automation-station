@@ -1,4 +1,11 @@
-﻿using AutomationStation.Application.Abstractions;
+﻿using Dapper;
+
+using Microsoft.Extensions.Logging.Abstractions;
+
+using System.Data.Common;
+using System.Text.Json;
+
+using AutomationStation.Application.Abstractions;
 using AutomationStation.Application.Contracts;
 using AutomationStation.Application.Events;
 using AutomationStation.Application.Models;
@@ -10,10 +17,6 @@ using AutomationStation.Infrastructure.Actions;
 using AutomationStation.Infrastructure.Limiting;
 using AutomationStation.Infrastructure.Persistence;
 using AutomationStation.Integration.Tests.Fixtures;
-using Dapper;
-using Microsoft.Extensions.Logging.Abstractions;
-using System.Data.Common;
-using System.Text.Json;
 
 namespace AutomationStation.Integration.Tests.EndToEnd
 {
