@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.Time.Testing;
 
 using AutomationStation.Application.Abstractions;
-using AutomationStation.Infrastructure.Limiting;
 using AutomationStation.Core.Automations.Systems;
+using AutomationStation.Infrastructure.Limiting;
 
 namespace AutomationStation.Unit.Tests.Infrastructure.Limiting
 {

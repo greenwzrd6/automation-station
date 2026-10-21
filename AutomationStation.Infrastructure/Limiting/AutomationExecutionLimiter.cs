@@ -1,18 +1,37 @@
 using Dapper;
 
 using AutomationStation.Application.Abstractions;
-using AutomationStation.Infrastructure.Database;
 using AutomationStation.Application.Models;
+using AutomationStation.Infrastructure.Database;
 using AutomationStation.Infrastructure.Persistence;
 
 namespace AutomationStation.Infrastructure.Limiting
 {
+    /// <summary>
+    /// Rate limiter that records automation executions in the AutomationHistory table and rejects automations that
+    /// exceed the allowed number of executions per correlation within a rolling time window.
+    /// </summary>
+    /// <remarks>Enforcement happens inside a single serializable-style transaction: the recent-execution count is read
+    /// with <c>UPDLOCK, HOLDLOCK</c> so concurrent recordings for the same automation and correlation are serialized.
+    /// When the limit is exceeded nothing is recorded and the call returns <see langword="false"/>; otherwise a
+    /// timestamp row is inserted and committed, returning <see langword="true"/>.</remarks>
     public sealed class AutomationExecutionLimiter(
         DbConnectionFactory connectionFactory)
         : IAutomationExecutionLimiter
     {
         private readonly DbConnectionFactory _connectionFactory = connectionFactory;
 
+        /// <summary>
+        /// Attempts to record an execution for the given automation and correlation, enforcing the per-window limit.
+        /// </summary>
+        /// <remarks>Counts <c>AutomationHistory</c> rows for the same automation id and correlation id triggered within
+        /// the last 3 minutes. If that count has reached the limit (10,000), the transaction is rolled back and no row
+        /// is written; otherwise a timestamp row for the context is inserted and the transaction is committed.</remarks>
+        /// <param name="context">The automation and event pairing whose execution is being recorded; supplies the
+        /// automation id and correlation id used for both counting and recording.</param>
+        /// <param name="cancellationToken">A token used to cancel the connection, transaction, or queries.</param>
+        /// <returns>A task that completes with <see langword="true"/> when the execution was recorded, or
+        /// <see langword="false"/> when the actor has reached the limit for the current window.</returns>
         public async Task<bool> TryRecordExecutionAsync(
             EvaluationContext context,
             CancellationToken cancellationToken)

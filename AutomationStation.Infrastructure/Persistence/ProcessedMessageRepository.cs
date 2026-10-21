@@ -5,6 +5,13 @@ using AutomationStation.Infrastructure.Database;
 
 namespace AutomationStation.Infrastructure.Persistence
 {
+    /// <summary>
+    /// Tracks processed integration message identifiers in the ProcessedMessages table to enforce at-most-once
+    /// handling.
+    /// </summary>
+    /// <remarks>Each method opens its own connection through <see cref="DbConnectionFactory"/>. Processing timestamps
+    /// are recorded as UTC via SYSUTCDATETIME. Inserting a message identifier that is already present will violate
+    /// the table's primary key and surface as a database error.</remarks>
     public sealed class ProcessedMessageRepository(
         DbConnectionFactory connectionFactory)
         : IProcessedMessageRepository
@@ -12,6 +19,13 @@ namespace AutomationStation.Infrastructure.Persistence
         private readonly DbConnectionFactory _connectionFactory =
             connectionFactory;
 
+        /// <summary>
+        /// Determines whether a message with the given identifier has already been recorded as processed.
+        /// </summary>
+        /// <param name="messageId">Identifier of the message to look up in the ProcessedMessages table.</param>
+        /// <param name="cancellationToken">A token used to cancel the database call.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result is <see langword="true"/> if a
+        /// matching row exists; otherwise, <see langword="false"/>.</returns>
         public async Task<bool> HasProcessedAsync(
             Guid messageId,
             CancellationToken cancellationToken)
@@ -44,6 +58,12 @@ namespace AutomationStation.Infrastructure.Persistence
                     cancellationToken: cancellationToken));
         }
 
+        /// <summary>
+        /// Records a message identifier as processed with the current UTC timestamp.
+        /// </summary>
+        /// <param name="messageId">Identifier of the message to insert into the ProcessedMessages table.</param>
+        /// <param name="cancellationToken">A token used to cancel the database call.</param>
+        /// <returns>A task that completes when the row has been inserted.</returns>
         public async Task MarkProcessedAsync(
             Guid messageId,
             CancellationToken cancellationToken)

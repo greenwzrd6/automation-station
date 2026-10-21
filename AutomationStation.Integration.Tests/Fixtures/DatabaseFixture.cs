@@ -1,8 +1,12 @@
-﻿using AutomationStation.Infrastructure.Database;
-using Dapper;
-using Microsoft.Data.SqlClient;
+﻿using Dapper;
+
 using Respawn;
+
 using Testcontainers.MsSql;
+
+using Microsoft.Data.SqlClient;
+
+using AutomationStation.Infrastructure.Database;
 
 namespace AutomationStation.Integration.Tests.Fixtures
 {

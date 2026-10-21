@@ -1,13 +1,15 @@
-﻿using AutomationStation.Application.Contracts;
+﻿using Dapper;
+
+using System.Data.Common;
+using System.Text.Json;
+
+using AutomationStation.Application.Contracts;
 using AutomationStation.Application.Models;
 using AutomationStation.Core.Automations;
 using AutomationStation.Core.Automations.Systems;
 using AutomationStation.Core.Automations.Whens;
 using AutomationStation.Infrastructure.Persistence;
 using AutomationStation.Integration.Tests.Fixtures;
-using Dapper;
-using System.Data.Common;
-using System.Text.Json;
 
 namespace AutomationStation.Integration.Tests.Persistence
 {

@@ -1,11 +1,14 @@
 ﻿using Moq;
+
+using Microsoft.Extensions.Logging;
+
+using System.Text.Json;
+
 using AutomationStation.Application.Abstractions;
 using AutomationStation.Application.Contracts;
+using AutomationStation.Application.Events;
 using AutomationStation.Application.Models;
 using AutomationStation.Core.Automations.Systems;
-using Microsoft.Extensions.Logging;
-using System.Text.Json;
-using AutomationStation.Application.Events;
 
 namespace AutomationStation.Unit.Tests.Infrastructure.Messaging
 {

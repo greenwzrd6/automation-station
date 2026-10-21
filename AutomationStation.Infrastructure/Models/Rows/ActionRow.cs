@@ -1,7 +1,12 @@
-﻿using AutomationStation.Core.Automations.Systems;
+using AutomationStation.Core.Automations.Systems;
 
 namespace AutomationStation.Infrastructure.Models.Rows
 {
+    /// <summary>
+    /// Row model mapping a single stored automation action, including its type, target system, and configuration.
+    /// </summary>
+    /// <remarks>Mutable record used as a data-transfer shape when reading action rows from the database; property
+    /// names align with the corresponding table columns.</remarks>
     public sealed record ActionRow
     {
         public Guid AutomationId { get; set; }

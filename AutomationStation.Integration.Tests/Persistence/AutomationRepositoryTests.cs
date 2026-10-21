@@ -1,13 +1,14 @@
-﻿using AutomationStation.Core.Automations.Systems;
+﻿using Dapper;
+
+using System.Data.Common;
+
+using AutomationStation.Core.Automations.Systems;
 using AutomationStation.Core.Automations.Whens;
 using AutomationStation.Infrastructure.Persistence;
 using AutomationStation.Integration.Tests.Fixtures;
-using Dapper;
-using System.Data.Common;
 
 namespace AutomationStation.Integration.Tests.Persistence
 {
-
     /// <summary>
     /// Class <c>AutomationRepositoryTests</c> is the test class for <c>AutomationRepository</c>
     /// </summary>

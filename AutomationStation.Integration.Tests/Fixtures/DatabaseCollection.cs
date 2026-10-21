@@ -1,6 +1,5 @@
 ﻿namespace AutomationStation.Integration.Tests.Fixtures
 {
-
     /// <summary>
     /// Class <c>DatabaseCollection</c> shows xUnit which of the tests that should use the <c>DatabaseFixture</c>
     /// </summary>
